@@ -94,123 +94,61 @@ public class Player extends Mob{
 	public void drawinv(Graphics2D g, Point m) {
 		g.setColor(Color.red);
 		if(inv.size()>0) {
-			inv.get(0).draw(g, 1050, 430, 80, 80, m, false);
+			inv.get(0).draw(g, Frame.DIMX - 190, Frame.DIMY - 210, 80, 80, m, false);
 		} else {
-			g.drawRect(1050, 430, 80, 80);
+			g.drawRect(Frame.DIMX - 190, Frame.DIMY - 210, 80, 80);
 		}
 		if(inv.size()>1) {
-			inv.get(1).draw(g, 1140, 430, 80, 80, m, false);
+			inv.get(1).draw(g, Frame.DIMX - 100, Frame.DIMY - 210, 80, 80, m, false);
 		} else {
-			g.drawRect(1140, 430, 80, 80);
+			g.drawRect(Frame.DIMX - 100, Frame.DIMY - 210, 80, 80);
 		} 
 		if(inv.size()>2) {
-			inv.get(2).draw(g, 960, 520, 80, 80, m, false);
+			inv.get(2).draw(g, Frame.DIMX - 280, Frame.DIMY - 120, 80, 80, m, false);
 		} else {
-			g.drawRect(960, 520, 80, 80);
+			g.drawRect(Frame.DIMX - 280, Frame.DIMY - 120, 80, 80);
 		}
 		if(inv.size()>3) {
-			inv.get(3).draw(g, 1050, 520, 80, 80, m, false);
+			inv.get(3).draw(g, Frame.DIMX - 190, Frame.DIMY - 120, 80, 80, m, false);
 		} else {
-			g.drawRect(1050, 520, 80, 80);
+			g.drawRect(Frame.DIMX - 190, Frame.DIMY - 120, 80, 80);
 		}
 		if(inv.size()>4) {
-			inv.get(4).draw(g, 1140, 520, 80, 80, m, false);
+			inv.get(4).draw(g, Frame.DIMX - 100, Frame.DIMY - 120, 80, 80, m, false);
 		} else {
-			g.drawRect(1140, 520, 80, 80);
+			g.drawRect(Frame.DIMX - 100, Frame.DIMY - 120, 80, 80);
 		}
-		weapon.draw(g, 958, 428, 84, 84, m, false);
+		weapon.draw(g, Frame.DIMX - 280, Frame.DIMY - 210, 80, 80, m, false);
 	}
-	public void drawinv(Graphics2D g) {
-		g.setColor(Color.red);
-		if(inv.size()>0) {
-			inv.get(0).draw(g, 1050, 430, 80, 80);
-		} else {
-			g.drawRect(1050, 430, 80, 80);
-		}
-		if(inv.size()>1) {
-			inv.get(1).draw(g, 1140, 430, 80, 80);
-		} else {
-			g.drawRect(1140, 430, 80, 80);
-		} 
-		if(inv.size()>2) {
-			inv.get(2).draw(g, 960, 520, 80, 80);
-		} else {
-			g.drawRect(960, 520, 80, 80);
-		}
-		if(inv.size()>3) {
-			inv.get(3).draw(g, 1050, 520, 80, 80);
-		} else {
-			g.drawRect(1050, 520, 80, 80);
-		}
-		if(inv.size()>4) {
-			inv.get(4).draw(g, 1140, 520, 80, 80);
-		} else {
-			g.drawRect(1140, 520, 80, 80);
-		}
-		weapon.draw(g, 958, 428, 84, 84);
-	}
-//	@Override
-//	public void move() {
-//		if(!dead) {
-//			lvlup();
-//			double hp = totalhealth();
-//			if( debuffs[Debuff.POISON].duration > 0 ) {
-//        debuffs[Debuff.POISON].duration--;
-//        damagefrompoison += debuffs[Debuff.POISON].damage*100;
-//        if( damage(debuffs[Debuff.POISON].damage) ) {
-//          clearDebuffs();
-//        }
-//      }
-//			if(health+regen()<=hp) {
-//				hpup+=regen();
-//			} else {
-//				hpup+=hp-health;
-//			}
-//			if(hpup>=1) {
-//				health+=hpup;
-//				hpup = hpup-(int)hpup;
-//			}
-//			if(hpup<0) {
-//				hpup = 0;
-//			}
-//
-//      // can only move and attack if not stunned
-//			if( debuffs[Debuff.STUN].duration > 0 ) {
-//        debuffs[Debuff.STUN].duration --;
-//      }
-//			else {
-//  			int col = myworld.collides(this);
-//  			if( col != World.CANTMOVE) {
-//  				x += xspeed;
-//  				y += yspeed;
-//  				if(col>0 ) {
-//  					if(this.level>col)
-//  						money+=1+col*2/(this.level-col);
-//  					else 
-//  						money+=1+col+(col-this.level);
-//  				}
-//  			}
-//  			if(attack!=null && acd<0 && att && !inshop) {
-//  				Hit hit = attack(attack);
-//  				if(hit.damage > 0) {
-//  					experience+=(hit.damage*(100+intelligence())*.01);
-//  				} 
-//  				if(hit.kill) {
-//  					experience+=hit.leveloftarget*10*(100+intelligence())*.01;
-//  				} 
-//  				acd = (int) (adelay()*woradelay);
-//  				if(weapon.continuous)  {
-//  					acd = 0;
-//  				}
-//  			} else if(inshop) {
-//  				
-//  			}
-//			}
-//			acd--;
-//			adraw--;
-//		}
+//	public void drawinv(Graphics2D g) {
+//		g.setColor(Color.red);
+//		if(inv.size()>0) {
+//      inv.get(0).draw(g, Frame.DIMX - 190, Frame.DIMY - 210, 80, 80);
+//    } else {
+//      g.drawRect(Frame.DIMX - 190, Frame.DIMY - 210, 80, 80);
+//    }
+//    if(inv.size()>1) {
+//      inv.get(1).draw(g, Frame.DIMX - 100, Frame.DIMY - 210, 80, 80);
+//    } else {
+//      g.drawRect(Frame.DIMX - 100, Frame.DIMY - 210, 80, 80);
+//    } 
+//    if(inv.size()>2) {
+//      inv.get(2).draw(g, Frame.DIMX - 280, Frame.DIMY - 120, 80, 80);
+//    } else {
+//      g.drawRect(Frame.DIMX - 280, Frame.DIMY - 120, 80, 80);
+//    }
+//    if(inv.size()>3) {
+//      inv.get(3).draw(g, Frame.DIMX - 190, Frame.DIMY - 120, 80, 80);
+//    } else {
+//      g.drawRect(Frame.DIMX - 190, Frame.DIMY - 120, 80, 80);
+//    }
+//    if(inv.size()>4) {
+//      inv.get(4).draw(g, Frame.DIMX - 100, Frame.DIMY - 120, 80, 80);
+//    } else {
+//      g.drawRect(Frame.DIMX - 100, Frame.DIMY - 120, 80, 80);
+//    }
+//		weapon.draw(g, Frame.DIMX - 282, Frame.DIMY - 210, 84, 84);
 //	}
-	
 	
 	@Override
 	public void tic(World w) {
