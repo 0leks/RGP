@@ -79,12 +79,12 @@ public class Weapon extends Item {
 		} else if(name.contains("dragon")) {
 			rank = 7;
 		}
-		int multiplier = (int) Math.pow(rank, 1.7);
+		int multiplier = (int) Math.pow(rank, 2);
 		if (name.contains("bomb")) {
 			width = 200+40*rank;
 			length = 200+40*rank;
 			range = 2*rank;
-			addbuff("dmg", 5+6*rank, true);
+			addbuff("dmg", 5+6*multiplier, true);
       Debuff d = new Debuff( Debuff.STUN, 10 + rank*2, .5);
       debuffs.add(d);
 			cost = 100+12*multiplier;
@@ -93,8 +93,8 @@ public class Weapon extends Item {
 			width = 45+10*rank;
 			length = 45+10*rank;
 			range = rank*2;
-			addbuff("dmg", 4+2*rank, true);
-			addbuff("str", 5+4*rank, true);
+			addbuff("dmg", 4+3*multiplier, true);
+			addbuff("str", 5+5*multiplier, true);
 			addcrit(5+rank, 100+35*rank);
       Debuff d = new Debuff( Debuff.STUN, 20 + rank*6, .8);
       debuffs.add(d);
@@ -104,8 +104,8 @@ public class Weapon extends Item {
 			width = 40+3*rank;
 			length = 40+3*rank;
 			range = rank/2;
-			addbuff("dmg", 2+rank, true);
-			addbuff("hp", 10+rank*10, true);
+			addbuff("dmg", 2+multiplier, true);
+			addbuff("hp", 10+multiplier*12, true);
 			addbuff("adelay", 100-7*rank, false);
 			cost = multiplier;
 		}
@@ -113,8 +113,8 @@ public class Weapon extends Item {
 			width = 100+12*rank;
 			length = 20+8*rank;
 			range = 2*rank;
-			addbuff("dmg", 3+rank*2, true);
-			addbuff("int", 1+2*rank, true);
+			addbuff("dmg", 3+multiplier*3, true);
+			addbuff("int", 1+3*multiplier, true);
       Debuff d = new Debuff( Debuff.STUN, 12, .8 - rank/20.0);
       debuffs.add(d);
 			cost = 5*multiplier;
@@ -123,11 +123,11 @@ public class Weapon extends Item {
 			width = 20+5*rank;
 			length = 40+6*rank;
 			range = (int) (1.5*rank);
-			addbuff("dmg", 3+rank, true);
-			addbuff("agi", 1+rank, true);
-			addbuff("adelay", 100-5*rank, false);
-      Debuff d = new Debuff( Debuff.POISON, 10 + multiplier);
-      d.damage = 1 + rank*5/16;
+			addbuff("dmg", 3+2*multiplier, true);
+			addbuff("agi", 1+1*multiplier/2, true);
+			addbuff("adelay", 100-6*rank, false);
+      Debuff d = new Debuff( Debuff.POISON, 10 + multiplier/2);
+      d.damage = 2;
       debuffs.add(d);
 			cost = 6*multiplier;
 		}
@@ -135,19 +135,19 @@ public class Weapon extends Item {
 			width = 120+12*rank;
 			length = 30+8*rank;
 			range = 30+0*rank;
-			addbuff("dmg", 4+rank*3, true);
-			addbuff("int", 2+3*rank, true);
+			addbuff("dmg", 4+multiplier*4, true);
+			addbuff("int", 2+4*multiplier, true);
       Debuff d = new Debuff( Debuff.STUN, 12, .75 - rank/20.0);
       debuffs.add(d);
-      //add new debuff weakness next attack deals less damage
+      //TODO add new debuff weakness next attack deals less damage
 			cost = 10*multiplier;
 		}
 		if (name.contains("spear")) {
 			width = 20+5*rank;
 			length = 98+12*rank;
 			range = 5+3*rank;
-			addbuff("dmg", 2+rank*2, true);
-			addbuff("reg", 4+4*rank, true);
+			addbuff("dmg", 2+multiplier*3, true);
+			addbuff("reg", 4+5*multiplier, true);
 			addcrit(10+5*rank, 100+10*rank);
 			cost = 7*multiplier;
 		}

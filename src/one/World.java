@@ -91,7 +91,7 @@ public class World implements Serializable {
 		sounds.add(new SoundArea(arena) {
 			@Override
 			public boolean in(int x, int y) {
-				if(x>-1200 && x<-70 && y>0 && y<1000) {
+				if(x>-1200 && x<-70 && y>100 && y<1000) {
 					return true;
 				}
 				return false;
@@ -209,7 +209,7 @@ public class World implements Serializable {
 		messages.add(new Message(s, time));
 	}
 	public void newgame(String race, String weapon) {
-	  //weapon = "wooden battleaxe";
+	  weapon = "fist";
 		initPlayer(400, 400, weapon, 15, new ArrayList<Item>(), race, 0);
 //		initPlayer(200, -3400, weapon, 15, new ArrayList<Item>(), race, 0);
 		//TODO INITPLAYER
@@ -888,8 +888,8 @@ public class World implements Serializable {
 			drawStat(g, x2, yy, "Strength", p.strength());
 			drawStat(g, x1, yy+=35, "Speed", p.accel());
 			drawStat(g, x2, yy, "Regen", p.regen()*100);
-			//drawStat(g, x1, yy+=35, "X", p.x);
-			//drawStat(g, 1010, yy, "Y", p.y);
+			drawStat(g, x1, yy+=35, "X", p.x);
+			drawStat(g, x2, yy, "Y", p.y);
 			drawStat(g, x2, yy+=35, "Armor", 100-p.damagetaken);
 			drawStat(g, x1, yy+=35, "Level", p.level);
 			drawStat(g, x2, yy, "Experience", p.experience);
@@ -1379,6 +1379,7 @@ public class World implements Serializable {
 		
 		walls.add(new Sign(1200, 800, 145, 40, this, "baseright", "Training"));
 		
+		// TODO separate wood and iron shop
 		shoptoadd = new Shop(1200, 150, 400, 100, this, "Wooden / Iron");
 		shops.add(shoptoadd);
 		for(int a=1; a<=2; a++) {
@@ -1641,52 +1642,74 @@ public class World implements Serializable {
 	public void loadraces() {
 		Frame.print("Loading Races: ");
 		races = new ArrayList<Race>();
-		races.add(new Race("Elf", 4, 6, .1, 
-				25, 30, 11, 6, 
+		// name, agility increase, strength increase, damage increase
+		// agility, strength, intelligence, damage
+		// health, speed, regen
+		// width, height, armor
+		races.add(new Race("Elf", 4, 7, .1, 
+				25, 30, 12, 6, 
 				20, 8, .01, 
 				36, 36, 3));
 		
-		races.add(new Race("Human", 3, 8, .2, 
-				20, 40, 10, 7, 
+		races.add(new Race("Human", 3, 9, .2, 
+				20, 40, 11, 7, 
 				25, 6, .05, 
 				38, 38, 4));
 		
-		races.add(new Race("Dwarf", 2, 10, .3, 
-				15, 50, 9, 9, 
+		races.add(new Race("Dwarf", 2, 11, .3, 
+				15, 50, 10, 9, 
 				30, 5, .1, 
 				40, 40, 5));
 		
-		races.add(new Race("Warrior", 3, 8, .5, 
+		races.add(new Race("Warrior", 3, 9, .5, 
 				25, 50, 9, 10, 
 				30, 6, .09, 
 				39, 39, 10));
 		
-		races.add(new Race("Patrol", 3, 8, .5, 
+		races.add(new Race("Patrol", 3, 9, .5, 
 				25, 50, 9, 10, 
 				30, 15, .09, 
 				39, 39, 10));
 		
-		races.add(new Race("Scholar", 3, 7, .1,
+		races.add(new Race("Scholar", 3, 8, .1,
 				18, 38, 30, 6, 
 				24, 6, .04, 
 				37, 37, 5));
 		
-		races.add(new Race("Assassin", 1, 4, 1.5, 
+		races.add(new Race("Assassin", 1, 5, 1.5, 
 				30, 30, 10, 10, 
 				20, 8, .09, 
 				35, 35, 2));
 			
-		races.add(new Race("Super_Ninja", 12, 16, 3,
-				10, 30, 20, 5,
+		races.add(new Race("Super_Ninja", 12, 18, 3,
+				10, 30, 25, 5,
 				20, 10, .05,
 				38, 38, 4));
 		
-		races.add(new Race("Goat", 2, 2, 1, 100, 10, 1, 15, 10, 10, 1, 25, 25, 3));
-		races.add(new Race("Snitch", 1, 0, 1, 1, 1, 1, 10, 1, 28, 0, 10, 10, 3));
-		races.add(new Race("bigboss", 5, 12, 2, 50, 100, 15, 10, 100, 0, .5, 180, 180, 25));
-		races.add(new Race("fatdummy", 0, 10, 0, 1, 150, 1, 1, 150, 4, 1, 60, 60, 10));
-		races.add(new Race("smalldummy", 0, 20, 0, 100, 15, 1, 1, 1, 8, 0, 40, 40, 1));
-		races.add(new Race("Baal", 0, 0, 0, 999999, 999999, 999999, 999999, 999999, 50, 999999, 50, 50, 99));
+		races.add(new Race("Goat", 2, 3, 1, 
+		    100, 10, 1, 15, 
+		    10, 10, 1, 
+		    25, 25, 3));
+		races.add(new Race("Snitch", 1, 1, 1, 
+		    1, 1, 1, 10, 
+		    1, 25, 0, 
+		    1, 10, 3));
+		races.add(new Race("bigboss", 5, 13, 2, 
+		    50, 100, 16, 10, 
+		    100, 0, .5, 
+		    180, 180, 25));
+		races.add(new Race("fatdummy", 0, 11, 0, 
+		    1, 150, 1, 1, 
+		    150, 4, 1, 
+		    60, 60, 10));
+		races.add(new Race("smalldummy", 0, 21, 0, 
+		    100, 15, 1, 1, 
+		    1, 8, 0, 
+		    40, 40, 1));
+		races.add(new Race("Baal", 0, 0, 0, 
+		    999999, 999999, 0, 999999, 
+		    999999, 50, 999999, 
+		    50, 50, 99));
 		for(Race race : races) {
 			Frame.print(race.name + ", ");
 		}

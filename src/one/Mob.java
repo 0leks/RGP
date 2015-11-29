@@ -26,6 +26,8 @@ public class Mob extends Thing{
 	protected static final int ATTACKDOWN = 2;
 	protected static final int ATTACKLEFT = 3;
 	
+	public static final int STR_HEALTH_MULTIPLIER = 2;
+	
 	protected int adraw;
 	protected boolean att;
 	protected int acd;
@@ -52,7 +54,6 @@ public class Mob extends Thing{
 	
 	protected int totalhealthbuff;
 	protected double worhealth;
-	
 	
 	protected double woradelay;
 	
@@ -134,11 +135,7 @@ public class Mob extends Thing{
 	}
 	public void addcrit(Crit c) {
 		boolean added = false;
-		//crits.add(0, c);
-		//System.out.println("Crit:"+crits.get(0).toString());
 		for(int a=0; a<crits.size(); a++) {
-//			if(this instanceof Player)
-//				System.out.println("Crit:"+crits.get(a).toString());
 			if(c.damage>=crits.get(a).damage) {
 				crits.add(a, c);
 				added = true;
@@ -207,11 +204,11 @@ public class Mob extends Thing{
 	public void lvlup(String s, int n) {
 		if(s.equals("str")) {
 			strengthbuff+=n;
-			health+=n;
+			health+=STR_HEALTH_MULTIPLIER*n;
 		} 
 		if(s.equals("actstr")) {
 			actstrength+=n;
-			health+=n;
+			health+=STR_HEALTH_MULTIPLIER*n;
 		} 
 		if(s.equals("agi")) {
 			agilitybuff+=n;
@@ -640,9 +637,9 @@ public class Mob extends Thing{
 		int le = weapon.length;
 		int ra= weapon.range;
 		if(!att && acd<0) {
-			if(this instanceof Player) {
-				System.out.println("player is attacking " + dir);
-			}
+//			if(this instanceof Player) {
+//				System.out.println("player is attacking " + dir);
+//			}
 			if(dir.equals("up")) {
 				attackdirection = Mob.ATTACKUP;
 				attack = new Rectangle(x, y-ra-le/2-h/2, wi, le);
@@ -785,7 +782,7 @@ public class Mob extends Thing{
 			return 0;
 	}
 	public int totalhealth() {
-		return (int) ((strength()+totalhealthbuff)*worhealth);
+		return (int) ((strength()*STR_HEALTH_MULTIPLIER+totalhealthbuff)*worhealth);
 	}
 	public int accel() {
 		return (int) (accel*woraccel);

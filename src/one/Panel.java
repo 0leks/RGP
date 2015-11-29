@@ -361,14 +361,12 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 									gamestarted = true;
 								}
 								activemenu.setsel(1);
-								if(menu!=null) {
-									menu.fadeOut(.1);
+								if(World.playmusic ) {
+								  if( menu!=null) {
+								    menu.fadeOut(.1);
+								  }
 									world.changeSound(world.grass);
 								}
-//								if(sounds != null) {
-//									sounds.get(0).fadeOut(.1);
-//									sounds.get(1).fadeIn(.1);
-//								}
 							}
 						}
 						if(b.getmenu() != null) {
