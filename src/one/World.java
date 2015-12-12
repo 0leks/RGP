@@ -91,7 +91,7 @@ public class World implements Serializable {
 		sounds.add(new SoundArea(arena) {
 			@Override
 			public boolean in(int x, int y) {
-				if(x>-1200 && x<-70 && y>0 && y<1000) {
+				if(x>-1200 && x<-70 && y>100 && y<1000) {
 					return true;
 				}
 				return false;
@@ -209,7 +209,7 @@ public class World implements Serializable {
 		messages.add(new Message(s, time));
 	}
 	public void newgame(String race, String weapon) {
-	  //weapon = "wooden battleaxe";
+	  weapon = "fist";
 		initPlayer(400, 400, weapon, 15, new ArrayList<Item>(), race, 0);
 //		initPlayer(200, -3400, weapon, 15, new ArrayList<Item>(), race, 0);
 		//TODO INITPLAYER
@@ -348,11 +348,11 @@ public class World implements Serializable {
     // Draw the player
     drawPlayer(g, p);
 
-    // TODO
+    // Draw all the mobs
     Iterator<Mob> itmob = mobs().iterator();
     while( itmob.hasNext() ) {
     	Mob mob = itmob.next();
-    	mob.draw(g);
+    	drawMob(g, mob);
     }
 		
 		// Draw the signs
@@ -377,26 +377,131 @@ public class World implements Serializable {
 			}
 			
 		}
-    // TODO
-		for(Mob m :mobs) {
-			m.drawpopups(g);
+    // Draw the mob popups
+		itmob = mobs.iterator();
+		while( itmob.hasNext() ) {
+		  Mob m = itmob.next();
+		  drawPopups(g, m);
 		}
-    // TODO
-		p.drawpopups(g);
-		
+    // Draw the Player's popups
+		drawPopups(g, p);
 		drawgui(g);
-		
+	}
+	
+	// how far offscreen before start drawing things
+	public static final int DRAWCHECK = 50;
+	public int MINDRAWX, MINDRAWY, MAXDRAWX, MAXDRAWY;
+	
+	public void drawPopups( Graphics2D g, Mob mob ) {
+	  int drawx = (mob.x-p.x)/World.ZOOM+Frame.MIDX;
+    int drawy = (mob.y-p.y)/World.ZOOM+Frame.MIDY;
+    boolean draw = false;
+    if(drawx>MINDRAWX && drawx<MAXDRAWX && drawy>MINDRAWY && drawy<MAXDRAWY) {
+      draw = true;
+    }
+    Iterator<Popup> itpop = mob.popups.iterator();
+    while( itpop.hasNext() ) {
+      Popup pop = itpop.next();
+      g.setColor(pop.color);
+      if(draw)
+        g.drawString(pop.string, drawx+pop.x(), drawy+pop.y());
+      if(pop.drawn()) {
+        mob.popups.remove(pop);
+      }
+    }
+	}
+	public void drawMob( Graphics2D g, Mob mob) {
+	  int drawx = (mob.x-p.x)/World.ZOOM+Frame.MIDX;
+    int drawy = (mob.y-p.y)/World.ZOOM+Frame.MIDY;
+    int w = mob.w/World.ZOOM;
+    int h = mob.h/World.ZOOM;
+    //g.fill(dim());
+    if(mob.attack!=null && mob.adraw>=0) {
+      int nx = (mob.attack.x-p.x)/World.ZOOM+Frame.MIDX;
+      int ny = (mob.attack.y-p.y)/World.ZOOM+Frame.MIDY;
+      int nw = mob.attack.width/World.ZOOM;
+      int nh = mob.attack.height/World.ZOOM;
+      if(mob.attackdirection == 1 || mob.attackdirection==3) {
+        nw = mob.attack.height/World.ZOOM;
+        nh = mob.attack.width/World.ZOOM;
+      }
+      if(nx+nw>MINDRAWX && nx-nw<MAXDRAWX && ny+nh>MINDRAWY && ny-nh<MAXDRAWY) {
+        Color cur = g.getColor();
+        if(mob.hostile()) {
+          g.setColor(Color.red);
+        } else {
+          g.setColor(Color.green);
+        }
+        Graphics2D g2d = (Graphics2D)g;
+        g2d.translate(nx, ny);
+        g2d.rotate(Math.toRadians(mob.attackdirection*90));
+        if(mob.myworld.drawimage) {
+//          g2d.drawImage(weapon.image, nx, ny, nw, nh, null);
+          g2d.drawImage(mob.weapon.image, -nw/2, -nh/2, nw, nh, null);
+
+        }
+//        g.draw(new Rectangle(nx, ny, nw, nh));
+        g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
+        g.setColor(cur);
+        g2d.rotate(Math.toRadians((4-mob.attackdirection)*90));
+        g2d.translate(-nx, -ny);
+      }
+    } else {
+      mob.attackdirection = 0;
+    }
+    if(!mob.dead) {
+      g.setColor(Color.blue);
+    } else {
+      g.setColor(Color.black);
+    }
+    Color[] col = { g.getColor(), Color.red, new Color(0, 200, 0), Color.magenta, Color.cyan};
+    drawThing(g, mob, col);
+    int distx = 0;
+    int disty = 0;
+    if(draw3d) {
+      distx = (drawx-Frame.MIDX)/10/World.ZOOM;
+      disty = (drawy-Frame.MIDY)/10/World.ZOOM;
+    }
+    if(drawx>MINDRAWX && drawx<MAXDRAWX && drawy>MINDRAWY && drawy<MAXDRAWY && World.ZOOM == 1) {
+      g.setColor(Color.white);
+      int l = Integer.toString(mob.level).toCharArray().length;
+      g.drawString(mob.level+"", drawx-l*5+2+distx, drawy+g.getFont().getSize()/2-1+disty);
+      
+      g.setColor(new Color(200, 200, 200));
+      double f = (double)mob.health/mob.totalhealth();
+      g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, mob.whiteline/10, 8);
+      
+      if(mob.whiteline/10>(f*w))
+        mob.whiteline-=w/30;
+      if(mob.whiteline/10<f*w)
+        mob.whiteline = (int) (f*w*10);
+      
+      if(mob.hostile()) {
+        g.setColor(Color.red);
+      } else {
+        g.setColor(new Color( 0, 190, 20));
+      }
+      g.drawRect(drawx-w/2+distx, drawy-h/2-13+disty, w, 8);
+      g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, (int) (f*w), 8);
+      
+      if(mob instanceof Player) {
+        g.setColor(new Color(150, 150, 0));
+        g.drawRect(drawx-w/2, drawy-h/2-4, w, 4);
+        g.setColor(Color.yellow);
+        g.fillRect(drawx-w/2, drawy-h/2-4, (int) ((double)(mob.experience-mob.expatstartlvl)/(double)(mob.exptolvlup-mob.expatstartlvl)*w), 4);
+      }
+    }
 	}
 	public void drawPlayer( Graphics2D g, Player player ) {
-	  int drawx = 470;
-    int drawy = 310; 
+	  int drawx = Frame.MIDX;
+    int drawy = Frame.MIDY; 
     int w = player.w/World.ZOOM;
     int h = player.h/World.ZOOM;
     
     g.setColor(Color.green);
     if(player.attack!=null && player.adraw>=0) {
-      int nx = player.attack.x-p.x+470;
-      int ny = player.attack.y-p.y+310;
+      int nx = player.attack.x-p.x+Frame.MIDX;
+      int ny = player.attack.y-p.y+Frame.MIDY;
       int nw = player.attack.width;
       int nh = player.attack.height;
       if(player.attackdirection == 1 || player.attackdirection==3) {
@@ -461,25 +566,25 @@ public class World implements Serializable {
       }
       drawThing(g, obst, colors);
     } else if ( DRAWPLAYEROBSTACLES ) {
-      int drawx = (obst.x-p.x)/World.ZOOM+470;
-      int drawy = (obst.y-p.y)/World.ZOOM+310;
+      int drawx = (obst.x-p.x)/World.ZOOM + Frame.MIDX;
+      int drawy = (obst.y-p.y)/World.ZOOM + Frame.MIDY;
       g.drawRect(drawx-obst.w()/2/World.ZOOM, drawy-obst.h()/2/World.ZOOM, obst.w()/World.ZOOM, obst.h()/World.ZOOM);
     }
     if( obst instanceof Sign ) {
       Sign sign = (Sign) obst;
       int distx = 0;
       int disty = 0;
-      int drawx = (sign.x-p.x)/World.ZOOM+470;
-      int drawy = (sign.y-p.y)/World.ZOOM+310;
+      int drawx = (sign.x-p.x)/World.ZOOM + Frame.MIDX;
+      int drawy = (sign.y-p.y)/World.ZOOM + Frame.MIDY;
       int w = sign.w/World.ZOOM;
       int h = sign.h/World.ZOOM;
-      if(drawx+w/2>-50 && drawx-w/2<990 && drawy+h/2>-50 && drawy-h/2<670) {
+      if(drawx + w/2 >MINDRAWX && drawx - w/2 <MAXDRAWX && drawy + h/2 >MINDRAWY && drawy - h/2<MAXDRAWY) {
         Font cur = g.getFont();
         g.setFont(sign.font);
         g.setColor(Color.black);
         if(draw3d) {
-          distx = (drawx-470)/10;
-          disty = (drawy-310)/10;
+          distx = (drawx-Frame.MIDX)/10;
+          disty = (drawy-Frame.MIDY)/10;
         }
         g.drawImage(sign.skin, drawx-w/2+distx, drawy-h/2+disty, w, h, null);
         g.drawString(sign.message, drawx-w/2+1+sign.sx+distx, drawy+h/4+sign.sy+disty);
@@ -488,11 +593,11 @@ public class World implements Serializable {
     }
   }
 	public void drawShop( Graphics2D g, Shop shop ) {
-	  int drawx = (shop.x-p.x)/World.ZOOM+470;
-    int drawy = (shop.y-p.y)/World.ZOOM+310;
+	  int drawx = (shop.x-p.x)/World.ZOOM+Frame.MIDX;
+    int drawy = (shop.y-p.y)/World.ZOOM+Frame.MIDY;
     int w = shop.w/World.ZOOM;
     int h = shop.h/World.ZOOM;
-    if(drawx+w/2>0 && drawx-w/2<990 && drawy+h/2>0 && drawy-h/2<670) {
+    if(drawx + w/2 >MINDRAWX && drawx - w/2 <MAXDRAWX && drawy + h/2 >MINDRAWY && drawy - h/2<MAXDRAWY) {
       Color cur = g.getColor();
       g.setColor(Color.yellow);
       g.fill(new Rectangle(drawx-w/2, drawy-h/2, w, h));
@@ -502,9 +607,9 @@ public class World implements Serializable {
     }
 	}
   public void drawThing(Graphics2D g, Thing thing, Color[] colors) {
-    int drawx = (thing.x-p.x)/World.ZOOM+470;
-    int drawy = (thing.y-p.y)/World.ZOOM+310;
-    if(drawx+thing.w/2>0 && drawx-thing.w/2<990 && drawy+thing.h/2>0 && drawy-thing.h/2<670) {
+    int drawx = (thing.x-p.x)/World.ZOOM+Frame.MIDX;
+    int drawy = (thing.y-p.y)/World.ZOOM+Frame.MIDY;
+    if(drawx + thing.w/2 >MINDRAWX && drawx - thing.w/2 <MAXDRAWX && drawy + thing.h/2 >MINDRAWY && drawy - thing.h/2<MAXDRAWY) {
       g.setColor(colors[0]);
       int w = thing.w/World.ZOOM;
       int h = thing.h/World.ZOOM;
@@ -512,10 +617,9 @@ public class World implements Serializable {
       int distx = 0;
       int disty = 0;
       if(draw3d) {
-        distx = (drawx-470)/10;
-        disty = (drawy-310)/10;
+        distx = (drawx-Frame.MIDX)/10;
+        disty = (drawy-Frame.MIDY)/10;
         thing.poly.clear();
-        MyPolygon p;
 
         MyPolygon bottom = new MyPolygon(colors[1]);
         bottom.addPoint(drawx-w/2+distx+w, drawy-h/2+disty+h);
@@ -757,35 +861,41 @@ public class World implements Serializable {
 	public void drawgui(Graphics2D g) {
 		Color cur = g.getColor();
 		g.setColor(new Color(210, 180, 180));
-		g.fillRect(940, 0, 300, 620);
+		g.fillRect(Frame.DIMX-Frame.GUIWIDTH, 0, Frame.GUIWIDTH, Frame.DIMY);
 		Shop s = inshop();
+		
+		// draw health bar
     g.setColor(Color.red);
-    g.fillRect(0, Frame.DIMY-30, Frame.DIMX, 30);
+    g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, Frame.DIMX, Frame.GUIHEIGHT);
     g.setColor(new Color( 0, 190, 20));
-    g.fillRect(0, Frame.DIMY-30, (p.health()*Frame.DIMX/p.totalhealth()), 30);
+    g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, (p.health()*Frame.DIMX/p.totalhealth()), Frame.GUIHEIGHT);
+    
 		if(s == null) {
 			g.setColor(Color.black);
 			p.inshop = false;
 			selected = 0;
 			g.setColor(Color.black);
-			drawStat(g, 950, 30, "Health", p.health);
-			drawStat(g, 1080, 30, "TotalHealth", p.totalhealth());
-			drawStat(g, 950, 65, "Money", p.money);
-			drawStat(g, 1080, 65, "Attack Delay", p.adelay());
-			drawStat(g, 950, 100, "Damage", p.damage());
-			drawStat(g, 1080, 100, "Intelligence", p.intelligence());
-			drawStat(g, 950, 135, "Agility", p.agility());
-			drawStat(g, 1080, 135, "Strength", p.strength());
-			drawStat(g, 950, 170, "Speed", p.accel());
-			drawStat(g, 1080, 170, "Regen", p.regen()*100);
-			//drawStat(g, 950, 205, "X", p.x);
-			//drawStat(g, 1010, 205, "Y", p.y);
-			drawStat(g, 1080, 205, "Armor", 100-p.damagetaken);
-			drawStat(g, 950, 240, "Level", p.level);
-			drawStat(g, 1080, 240, "Experience", p.experience);
-			//drawStat(g, 950, 275, "Exptolvlup", p.exptolvlup);
-			drawStat(g, 1080, 275, "Expleft", p.exptolvlup-p.experience);
-			g.drawString("Race: "+p.race.name, 950, 310);
+			int yy = -5;
+			int x1 = Frame.DIMX - Frame.GUIWIDTH + 30;
+			int x2 = Frame.DIMX - Frame.GUIWIDTH + 130;
+			drawStat(g, x1, yy+=35, "Health", p.health);
+			drawStat(g, x2, yy, "TotalHealth", p.totalhealth());
+			drawStat(g, x1, yy+=35, "Money", p.money);
+			drawStat(g, x2, yy, "Attack Delay", p.adelay());
+			drawStat(g, x1, yy+=35, "Damage", p.damage());
+			drawStat(g, x2, yy, "Intelligence", p.intelligence());
+			drawStat(g, x1, yy+=35, "Agility", p.agility());
+			drawStat(g, x2, yy, "Strength", p.strength());
+			drawStat(g, x1, yy+=35, "Speed", p.accel());
+			drawStat(g, x2, yy, "Regen", p.regen()*100);
+			drawStat(g, x1, yy+=35, "X", p.x);
+			drawStat(g, x2, yy, "Y", p.y);
+			drawStat(g, x2, yy+=35, "Armor", 100-p.damagetaken);
+			drawStat(g, x1, yy+=35, "Level", p.level);
+			drawStat(g, x2, yy, "Experience", p.experience);
+			//drawStat(g, x1, yy+=35, "Exptolvlup", p.exptolvlup);
+			drawStat(g, x2, yy+=35, "Expleft", p.exptolvlup-p.experience);
+			g.drawString("Race: "+p.race.name, x1, yy+=35);
 		} else {
 			p.inshop = true;
 			drawshop(g, s);
@@ -794,7 +904,9 @@ public class World implements Serializable {
 		g.setColor(cur);
 	}
 	public Shop inshop() {
-		for(Shop s : shops) {
+	  Iterator<Shop> itshop = shops.iterator();
+	  while( itshop.hasNext() ) {
+	    Shop s = itshop.next();
 			if(s.dim().contains(p.dim())) {
 				return s;
 			}
@@ -802,7 +914,23 @@ public class World implements Serializable {
 		return null;
 	}
 	public void drawshop(Graphics2D g, Shop s) {
-		s.drawgui(g, selected, mouse);
+    g.setColor(Color.blue);
+    drawStat(g, Frame.DIMX-Frame.GUIWIDTH+20, 35, "Money", p.money);
+    for(int a=0; a<s.onsale.size(); a++) {
+      g.setColor(Color.blue);
+      Item i = s.onsale.get(a);
+      int xp = a%5;
+      int yp = a/5;
+      xp = Frame.DIMX-Frame.GUIWIDTH + 25 + xp*50;
+      yp = 50+yp*50;
+      i.draw(g, xp, yp, 40, 40, mouse, true);
+      
+      if( a == selected ) {
+        g.setColor(Color.red);
+        g.drawRect(xp-1, yp-1, 42, 42);
+        g.drawRect(xp-2, yp-2, 44, 44);
+      }
+    }
 	}
 	public void drawStat(Graphics2D g, int x, int y, String name, int val) {
 		if(val<=99999)
@@ -812,7 +940,7 @@ public class World implements Serializable {
 	}
 	public void drawStat(Graphics2D g, int x, int y, String name, double val) {
 		if(val<=99999)
-			g.drawString(name+": "+(int)(val*100)*.01, x, y);
+			g.drawString(name+": "+(int)(val*100)/100.0, x, y);
 		else
 			g.drawString(name+": -----", x, y);
 	}
@@ -841,10 +969,6 @@ public class World implements Serializable {
 		return to;
 	}
 	public void save(String slot) {
-
-		// TODO ADD SAVING OF DEAD MOBS DONE
-		// TODO ADD SAVING OF CURRENT HEALTH DONE
-		
 		
 		messages.add(new Message("saving", 50));
 		try {
@@ -911,7 +1035,7 @@ public class World implements Serializable {
 				StringTokenizer st = new StringTokenizer(line);
 				String name = st.nextToken();
 				if(name.equals("Player")) {
-					int xx = 0, yy = 0, agi = 0, str = 0, intel = 0, money = 0, accel = 0, health = 0;
+					int xx = 0, yy = 0, money = 0, /*agi = 0, str = 0, intel = 0, , accel = 0, */health = 0;
 					int exp = 0;
 					String race = "", weap = "";
 					ArrayList<Item> its = new ArrayList<Item>();
@@ -934,33 +1058,17 @@ public class World implements Serializable {
 					st = new StringTokenizer(inv);
 					int numofitems = Integer.parseInt(st.nextToken());
 					for(int b = 0; b<numofitems; b++) {
-//						st.nextToken();// opening curly brace
 						String nameofitem = st.nextToken();
 						nameofitem = nameofitem.replace('_', ' ');
 						int numoftheitem = Integer.parseInt(st.nextToken());
 						its.add(new Item(nameofitem, numoftheitem, this));
-//						st.nextToken();// closing curly brace
 					}
 					initPlayer(xx, yy, weap, money, its, race, exp, health);
 				}
 				if(name.equals("Mob")) {
 					String stats = line;
 					st = new StringTokenizer(stats);
-					Mob m = loadMob(st);
-//					int xx = 0, yy = 0, agi = 0, str = 0, intel = 0, money = 0, accel = 0, health = 0;
-//					int exp = 0;
-//					String race = "", weap = "", ai = "";
-//					st.nextToken();
-//					race = st.nextToken();
-//					exp = Integer.parseInt(st.nextToken());
-//					money = Integer.parseInt(st.nextToken());
-//					xx = Integer.parseInt(st.nextToken());
-//					yy = Integer.parseInt(st.nextToken());
-//					health = Integer.parseInt(st.nextToken());
-//					weap = st.nextToken().replace('_', ' ');
-//					ai = st.nextToken().replace('_', ' ');
-//					
-//					initMob(race, exp, money, xx, yy, health, weap, ai);
+					loadMob(st);
 				}
 				String skinloc = "";
 				String message = "";
@@ -972,7 +1080,8 @@ public class World implements Serializable {
 					}
 					skinloc = st.nextToken();
 					message = st.nextToken();
-					String troll = st.nextToken();
+					// need to skip a token for some reason
+					st.nextToken();
 					issign = true;
 				}
 				if(name.equals("Wall") || issign) {
@@ -1021,7 +1130,7 @@ public class World implements Serializable {
 					spawns.add(spa);
 				}
 			}
-			
+      buff.close();
 		} catch (Exception e) {// Catch exception if any
 			//System.err.println("Error: " + e.getMessage());
 			e.printStackTrace();
@@ -1031,10 +1140,10 @@ public class World implements Serializable {
 		System.out.println("Done loading");
 	}
 	public Mob loadMob(StringTokenizer st) {
-		int xx = 0, yy = 0, agi = 0, str = 0, intel = 0, money = 0, accel = 0, health = 0;
+		int xx = 0, yy = 0, /*agi = 0, str = 0, intel = 0, accel = 0, */money = 0, health = 0;
 		int exp = 0;
 		String race = "", weap = "", ai = "";
-//		System.out.println("skipped"+st.nextToken());
+//  Need to skip a token for some reason
 		st.nextToken();
 		race = st.nextToken();
 		exp = Integer.parseInt(st.nextToken());
@@ -1270,6 +1379,7 @@ public class World implements Serializable {
 		
 		walls.add(new Sign(1200, 800, 145, 40, this, "baseright", "Training"));
 		
+		// TODO separate wood and iron shop
 		shoptoadd = new Shop(1200, 150, 400, 100, this, "Wooden / Iron");
 		shops.add(shoptoadd);
 		for(int a=1; a<=2; a++) {
@@ -1498,7 +1608,7 @@ public class World implements Serializable {
 			int xsize = rand.nextInt(60)+10;
 			int ysize = rand.nextInt(60)+10;
 			
-			Rectangle di = new Rectangle(xp-xsize/2, yp-ysize/2, xsize, ysize);
+			//Rectangle di = new Rectangle(xp-xsize/2, yp-ysize/2, xsize, ysize);
 			int c = rand.nextInt(4);
 			Color co ;
 			if(c == 0) 
@@ -1532,52 +1642,74 @@ public class World implements Serializable {
 	public void loadraces() {
 		Frame.print("Loading Races: ");
 		races = new ArrayList<Race>();
-		races.add(new Race("Elf", 4, 6, .1, 
-				25, 30, 11, 6, 
+		// name, agility increase, strength increase, damage increase
+		// agility, strength, intelligence, damage
+		// health, speed, regen
+		// width, height, armor
+		races.add(new Race("Elf", 4, 7, .1, 
+				25, 30, 12, 6, 
 				20, 8, .01, 
 				36, 36, 3));
 		
-		races.add(new Race("Human", 3, 8, .2, 
-				20, 40, 10, 7, 
+		races.add(new Race("Human", 3, 9, .2, 
+				20, 40, 11, 7, 
 				25, 6, .05, 
 				38, 38, 4));
 		
-		races.add(new Race("Dwarf", 2, 10, .3, 
-				15, 50, 9, 9, 
+		races.add(new Race("Dwarf", 2, 11, .3, 
+				15, 50, 10, 9, 
 				30, 5, .1, 
 				40, 40, 5));
 		
-		races.add(new Race("Warrior", 3, 8, .5, 
+		races.add(new Race("Warrior", 3, 9, .5, 
 				25, 50, 9, 10, 
 				30, 6, .09, 
 				39, 39, 10));
 		
-		races.add(new Race("Patrol", 3, 8, .5, 
+		races.add(new Race("Patrol", 3, 9, .5, 
 				25, 50, 9, 10, 
 				30, 15, .09, 
 				39, 39, 10));
 		
-		races.add(new Race("Scholar", 3, 7, .1,
+		races.add(new Race("Scholar", 3, 8, .1,
 				18, 38, 30, 6, 
 				24, 6, .04, 
 				37, 37, 5));
 		
-		races.add(new Race("Assassin", 1, 4, 1.5, 
+		races.add(new Race("Assassin", 1, 5, 1.5, 
 				30, 30, 10, 10, 
 				20, 8, .09, 
 				35, 35, 2));
 			
-		races.add(new Race("Super_Ninja", 12, 16, 3,
-				10, 30, 20, 5,
+		races.add(new Race("Super_Ninja", 12, 18, 3,
+				10, 30, 25, 5,
 				20, 10, .05,
 				38, 38, 4));
 		
-		races.add(new Race("Goat", 2, 2, 1, 100, 10, 1, 15, 10, 10, 1, 25, 25, 3));
-		races.add(new Race("Snitch", 1, 0, 1, 1, 1, 1, 10, 1, 28, 0, 10, 10, 3));
-		races.add(new Race("bigboss", 5, 12, 2, 50, 100, 15, 10, 100, 0, .5, 180, 180, 25));
-		races.add(new Race("fatdummy", 0, 10, 0, 1, 150, 1, 1, 150, 4, 1, 60, 60, 10));
-		races.add(new Race("smalldummy", 0, 20, 0, 100, 15, 1, 1, 1, 8, 0, 40, 40, 1));
-		races.add(new Race("Baal", 0, 0, 0, 999999, 999999, 999999, 999999, 999999, 50, 999999, 50, 50, 99));
+		races.add(new Race("Goat", 2, 3, 1, 
+		    100, 10, 1, 15, 
+		    10, 10, 1, 
+		    25, 25, 3));
+		races.add(new Race("Snitch", 1, 1, 1, 
+		    1, 1, 1, 10, 
+		    1, 25, 0, 
+		    1, 10, 3));
+		races.add(new Race("bigboss", 5, 13, 2, 
+		    50, 100, 16, 10, 
+		    100, 0, .5, 
+		    180, 180, 25));
+		races.add(new Race("fatdummy", 0, 11, 0, 
+		    1, 150, 1, 1, 
+		    150, 4, 1, 
+		    60, 60, 10));
+		races.add(new Race("smalldummy", 0, 21, 0, 
+		    100, 15, 1, 1, 
+		    1, 8, 0, 
+		    40, 40, 1));
+		races.add(new Race("Baal", 0, 0, 0, 
+		    999999, 999999, 0, 999999, 
+		    999999, 50, 999999, 
+		    50, 50, 99));
 		for(Race race : races) {
 			Frame.print(race.name + ", ");
 		}

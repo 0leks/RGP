@@ -31,8 +31,8 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 	
 	boolean active = false;
 	
-	public static int DIMX = 940;
-	public static int DIMY = 620;
+//	public static int DIMX = 940;
+//	public static int DIMY = 620;
 	
 	public static final int ACTCD = 5;
 	private int actcd = 5;
@@ -51,10 +51,10 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 
 	Sound menu;
 
-	public Panel(int dimx, int dimy) {
+	public Panel() {
 		Frame.println("Initializing Panel");
-		DIMX = dimx;
-		DIMY = dimy;
+//		DIMX = dimx;
+//		DIMY = dimy;
 		mouse = new Point(0, 0);
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -180,6 +180,11 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 		keys.add(new Key(KeyEvent.VK_ENTER, "enter"));
 
 		world = new World();
+		// initialize draw boundaries
+		world.MINDRAWX = 0 - World.DRAWCHECK;
+    world.MINDRAWY = 0 - World.DRAWCHECK;
+    world.MAXDRAWX = Frame.DIMX - Frame.GUIWIDTH + World.DRAWCHECK;
+    world.MAXDRAWY = Frame.DIMY - Frame.GUIHEIGHT + World.DRAWCHECK;
 		
 		Frame.println("Creating Game Timer with delay: " + TIMER_DELAY);
 		timer = new Timer(TIMER_DELAY, this);
@@ -356,14 +361,12 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 									gamestarted = true;
 								}
 								activemenu.setsel(1);
-								if(menu!=null) {
-									menu.fadeOut(.1);
+								if(World.playmusic ) {
+								  if( menu!=null) {
+								    menu.fadeOut(.1);
+								  }
 									world.changeSound(world.grass);
 								}
-//								if(sounds != null) {
-//									sounds.get(0).fadeOut(.1);
-//									sounds.get(1).fadeIn(.1);
-//								}
 							}
 						}
 						if(b.getmenu() != null) {

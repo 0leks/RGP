@@ -26,6 +26,8 @@ public class Mob extends Thing{
 	protected static final int ATTACKDOWN = 2;
 	protected static final int ATTACKLEFT = 3;
 	
+	public static final int STR_HEALTH_MULTIPLIER = 2;
+	
 	protected int adraw;
 	protected boolean att;
 	protected int acd;
@@ -52,7 +54,6 @@ public class Mob extends Thing{
 	
 	protected int totalhealthbuff;
 	protected double worhealth;
-	
 	
 	protected double woradelay;
 	
@@ -134,11 +135,7 @@ public class Mob extends Thing{
 	}
 	public void addcrit(Crit c) {
 		boolean added = false;
-		//crits.add(0, c);
-		//System.out.println("Crit:"+crits.get(0).toString());
 		for(int a=0; a<crits.size(); a++) {
-//			if(this instanceof Player)
-//				System.out.println("Crit:"+crits.get(a).toString());
 			if(c.damage>=crits.get(a).damage) {
 				crits.add(a, c);
 				added = true;
@@ -161,9 +158,9 @@ public class Mob extends Thing{
 	  
 	  Debuff existing = debuffs[d.type];
 	  if( d.duration > existing.duration ) {
-	    System.out.println("Updated " + debuffs[d.type]);
+//	    System.out.println("Updated " + debuffs[d.type]);
 	    debuffs[d.type] = new Debuff(d);
-	    System.out.println(" to " + debuffs[d.type]);
+//	    System.out.println(" to " + debuffs[d.type]);
 	  }
 	  
 	}
@@ -207,11 +204,11 @@ public class Mob extends Thing{
 	public void lvlup(String s, int n) {
 		if(s.equals("str")) {
 			strengthbuff+=n;
-			health+=n;
+			health+=STR_HEALTH_MULTIPLIER*n;
 		} 
 		if(s.equals("actstr")) {
 			actstrength+=n;
-			health+=n;
+			health+=STR_HEALTH_MULTIPLIER*n;
 		} 
 		if(s.equals("agi")) {
 			agilitybuff+=n;
@@ -277,124 +274,123 @@ public class Mob extends Thing{
 	public static final int TOPRIGHT = 2;
 	public static final int BOTTOMLEFT = 3;
 	public static final int BOTTOMRIGHT = 4;
-	public void draw(Graphics2D g) {
+//	public void draw(Graphics2D g) {
 		
-		int drawx = (x-myworld.p.x)/World.ZOOM+470;
-		int drawy = (y-myworld.p.y)/World.ZOOM+310;
-		int w = super.w/World.ZOOM;
-		int h = super.h/World.ZOOM;
-		//g.fill(dim());
-		if(attack!=null && adraw>=0) {
-			int nx = (attack.x-myworld.p.x)/World.ZOOM+470;
-			int ny = (attack.y-myworld.p.y)/World.ZOOM+310;
-			int nw = attack.width/World.ZOOM;
-			int nh = attack.height/World.ZOOM;
-			if(attackdirection == 1 || attackdirection==3) {
-				nw = attack.height/World.ZOOM;
-				nh = attack.width/World.ZOOM;
-			}
-			if(nx+nw>-50 && nx-nw<990 && ny+nh>-50 && ny-nh<670) {
-				Color cur = g.getColor();
-				if(hostile()) {
-					g.setColor(Color.red);
-				} else {
-					g.setColor(Color.green);
-				}
-				Graphics2D g2d = (Graphics2D)g;
-				g2d.translate(nx, ny);
-				g2d.rotate(Math.toRadians(attackdirection*90));
-				// TODO asjkldfhajks
-				if(myworld.drawimage) {
-//					g2d.drawImage(weapon.image, nx, ny, nw, nh, null);
-					g2d.drawImage(weapon.image, -nw/2, -nh/2, nw, nh, null);
-
-				}
-//				g.draw(new Rectangle(nx, ny, nw, nh));
-				g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
-				g.setColor(cur);
-				g2d.rotate(Math.toRadians((4-attackdirection)*90));
-				g2d.translate(-nx, -ny);
-			}
-		} else {
-			attackdirection = 0;
-		}
-		if(!dead) {
-			g.setColor(Color.blue);
-		} else {
-			g.setColor(Color.black);
-		}
-		Color[] col = { g.getColor(), Color.red, new Color(0, 200, 0), Color.magenta, Color.cyan};
-		super.draw(g, col);
-		int distx = 0;
-		int disty = 0;
-		if(myworld.draw3d) {
-			distx = (drawx-470)/10/World.ZOOM;
-			disty = (drawy-310)/10/World.ZOOM;
-		}
-		if(drawx>-50 && drawx<990 && drawy>-50 && drawy<670 && World.ZOOM == 1) {
-			g.setColor(Color.white);
-			int l = Integer.toString(level).toCharArray().length;
-			g.drawString(this.level+"", drawx-l*5+2+distx, drawy+g.getFont().getSize()/2-1+disty);
-			
-			g.setColor(new Color(200, 200, 200));
-			double f = (double)health/totalhealth();
-			g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, whiteline/10, 8);
-
-//			if( damagefrompoison > 0 ) {
-//        g.setColor(new Color(0, 250, 0));
-//        int green = (int) (damagefrompoison/100 * whiteline / (double)totalhealth());
-//        g.fillRect(drawx-w/2+distx + whiteline/10 - green/10, drawy-h/2-13+disty, green/10, 8);
-//        
-//        damagefrompoison -= 1;
-//        if( damagefrompoison < 0 ) 
-//          damagefrompoison = 0;
+//		int drawx = (x-myworld.p.x)/World.ZOOM+470;
+//		int drawy = (y-myworld.p.y)/World.ZOOM+310;
+//		int w = super.w/World.ZOOM;
+//		int h = super.h/World.ZOOM;
+//		//g.fill(dim());
+//		if(attack!=null && adraw>=0) {
+//			int nx = (attack.x-myworld.p.x)/World.ZOOM+470;
+//			int ny = (attack.y-myworld.p.y)/World.ZOOM+310;
+//			int nw = attack.width/World.ZOOM;
+//			int nh = attack.height/World.ZOOM;
+//			if(attackdirection == 1 || attackdirection==3) {
+//				nw = attack.height/World.ZOOM;
+//				nh = attack.width/World.ZOOM;
 //			}
-      
-			if(whiteline/10>(f*w))
-				whiteline-=w/30;
-			if(whiteline/10<f*w)
-				whiteline = (int) (f*w*10);
-			
-
-			
-			if(hostile()) {
-				g.setColor(Color.red);
-			} else {
-				g.setColor(new Color( 0, 190, 20));
-			}
-			g.drawRect(drawx-w/2+distx, drawy-h/2-13+disty, w, 8);
-			g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, (int) (f*w), 8);
-			
-			if(this instanceof Player) {
-				g.setColor(new Color(150, 150, 0));
-				g.drawRect(drawx-w/2, drawy-h/2-4, w, 4);
-				g.setColor(Color.yellow);
-				g.fillRect(drawx-w/2, drawy-h/2-4, (int) ((double)(this.experience-this.expatstartlvl)/(double)(this.exptolvlup-this.expatstartlvl)*w), 4);
-			}
-//			g.setColor(cur);
-		}
-	}
-	public void drawpopups(Graphics2D g ) {
-		int drawx = (x-myworld.p.x)/World.ZOOM+470;
-		int drawy = (y-myworld.p.y)/World.ZOOM+310;
-		//int w = super.w/World.ZOOM;
-		//int h = super.h/World.ZOOM;
-		boolean draw = false;
-		if(drawx>-50 && drawx<990 && drawy>-50 && drawy<670) {
-			draw = true;
-		}
-		Iterator<Popup> itpop = popups.iterator();
-		while( itpop.hasNext() ) {
-			Popup pop = itpop.next();
-	    g.setColor(pop.color);
-			if(draw)
-				g.drawString(pop.string, drawx+pop.x(), drawy+pop.y());
-			if(pop.drawn()) {
-				popups.remove(pop);
-			}
-		}
-		
-	}
+//			if(nx+nw>-50 && nx-nw<990 && ny+nh>-50 && ny-nh<670) {
+//				Color cur = g.getColor();
+//				if(hostile()) {
+//					g.setColor(Color.red);
+//				} else {
+//					g.setColor(Color.green);
+//				}
+//				Graphics2D g2d = (Graphics2D)g;
+//				g2d.translate(nx, ny);
+//				g2d.rotate(Math.toRadians(attackdirection*90));
+//				// TODO asjkldfhajks
+//				if(myworld.drawimage) {
+////					g2d.drawImage(weapon.image, nx, ny, nw, nh, null);
+//					g2d.drawImage(weapon.image, -nw/2, -nh/2, nw, nh, null);
+//
+//				}
+////				g.draw(new Rectangle(nx, ny, nw, nh));
+//				g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
+//				g.setColor(cur);
+//				g2d.rotate(Math.toRadians((4-attackdirection)*90));
+//				g2d.translate(-nx, -ny);
+//			}
+//		} else {
+//			attackdirection = 0;
+//		}
+//		if(!dead) {
+//			g.setColor(Color.blue);
+//		} else {
+//			g.setColor(Color.black);
+//		}
+//		Color[] col = { g.getColor(), Color.red, new Color(0, 200, 0), Color.magenta, Color.cyan};
+//		super.draw(g, col);
+//		int distx = 0;
+//		int disty = 0;
+//		if(myworld.draw3d) {
+//			distx = (drawx-470)/10/World.ZOOM;
+//			disty = (drawy-310)/10/World.ZOOM;
+//		}
+//		if(drawx>-50 && drawx<990 && drawy>-50 && drawy<670 && World.ZOOM == 1) {
+//			g.setColor(Color.white);
+//			int l = Integer.toString(level).toCharArray().length;
+//			g.drawString(this.level+"", drawx-l*5+2+distx, drawy+g.getFont().getSize()/2-1+disty);
+//			
+//			g.setColor(new Color(200, 200, 200));
+//			double f = (double)health/totalhealth();
+//			g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, whiteline/10, 8);
+//
+////			if( damagefrompoison > 0 ) {
+////        g.setColor(new Color(0, 250, 0));
+////        int green = (int) (damagefrompoison/100 * whiteline / (double)totalhealth());
+////        g.fillRect(drawx-w/2+distx + whiteline/10 - green/10, drawy-h/2-13+disty, green/10, 8);
+////        
+////        damagefrompoison -= 1;
+////        if( damagefrompoison < 0 ) 
+////          damagefrompoison = 0;
+////			}
+//      
+//			if(whiteline/10>(f*w))
+//				whiteline-=w/30;
+//			if(whiteline/10<f*w)
+//				whiteline = (int) (f*w*10);
+//			
+//
+//			
+//			if(hostile()) {
+//				g.setColor(Color.red);
+//			} else {
+//				g.setColor(new Color( 0, 190, 20));
+//			}
+//			g.drawRect(drawx-w/2+distx, drawy-h/2-13+disty, w, 8);
+//			g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, (int) (f*w), 8);
+//			
+//			if(this instanceof Player) {
+//				g.setColor(new Color(150, 150, 0));
+//				g.drawRect(drawx-w/2, drawy-h/2-4, w, 4);
+//				g.setColor(Color.yellow);
+//				g.fillRect(drawx-w/2, drawy-h/2-4, (int) ((double)(this.experience-this.expatstartlvl)/(double)(this.exptolvlup-this.expatstartlvl)*w), 4);
+//			}
+////			g.setColor(cur);
+//		}
+//	}
+//	public void drawpopups(Graphics2D g ) {
+//		int drawx = (x-myworld.p.x)/World.ZOOM+470;
+//		int drawy = (y-myworld.p.y)/World.ZOOM+310;
+//		//int w = super.w/World.ZOOM;
+//		//int h = super.h/World.ZOOM;
+//		boolean draw = false;
+//		if(drawx>-50 && drawx<990 && drawy>-50 && drawy<670) {
+//			draw = true;
+//		}
+//		Iterator<Popup> itpop = popups.iterator();
+//		while( itpop.hasNext() ) {
+//			Popup pop = itpop.next();
+//	    g.setColor(pop.color);
+//			if(draw)
+//				g.drawString(pop.string, drawx+pop.x(), drawy+pop.y());
+//			if(pop.drawn()) {
+//				popups.remove(pop);
+//			}
+//		}
+//	}
 	public boolean damage(int d) {
 		health-=d;
 		dead = (health<=0);
@@ -641,9 +637,9 @@ public class Mob extends Thing{
 		int le = weapon.length;
 		int ra= weapon.range;
 		if(!att && acd<0) {
-			if(this instanceof Player) {
-				System.out.println("player is attacking " + dir);
-			}
+//			if(this instanceof Player) {
+//				System.out.println("player is attacking " + dir);
+//			}
 			if(dir.equals("up")) {
 				attackdirection = Mob.ATTACKUP;
 				attack = new Rectangle(x, y-ra-le/2-h/2, wi, le);
@@ -786,7 +782,7 @@ public class Mob extends Thing{
 			return 0;
 	}
 	public int totalhealth() {
-		return (int) ((strength()+totalhealthbuff)*worhealth);
+		return (int) ((strength()*STR_HEALTH_MULTIPLIER+totalhealthbuff)*worhealth);
 	}
 	public int accel() {
 		return (int) (accel*woraccel);

@@ -50,7 +50,7 @@ public class Item {
 		}
 		
 		if(name.equals("regenring")) {
-			addbuff("reg", 20, true);
+			addbuff("reg", 50, true);
 			cost = 20;
 		}
 		if(name.equals("critring")) {
@@ -62,7 +62,7 @@ public class Item {
 			cost = 30;
 		}
 		if(name.equals("strengthring")) {
-			addbuff("str", 70, true);
+			addbuff("str", 50, true);
 			cost = 30;
 		}
 		if(name.equals("agilityring")) {
