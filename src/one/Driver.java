@@ -9,6 +9,7 @@ public class Driver {
 //			prev = multiplier;
 //			System.out.println("Rank: "+rank+" ->\t"+multiplier + " ->\t" + delta);
 //		}
+	  
 //		System.out.println(World.getNextWeapon("wooden mace"));
 //		System.out.println(World.getNextWeapon("iron dagger"));
 //		System.out.println(World.getNextWeapon("steel axe"));
