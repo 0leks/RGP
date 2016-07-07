@@ -25,6 +25,7 @@ public class Mob extends Thing{
 	protected static final int ATTACKRIGHT = 1;
 	protected static final int ATTACKDOWN = 2;
 	protected static final int ATTACKLEFT = 3;
+	public static final Color BASH_COLOR = Color.GRAY;
 	
 	public static final int STR_HEALTH_MULTIPLIER = 2;
 	
@@ -164,6 +165,14 @@ public class Mob extends Thing{
 	  }
 	  
 	}
+	
+	public boolean isStunned( ) {
+	  if( debuffs[Debuff.STUN].duration > 0 ) {
+	    return true;
+	  }
+	  return false;
+	}
+	
 	public void addbuff(Buff b) {
 		if(b.raw){ 
 			lvlup(b.stat, b.value);
@@ -595,18 +604,23 @@ public class Mob extends Thing{
 			  debuffs[Debuff.STUN].duration --;
 			}
 			else {
-  			int col = myworld.collides(this);
-  			if(col != World.CANTMOVE) {
-  				x += xspeed;
-  				y += yspeed;
-  				if(col>0) {
-  					experience+=col;
-            if(this.level>col)
-              money+=1+col*2/(this.level-col);
-            else 
-              money+=1+col+(col-this.level);
-  				}
-  			}
+			  for( int a = 0; a < 5; a++ ) {
+    			int col = myworld.collides(this);
+    			if(col != World.CANTMOVE) {
+    				x += xspeed;
+    				y += yspeed;
+    				if(col>0) {
+    					experience+=col;
+              if(this.level>col)
+                money+=1+col*2/(this.level-col);
+              else 
+                money+=1+col+(col-this.level);
+    				}
+    				break;
+    			}
+    			xspeed /= 2;
+    			yspeed /= 2;
+			  }
   			
   			// Can only attack if attack box is set, attack cooldown is ready, don't know what att is
   			// the inshop boolean is only set for the player, so it only has effect when the player is in a shop, mobs can attack anyways

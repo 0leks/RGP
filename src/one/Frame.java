@@ -21,7 +21,7 @@ public class Frame extends JFrame {
     public Frame() {
       Frame.println("Initializing Frame");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setTitle("RGP 1.3");
+        setTitle("RGP 1.5");
         setResizable(false);
         this.setUndecorated(true);
         this.setSize(Toolkit.getDefaultToolkit().getScreenSize());

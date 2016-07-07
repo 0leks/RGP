@@ -455,6 +455,9 @@ public class World implements Serializable {
       g.setColor(Color.black);
     }
     Color[] col = { g.getColor(), Color.red, new Color(0, 200, 0), Color.magenta, Color.cyan};
+    if( mob.isStunned() ) {
+      col[0] = Mob.BASH_COLOR;
+    }
     drawThing(g, mob, col);
     int distx = 0;
     int disty = 0;
@@ -518,9 +521,13 @@ public class World implements Serializable {
       g2d.rotate(Math.toRadians((4-player.attackdirection)*90));
       g2d.translate(-nx, -ny);
     }
-    if(!player.dead) {
+    if( player.isStunned() ) {
+      g.setColor(Mob.BASH_COLOR);
+    }
+    else if(!player.dead) {
       g.setColor(Color.blue);
-    } else {
+    }
+    else {
       g.setColor(Color.black);
     }
     g.fill(new Rectangle(drawx-w/2, drawy-h/2, w, h));
@@ -607,6 +614,8 @@ public class World implements Serializable {
     }
 	}
   public void drawThing(Graphics2D g, Thing thing, Color[] colors) {
+
+    
     int drawx = (thing.x-p.x)/World.ZOOM+Frame.MIDX;
     int drawy = (thing.y-p.y)/World.ZOOM+Frame.MIDY;
     if(drawx + thing.w/2 >MINDRAWX && drawx - thing.w/2 <MAXDRAWX && drawy + thing.h/2 >MINDRAWY && drawy - thing.h/2<MAXDRAWY) {
@@ -762,18 +771,6 @@ public class World implements Serializable {
         }
       }
 		}
-//		for(int a=0; a<walls.size(); a++) {
-//			Obstacle temp = walls.get(a);
-//			if(temp.dim().intersects(what.nextdim())) {
-//				if(temp.blockPlayer()) {
-//					return World.CANTMOVE; 
-//				} else {
-//					if(what != p) {
-//						return World.CANTMOVE;
-//					}
-//				}
-//			}
-//		}
 		if(what != p)
 			if(p.dim().intersects(what.nextdim())) {
 				return World.CANTMOVE; 
