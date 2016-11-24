@@ -408,44 +408,56 @@ public class Mob extends Thing{
 	public Rectangle nextdim() {
 		return new Rectangle(x-w/2+xspeed, y-h/2+yspeed, w, h);
 	}
+	
+	public void handlePoison() {
+	  if( debuffs[Debuff.POISON].duration > 0 ) { // If its poisoned
+      debuffs[Debuff.POISON].duration--; // reduce the duration of the poison
+      
+      // If die from the poison
+      if( this.damage(debuffs[Debuff.POISON].damage) ) {
+        clearDebuffs(); // clear debuffs so that it isn't still poisoned on respawn.
+        poisonpopup = null; // delete the green poison damage popup
+      } else {
+        
+        damagefrompoison += debuffs[Debuff.POISON].damage;
+        
+        if( poisonpopup == null || poisonpopup.done()) { // if it does not currently have a poison popup
+          
+          int durationOfPopup = (debuffs[Debuff.POISON].duration<100)?300:debuffs[Debuff.POISON].duration; // duration of popup is 100 or more
+          
+          poisonpopup = new Popup(debuffs[Debuff.POISON].damage+"", durationOfPopup, Color.green);
+          
+          this.popups.add(poisonpopup);
+        }
+        else {
+          poisonpopup.string = damagefrompoison + "";
+        }
+      }
+    }
+	}
+	
 	public void move() {
 		if(!dead) {
-			rescale();
-			lvlup();
-			double thealth = totalhealth();
-			if( debuffs[Debuff.POISON].duration > 0 ) {
-			  debuffs[Debuff.POISON].duration--;
-			  
-			  // If die from the poison
-			  if( damage(debuffs[Debuff.POISON].damage) ) {
-			    clearDebuffs();
-			    poisonpopup = null;
-			  } else {
-  			  if( poisonpopup == null || poisonpopup.done()) {
-  			    damagefrompoison = debuffs[Debuff.POISON].damage;
-  			    int dur = (debuffs[Debuff.POISON].duration<100)?300:debuffs[Debuff.POISON].duration;
-  			    poisonpopup = new Popup(damagefrompoison+"", dur, Color.green);
-  			    this.popups.add(poisonpopup);
-    			}
-    			else {
-            damagefrompoison += debuffs[Debuff.POISON].damage;
-    			  poisonpopup.string = damagefrompoison + "";
-    			}
-			  }
-			}
-			if(health+regen()<=thealth) {
-				hpup+=regen();
+			rescale(); // something to do with stats
+			lvlup(); // check if it got a level up
+			double thealth = totalhealth(); // get the maximum health of this mob
+			
+			handlePoison();
+			
+			if(health+regen()<=thealth) { // health is an integer.
+				hpup+=regen();              // hpup is used as a buffer to store up and decimal additions to heal
 			} else {
 				if(health<thealth)
 					hpup+=thealth-health;
 			}
-			if(hpup>=1) {
-				health+=(int)hpup;
+			
+			if(hpup>=1) {                 // transfer from the double hpup buffer to the actual health of the mob.
+				health+=(int)hpup;         
 				hpup = hpup-(int)hpup;
 			}
-			if(hpup<0) {
-				hpup = 0;
-			}
+			hpup = Math.max(0, hpup);    // make sure hpup is non negative ( just in case )
+			
+			
 			boolean nomiss = ai.contains("nomiss");
 			int randomize = 5;
 			if(nomiss) {
@@ -604,6 +616,7 @@ public class Mob extends Thing{
 			  debuffs[Debuff.STUN].duration --;
 			}
 			else {
+			  // Attempt to move 5 times, each time a smaller distance 
 			  for( int a = 0; a < 5; a++ ) {
     			int col = myworld.collides(this);
     			if(col != World.CANTMOVE) {
@@ -622,7 +635,7 @@ public class Mob extends Thing{
     			yspeed /= 2;
 			  }
   			
-  			// Can only attack if attack box is set, attack cooldown is ready, don't know what att is
+  			// Can only attack if attack box is set, attack cooldown is ready. No idea what att is
   			// the inshop boolean is only set for the player, so it only has effect when the player is in a shop, mobs can attack anyways
   			if(attack!=null && acd<0 && att && !inshop) {
   				Hit hit = attack(attack);
@@ -644,41 +657,37 @@ public class Mob extends Thing{
 	}
 	// TODO asdfqsdaf
 	public void setAttack(String dir) {
-		if(weapon == null) { //weapon has not been initializéd, so return function
-			return;
-		}
-		int wi = weapon.width;
-		int le = weapon.length;
-		int ra= weapon.range;
-		if(!att && acd<0) {
-//			if(this instanceof Player) {
-//				System.out.println("player is attacking " + dir);
-//			}
-			if(dir.equals("up")) {
-				attackdirection = Mob.ATTACKUP;
-				attack = new Rectangle(x, y-ra-le/2-h/2, wi, le);
-			}
-			if (dir.equals("left")) {
-				attackdirection = Mob.ATTACKLEFT;
-				attack = new Rectangle(x-ra-le/2-w/2, y, le, wi);
-//				attack = new Rectangle(x-ra-le/2-w/2, y, le, wi);
-			}
-			if (dir.equals("down")) {
-				attackdirection = Mob.ATTACKDOWN;
-				attack = new Rectangle(x, y+ra+h/2+le/2, wi, le);
-			}
-			if (dir.equals("right")) {
-				attackdirection = Mob.ATTACKRIGHT;
-				attack = new Rectangle(x+ra+w/2+le/2, y, le, wi);
-//				attack = new Rectangle(x+ra+w/2+le/2, y, le, wi);
-			}
-			att = true;
-			adraw = (int) (adelay()*woradelay/2);
-			if (adraw<=0)
-				adraw = 1;
-			if(weapon.continuous) {
-				adraw = 1;
-			}
+		if(weapon != null) { //weapon has not been initialized, so return function
+  		int wi = weapon.width;
+  		int le = weapon.length;
+  		int ra= weapon.range;
+  		if(!att && acd<0) {
+  			if(dir.equals("up")) {
+  				attackdirection = Mob.ATTACKUP;
+  				attack = new Rectangle(x, y-ra-le/2-h/2, wi, le);
+  			}
+  			if (dir.equals("left")) {
+  				attackdirection = Mob.ATTACKLEFT;
+  				attack = new Rectangle(x-ra-le/2-w/2, y, le, wi);
+  //				attack = new Rectangle(x-ra-le/2-w/2, y, le, wi);
+  			}
+  			if (dir.equals("down")) {
+  				attackdirection = Mob.ATTACKDOWN;
+  				attack = new Rectangle(x, y+ra+h/2+le/2, wi, le);
+  			}
+  			if (dir.equals("right")) {
+  				attackdirection = Mob.ATTACKRIGHT;
+  				attack = new Rectangle(x+ra+w/2+le/2, y, le, wi);
+  //				attack = new Rectangle(x+ra+w/2+le/2, y, le, wi);
+  			}
+  			att = true;
+  			adraw = (int) (adelay()*woradelay/2);
+  			if (adraw<=0)
+  				adraw = 1;
+  			if(weapon.continuous) {
+  				adraw = 1;
+  			}
+  		}
 		}
 	}
 	public int getdmgaftercrit(int dmg, Mob target) {
@@ -696,43 +705,43 @@ public class Mob extends Thing{
 	}
 	public Hit attack(Rectangle r) {
 	  
-//		if(attackdirection==1 || attackdirection==3) {
-//			r = new Rectangle(r.x-r.height/2, r.y-r.width/w, r.height, r.width);
-//		} else {
-			r = new Rectangle(r.x-r.width/2, r.y-r.height/2, r.width, r.height);
-//		}
+		r = new Rectangle(r.x-r.width/2, r.y-r.height/2, r.width, r.height); // center the rectangle for some reason
 		Hit hit = new Hit();
-		int mou = myworld.mobs().size();
-		int dmg = damage();
-		if(dmg == 0)
-			dmg++;
+		
+		int dmg = damage(); // compute how much damage this mob can do
+//		if(dmg == 0)
+//			dmg = 1;
+		dmg = Math.max(dmg, 0); // this minimum amount of damage possible is 0
+		
+		// Check each mob to see if it intersects with the attack rectangle r
 		Iterator<Mob> itmob = myworld.mobs().iterator();
 		while(itmob.hasNext()) {
 			Mob m = itmob.next();
-			if(m != this && m.dim().intersects(r)) {
+			
+			if(m != this && m.dim().intersects(r)) { // if m is not itself, and m intersects the attack
 				hit.leveloftarget = m.level;
 				int dmgtodeal = getdmgaftercrit(dmg, m);
 				if(m.dead) {
 					hit.damage = 0;
-				} else if(m.damage(dmgtodeal)) {
-					if(m.race.name.equals("bigboss")) {
-						myworld.addMessage("A Boss has been defeated", 100);
-					}
-					hit.kill = true;
-					m.popups.add(new Popup(dmgtodeal+"", 300));
-					hit.damage+=dmgtodeal;
-				} else {
-					m.popups.add(new Popup(dmgtodeal+"", 300));
-					hit.damage+=dmgtodeal;
-					
-					for( Debuff debuff : weapon.debuffs ) {
-					  if( Math.random() >= debuff.chance ) {
-					    m.applyDebuff(debuff);
-					  }
-					}
+				} 
+				else {
+  				hit.kill = m.damage(dmgtodeal); 
+          hit.damage+=dmgtodeal;
+          m.popups.add(new Popup(dmgtodeal+"", 300));
+  				if(hit.kill) {
+  					if(m.race.name.equals("bigboss")) {
+  						myworld.addMessage("A Boss has been defeated", 100);
+  					}
+  				} 
+  				else {
+  					for( Debuff debuff : weapon.debuffs ) {
+  					  if( Math.random() >= debuff.chance ) {
+  					    m.applyDebuff(debuff);
+  					  }
+  					}
+  				}
 				}
 			}
-			mou = myworld.mobs().size();
 		}
 		Player m = myworld.p;
 		if(m != this && m.dim().intersects(r)) {

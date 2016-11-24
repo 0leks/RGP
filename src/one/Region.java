@@ -7,6 +7,4 @@ public class Region extends Thing {
 		sound = ssound;
 	}
 	
-	
-	
 }

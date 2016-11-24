@@ -292,7 +292,7 @@ public class World implements Serializable {
 		m.money = money;
 		m.lvlup();
 		m.health = health;
-		if(m.health() <=0) {
+		if(m.getCurrentHealth() <=0) {
 			m.dead = true;
 		}
 		mobs.add(m);
@@ -310,7 +310,7 @@ public class World implements Serializable {
 //		p.lvlupto(40);
 		p.lvlup();
 		p.health = health;
-		if(p.health()<=0) {
+		if(p.getCurrentHealth()<=0) {
 			p.dead = true;
 		}
 	}
@@ -325,7 +325,7 @@ public class World implements Serializable {
 		p.experience = exp;
 //  p.lvlupto(40);
 		p.lvlup();
-		if(p.health()<=0) {
+		if(p.getCurrentHealth()<=0) {
 			p.dead = true;
 		}
 	}
@@ -865,7 +865,7 @@ public class World implements Serializable {
     g.setColor(Color.red);
     g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, Frame.DIMX, Frame.GUIHEIGHT);
     g.setColor(new Color( 0, 190, 20));
-    g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, (p.health()*Frame.DIMX/p.totalhealth()), Frame.GUIHEIGHT);
+    g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, (p.getCurrentHealth()*Frame.DIMX/p.totalhealth()), Frame.GUIHEIGHT);
     
 		if(s == null) {
 			g.setColor(Color.black);
