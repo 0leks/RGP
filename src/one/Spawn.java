@@ -48,7 +48,7 @@ public class Spawn extends Thing{
 		m.popups.clear();
 		m.experience+=experience;
 		m.lvlup();
-		m.health = m.totalhealth();
+		m.health = m.getMaximumHealth();
 		return toret;
 	}
 	public String tosave() {

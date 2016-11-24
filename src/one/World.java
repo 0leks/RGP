@@ -254,12 +254,12 @@ public class World implements Serializable {
 		
 		m.getWeap(weapon);
 		m.weapon.puton(m);
-		m.health = m.totalhealth();
+		m.health = m.getMaximumHealth();
 		
 		m.race = r;
 		
 		m.experience = 0;
-		m.exptolvlup += (int) (Math.pow(m.level, 2)*10/m.intelligence())+10;
+		m.exptolvlup += (int) (Math.pow(m.level, 2)*10/m.getIntelligence())+10;
 		m.rescale();
 	}
 	public void initWall(int xx, int yy, int ww, int hh, int re, int gr, int bl, boolean blockplayer) {
@@ -427,7 +427,7 @@ public class World implements Serializable {
       }
       if(nx+nw>MINDRAWX && nx-nw<MAXDRAWX && ny+nh>MINDRAWY && ny-nh<MAXDRAWY) {
         Color cur = g.getColor();
-        if(mob.hostile()) {
+        if(mob.isHostile()) {
           g.setColor(Color.red);
         } else {
           g.setColor(Color.green);
@@ -471,7 +471,7 @@ public class World implements Serializable {
       g.drawString(mob.level+"", drawx-l*5+2+distx, drawy+g.getFont().getSize()/2-1+disty);
       
       g.setColor(new Color(200, 200, 200));
-      double f = (double)mob.health/mob.totalhealth();
+      double f = (double)mob.health/mob.getMaximumHealth();
       g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, mob.whiteline/10, 8);
       
       if(mob.whiteline/10>(f*w))
@@ -479,7 +479,7 @@ public class World implements Serializable {
       if(mob.whiteline/10<f*w)
         mob.whiteline = (int) (f*w*10);
       
-      if(mob.hostile()) {
+      if(mob.isHostile()) {
         g.setColor(Color.red);
       } else {
         g.setColor(new Color( 0, 190, 20));
@@ -536,7 +536,7 @@ public class World implements Serializable {
     g.drawString(player.level+"", drawx-l*5+2, drawy+6);
     
     g.setColor(new Color(200, 200, 200));
-    double asd = (double)player.whiteline/10/player.totalhealth();
+    double asd = (double)player.whiteline/10/player.getMaximumHealth();
     g.fillRect(drawx-w/2, drawy-h/2-13, (int) (asd*w), 8);
     if(player.whiteline/10>player.health)
       player.whiteline--;
@@ -544,7 +544,7 @@ public class World implements Serializable {
       player.whiteline = player.health*10;
     g.setColor(new Color( 0, 190, 20));
     g.drawRect(drawx-w/2, drawy-h/2-13, w, 8);
-    double f = (double)player.health/player.totalhealth();
+    double f = (double)player.health/player.getMaximumHealth();
     g.fillRect(drawx-w/2, drawy-h/2-13, (int) (f*w), 8);
     
     g.setColor(new Color(150, 150, 0));
@@ -865,7 +865,7 @@ public class World implements Serializable {
     g.setColor(Color.red);
     g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, Frame.DIMX, Frame.GUIHEIGHT);
     g.setColor(new Color( 0, 190, 20));
-    g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, (p.getCurrentHealth()*Frame.DIMX/p.totalhealth()), Frame.GUIHEIGHT);
+    g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, (p.getCurrentHealth()*Frame.DIMX/p.getMaximumHealth()), Frame.GUIHEIGHT);
     
 		if(s == null) {
 			g.setColor(Color.black);
@@ -876,15 +876,15 @@ public class World implements Serializable {
 			int x1 = Frame.DIMX - Frame.GUIWIDTH + 30;
 			int x2 = Frame.DIMX - Frame.GUIWIDTH + 130;
 			drawStat(g, x1, yy+=35, "Health", p.health);
-			drawStat(g, x2, yy, "TotalHealth", p.totalhealth());
+			drawStat(g, x2, yy, "TotalHealth", p.getMaximumHealth());
 			drawStat(g, x1, yy+=35, "Money", p.money);
-			drawStat(g, x2, yy, "Attack Delay", p.adelay());
-			drawStat(g, x1, yy+=35, "Damage", p.damage());
-			drawStat(g, x2, yy, "Intelligence", p.intelligence());
-			drawStat(g, x1, yy+=35, "Agility", p.agility());
-			drawStat(g, x2, yy, "Strength", p.strength());
-			drawStat(g, x1, yy+=35, "Speed", p.accel());
-			drawStat(g, x2, yy, "Regen", p.regen()*100);
+			drawStat(g, x2, yy, "Attack Delay", p.getAttackDelay());
+			drawStat(g, x1, yy+=35, "Damage", p.getBaseDamage());
+			drawStat(g, x2, yy, "Intelligence", p.getIntelligence());
+			drawStat(g, x1, yy+=35, "Agility", p.getAgility());
+			drawStat(g, x2, yy, "Strength", p.getStrength());
+			drawStat(g, x1, yy+=35, "Speed", p.getAccel());
+			drawStat(g, x2, yy, "Regen", p.getHealthRegen()*100);
 			drawStat(g, x1, yy+=35, "X", p.x);
 			drawStat(g, x2, yy, "Y", p.y);
 			drawStat(g, x2, yy+=35, "Armor", 100-p.damagetaken);

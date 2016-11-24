@@ -117,7 +117,12 @@ public class Mob extends Thing{
 		}
 		
 	}
+	
+	/**
+	 * Gives this mob the weapon specified by the input string
+	 */
 	public void getWeap(String type) {
+	  // First remove buffs from current weapon
 		if(weapon!=null) {
 			for(Buff b : weapon.buffs) {
 				subbuff(b);
@@ -126,6 +131,8 @@ public class Mob extends Thing{
 				subcrit(c);
 			}
 		}
+		
+		// Then create new weapon and add the buffs associated with it.
 		weapon = new Weapon(type, 1, myworld);
 		for(Buff b : weapon.buffs) {
 			addbuff(b);
@@ -135,11 +142,9 @@ public class Mob extends Thing{
 		}
 	}
 	public void addcrit(Crit c) {
-		boolean added = false;
 		for(int a=0; a<crits.size(); a++) {
 			if(c.damage>=crits.get(a).damage) {
 				crits.add(a, c);
-				added = true;
 				return;
 			}
 		}
@@ -189,9 +194,9 @@ public class Mob extends Thing{
 	}
 	public void rescale() {
 		
-		basedamage = (strength())/9;
-		damagetaken = 100-armor();
-		regen = strength()*.001 + regenbuff;
+		basedamage = (getStrength())/9;
+		damagetaken = 100-getArmor();
+		regen = getStrength()*.001 + regenbuff;
 		if(accel<0)
 			accel = 0;
 	}
@@ -440,12 +445,12 @@ public class Mob extends Thing{
 		if(!dead) {
 			rescale(); // something to do with stats
 			lvlup(); // check if it got a level up
-			double thealth = totalhealth(); // get the maximum health of this mob
+			double thealth = getMaximumHealth(); // get the maximum health of this mob
 			
 			handlePoison();
 			
-			if(health+regen()<=thealth) { // health is an integer.
-				hpup+=regen();              // hpup is used as a buffer to store up and decimal additions to heal
+			if(health+getHealthRegen()<=thealth) { // health is an integer.
+				hpup+=getHealthRegen();              // hpup is used as a buffer to store up and decimal additions to heal
 			} else {
 				if(health<thealth)
 					hpup+=thealth-health;
@@ -468,8 +473,8 @@ public class Mob extends Thing{
 				if(a==0) {
 					int x = rand.nextInt(3)-1;
 					int y = rand.nextInt(3)-1;
-					xspeed = x*accel();
-					yspeed = y*accel();
+					xspeed = x*getAccel();
+					yspeed = y*getAccel();
 				}
 				a = rand.nextInt(randomize);
 				if(a==0) {
@@ -506,8 +511,8 @@ public class Mob extends Thing{
 					} else {
 						dy= rand.nextInt(3)-1;
 					}
-					xspeed = (int) (dx*accel());
-					yspeed = (int) (dy*accel());
+					xspeed = (int) (dx*getAccel());
+					yspeed = (int) (dy*getAccel());
 					int a = rand.nextInt(randomize);
 					if(a==0) {
 						setAttack("up");
@@ -523,10 +528,10 @@ public class Mob extends Thing{
 				asdf+=1;
 				if(asdf>=360)
 					asdf = 0;
-				double x =  (Math.sin(2*torad(asdf)));
-				double y =  (Math.cos(3*torad(asdf)));
-				xspeed = (int) (x*accel());
-				yspeed = (int) (y*accel());
+				double x =  (Math.sin(2*toRadians(asdf)));
+				double y =  (Math.cos(3*toRadians(asdf)));
+				xspeed = (int) (x*getAccel());
+				yspeed = (int) (y*getAccel());
 				int a = rand.nextInt(randomize);
 				if(a==0) {
 					setAttack("up");
@@ -544,8 +549,8 @@ public class Mob extends Thing{
 					asdf = 0;
 				int lengthofzigzag = 50;
 				double x =  Math.pow(-1, asdf/lengthofzigzag-(int)(asdf/(lengthofzigzag*2))*2);
-				double y =  -(Math.sin(torad(40*asdf)));
-				xspeed = (int) (x*accel());
+				double y =  -(Math.sin(toRadians(40*asdf)));
+				xspeed = (int) (x*getAccel());
 				yspeed = (int) (y*0);//(int) (y*accel());
 				int a = rand.nextInt(randomize);
 				if(a==0) {
@@ -563,9 +568,9 @@ public class Mob extends Thing{
 				if(asdf>=3600)
 					asdf = 0;
 				double x =  Math.pow(-1, asdf/20-(int)(asdf/40)*2);
-				double y =  -(Math.sin(torad(3*asdf)));
-				xspeed = (int) (x*accel());
-				yspeed = (int) (y*accel());
+				double y =  -(Math.sin(toRadians(3*asdf)));
+				xspeed = (int) (x*getAccel());
+				yspeed = (int) (y*getAccel());
 				int a = rand.nextInt(randomize);
 				if(a==0) {
 					setAttack("up");
@@ -597,8 +602,8 @@ public class Mob extends Thing{
 				} else {
 					dy= 0;
 				}
-				xspeed = (int) (dx*accel());
-				yspeed = (int) (dy*accel());
+				xspeed = (int) (dx*getAccel());
+				yspeed = (int) (dy*getAccel());
 				int a = rand.nextInt(randomize);
 				if(a==0) {
 					setAttack("up");
@@ -640,12 +645,12 @@ public class Mob extends Thing{
   			if(attack!=null && acd<0 && att && !inshop) {
   				Hit hit = attack(attack);
   				if(hit.damage > 0) {
-  					experience+=(hit.damage*(100+intelligence())*.01);
+  					experience+=(hit.damage*(100+getIntelligence())*.01);
   				} 
   				if(hit.kill) {
-  					experience+=hit.leveloftarget*10*(100+intelligence())*.01;
+  					experience+=hit.leveloftarget*10*(100+getIntelligence())*.01;
   				} 
-  				acd = (int) (adelay()*woradelay);
+  				acd = (int) (getAttackDelay()*woradelay);
   				if(weapon.continuous) 
   					acd = 0;
   			}
@@ -681,7 +686,7 @@ public class Mob extends Thing{
   //				attack = new Rectangle(x+ra+w/2+le/2, y, le, wi);
   			}
   			att = true;
-  			adraw = (int) (adelay()*woradelay/2);
+  			adraw = (int) (getAttackDelay()*woradelay/2);
   			if (adraw<=0)
   				adraw = 1;
   			if(weapon.continuous) {
@@ -708,7 +713,7 @@ public class Mob extends Thing{
 		r = new Rectangle(r.x-r.width/2, r.y-r.height/2, r.width, r.height); // center the rectangle for some reason
 		Hit hit = new Hit();
 		
-		int dmg = damage(); // compute how much damage this mob can do
+		int dmg = getBaseDamage(); // compute how much damage this mob can do
 //		if(dmg == 0)
 //			dmg = 1;
 		dmg = Math.max(dmg, 0); // this minimum amount of damage possible is 0
@@ -717,29 +722,27 @@ public class Mob extends Thing{
 		Iterator<Mob> itmob = myworld.mobs().iterator();
 		while(itmob.hasNext()) {
 			Mob m = itmob.next();
-			
-			if(m != this && m.dim().intersects(r)) { // if m is not itself, and m intersects the attack
+			if(m != this && m.dim().intersects(r)) {
 				hit.leveloftarget = m.level;
 				int dmgtodeal = getdmgaftercrit(dmg, m);
 				if(m.dead) {
-					hit.damage = 0;
-				} 
-				else {
-  				hit.kill = m.damage(dmgtodeal); 
-          hit.damage+=dmgtodeal;
-          m.popups.add(new Popup(dmgtodeal+"", 300));
-  				if(hit.kill) {
-  					if(m.race.name.equals("bigboss")) {
-  						myworld.addMessage("A Boss has been defeated", 100);
-  					}
-  				} 
-  				else {
-  					for( Debuff debuff : weapon.debuffs ) {
-  					  if( Math.random() >= debuff.chance ) {
-  					    m.applyDebuff(debuff);
-  					  }
-  					}
-  				}
+				  
+				} else if(m.damage(dmgtodeal)) {
+					if(m.race.name.equals("bigboss")) {
+						myworld.addMessage("A Boss has been defeated", 100);
+					}
+					hit.kill = true;
+					m.popups.add(new Popup(dmgtodeal+"", 300));
+					hit.damage+=dmgtodeal;
+				} else {
+					m.popups.add(new Popup(dmgtodeal+"", 300));
+					hit.damage+=dmgtodeal;
+					
+					for( Debuff debuff : weapon.debuffs ) {
+					  if( Math.random() >= debuff.chance ) {
+					    m.applyDebuff(debuff);
+					  }
+					}
 				}
 			}
 		}
@@ -763,81 +766,152 @@ public class Mob extends Thing{
 		return hit;
 	}
 	
-	public int health() {
+	/**
+	 * 
+	 * @return the current amount of health this mob has
+	 */
+	public int getCurrentHealth() {
 		return health;
 	}
+	
+	/**
+	 * no idea what this does
+	 * @param w
+	 */
 	public void tic(World w) {
 		myworld = w;
 	}
-	public boolean hostile() {
+	
+	/**
+	 * checks if the ai string contains "hostile"
+	 * @return
+	 */
+	public boolean isHostile() {
 		return (ai.contains("hostile"));
 	}
 	
-	public int damage() {
+	/**
+	 *  compute this mob's base damage
+	 * @return
+	 */
+	public int getBaseDamage() {
 		return (int) ((basedamage+damagebuff)*wordamage);
 	}
-	public int agility() {
+	
+	/**
+	 * compute this mob's agility stat
+	 * @return
+	 */
+	public int getAgility() {
 		int agi = (int) ((agilitybuff+actagility)*woragility);
 		if(agi>=0) 
 			return agi;
 		else 
 			return 0;
 	}
-	public int intelligence() {
+	
+	/**
+	 * compute this mob's intelligence stat
+	 * @return
+	 */
+	public int getIntelligence() {
 		int intel = (int) ((intelligencebuff+actintelligence)*worintelligence*5);
 		if(intel>=1)
 			return intel;
 		else
 			return 1;
 	}
-	public int armor() {
+	
+	/** 
+	 * compute this mob's armor stat
+	 * @return
+	 */
+	public int getArmor() {
 		int arm = (int) ((armorbuff+basearmor)*worarmor);
 		if(arm>=100) {
 			arm = 99;
 		}
 		return arm;
 	}
-	public int strength() {
+	
+	/**
+	 * compute this mob's strength stat
+	 * @return
+	 */
+	public int getStrength() {
 		int str = (int) ((strengthbuff+actstrength)*worstrength);
 		if(str>=0) 
 			return str;
 		else
 			return 0;
 	}
-	public int totalhealth() {
-		return (int) ((strength()*STR_HEALTH_MULTIPLIER+totalhealthbuff)*worhealth);
+	
+	/**
+	 * compute the maximum amount of health this mob can have
+	 * @return
+	 */
+	public int getMaximumHealth() {
+		return (int) ((getStrength()*STR_HEALTH_MULTIPLIER+totalhealthbuff)*worhealth);
 	}
-	public int accel() {
+	
+	/**
+	 * compute the maximum speed that this mob can move at I think not actually sure
+	 * @return
+	 */
+	public int getAccel() {
 		return (int) (accel*woraccel);
 	}
-	public int adelay() {
+	
+	
+	/** 
+	 * compute the delay in tics in between this mob's attacks
+	 * @return
+	 */
+	public int getAttackDelay() {
 		
-		if(weapon.continuous)
+		if(weapon.continuous) { // continuous weapons like lasers have no delay between attacks
 			return 0;
+		}
 		else {
-			int agi = (int) (agility());
-			if(agi>200) {
-				agi = 200;
-			}
-			int ad = (int)( (1500/(agi+1))*woradelay);//(int)(((150-agi/5))*woradelay);
-			if(ad>200) {
-				ad = 200;
-			}
-			return ad;
+		  
+			int agility = Math.min(getAgility(), 200); // maximum agility for attack delay calculation is 200
+			
+			int attackdelay = (int)( ( 1500/(agility+1) ) * woradelay );//(int)(((150-agi/5))*woradelay);
+			
+			attackdelay = Math.min(attackdelay, 200); // the maximum delay is 200
+			return attackdelay;
 		}
 	}
-	public double regen() {
-		return (regen)*worregen;
+	
+	/**
+	 * compute this mob's health regeneration stat
+	 * @return
+	 */
+	public double getHealthRegen() {
+		return regen*worregen;
 	}
+	
+	/**
+	 * Creates string to save this mob into a file
+	 * @return
+	 */
 	public String tosave() {
 		String s = "Mob "+race.name+" "+experience+" "+money+" "+x+" "+y;
 		s+=" "+health+" "+weapon.name.replace(' ', '_') + " " + ai.replace(' ', '_');
 		return s;
 	}
-	public int todeg(double rad) {
+	
+	/**
+	 * Converts the input radians to degrees
+	 */
+	public static int toDegrees(double rad) {
 		return (int) (rad*180/Math.PI);
 	}
-	public double torad(double deg) {
+	
+	/**
+	 * Converts the input degrees to radians
+	 */
+	public static double toRadians(double deg) {
 		return deg*Math.PI/180;
 	}
 }

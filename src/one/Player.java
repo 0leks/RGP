@@ -156,10 +156,10 @@ public class Player extends Mob{
 	}
 	public void setspeed(int xs, int ys) {
 		if(xs==1) {
-			xspeed = accel();
+			xspeed = getAccel();
 		} 
 		if(xs==-1) {
-			xspeed = -accel();
+			xspeed = -getAccel();
 		}
 		if(xs == -2) {
 			if(xspeed<0)
@@ -170,10 +170,10 @@ public class Player extends Mob{
 				xspeed = 0;
 		}
 		if(ys==1) {
-			yspeed = accel();
+			yspeed = getAccel();
 		}
 		if(ys==-1) {
-			yspeed = -accel();
+			yspeed = -getAccel();
 		}
 		if(ys == -2) {
 			if(yspeed<0)
