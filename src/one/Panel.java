@@ -252,127 +252,7 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 					if((k.name().equals("space")||k.name().equals("enter")) && k.justchecked == false) {
 						k.justchecked = true;
 						MenuButton b = activemenu.geton();
-						if(activemenu == mainmenu) {
-							if(b.is("play")) {
-								togglemenu();
-							}
-							if(b.is("exit")) {
-								System.err.println("Exiting Game");
-								System.exit(0);
-							}
-						} else if(activemenu == optionsmenu) {
-							if(b.is("low")) {
-								world.drawimage = false;
-								world.draw3d = false;
-							}
-							if(b.is("med")) {
-								world.drawimage = true;
-								world.draw3d = false;
-							}
-							if(b.is("high")) {
-								world.drawimage = true;
-								world.draw3d = true;
-							}
-							if( b.is("music")) {
-                if( world.playmusic ) {
-                  world.stopMusic();
-                }
-                else {
-                  world.startMusic();
-                }
-							  menu.stopplaying();
-							}
-						} else if(activemenu == customoptions) {
-							if(b.is("useattackimage")) {
-								world.drawimage = !world.drawimage;
-							}
-							if(b.is("3d")) {
-								world.draw3d = !world.draw3d;
-							}
-						} else if(activemenu == savemenu) {
-							if(b.is("slot1")) 
-								world.save("slot1");
-							if(b.is("slot2")) 
-								world.save("slot2");
-							if(b.is("slot3")) 
-								world.save("slot3");
-							if(b.is("slot4")) 
-								world.save("slot4");
-							if(b.is("slot5")) 
-								world.save("slot5");
-						} else if(activemenu == loadmenu) {
-							if(b.is("slot1")) 
-								world.load("slot1");
-							if(b.is("slot2")) 
-								world.load("slot2");
-							if(b.is("slot3")) 
-								world.load("slot3");
-							if(b.is("slot4")) 
-								world.load("slot4");
-							if(b.is("slot5")) 
-								world.load("slot5");
-						} else if(activemenu == newgamemenu) {
-							if(b.is("newgame")) {
-								String race = "";
-								String weap = "";
-								for(MenuButton m : activemenu.buts) {
-									if(m instanceof MenuButtonGroup) {
-										MenuButtonGroup mbg = (MenuButtonGroup)m;
-										if(mbg.is("Race")) {
-											race = mbg.getSelected().name();
-										}
-										if(mbg.is("Weapon")) {
-											weap = mbg.getSelected().name();
-										}
-									}
-								}
-								world.newgame(race, weap);
-								if(!gamestarted) {
-									gamestarted = true;
-								}
-								activemenu.setsel(0);
-							}
-							if(b.is("back")) {
-								if(!gamestarted) {
-									world.newgame("human", "spartan laser");
-									gamestarted = true;
-								} else {
-									activemenu.setsel(0);
-								}
-							}
-						}
-						if(activemenu == initmenu) {
-							if(b.is("newgame")) {
-								String race = "";
-								String weap = "";
-								for(MenuButton m : activemenu.buts) {
-									if(m instanceof MenuButtonGroup) {
-										MenuButtonGroup mbg = (MenuButtonGroup)m;
-										if(mbg.is("Race")) {
-											race = mbg.getSelected().name();
-										}
-										if(mbg.is("Weapon")) {
-											weap = mbg.getSelected().name();
-										}
-									}
-								}
-								world.newgame(race, weap);
-								if(!gamestarted) {
-									gamestarted = true;
-								}
-								activemenu.setsel(1);
-								if(World.playmusic ) {
-								  if( menu!=null) {
-								    menu.fadeOut(.1);
-								  }
-									world.changeSound(world.grass);
-								}
-							}
-						}
-						if(b.getmenu() != null) {
-							activemenu = b.getmenu();
-							activemenu.setactive(true);
-						}
+						activateButton(b);
 						
 					}
 				} else {
@@ -458,6 +338,130 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 		repaint();
 		
 	}
+	public void activateButton(MenuButton b) {
+
+    if(activemenu == mainmenu) {
+      if(b.is("play")) {
+        togglemenu();
+      }
+      if(b.is("exit")) {
+        System.err.println("Exiting Game");
+        System.exit(0);
+      }
+    } else if(activemenu == optionsmenu) {
+      if(b.is("low")) {
+        world.drawimage = false;
+        world.draw3d = false;
+      }
+      if(b.is("med")) {
+        world.drawimage = true;
+        world.draw3d = false;
+      }
+      if(b.is("high")) {
+        world.drawimage = true;
+        world.draw3d = true;
+      }
+      if( b.is("music")) {
+        if( world.playmusic ) {
+          world.stopMusic();
+        }
+        else {
+          world.startMusic();
+        }
+        menu.stopplaying();
+      }
+    } else if(activemenu == customoptions) {
+      if(b.is("useattackimage")) {
+        world.drawimage = !world.drawimage;
+      }
+      if(b.is("3d")) {
+        world.draw3d = !world.draw3d;
+      }
+    } else if(activemenu == savemenu) {
+      if(b.is("slot1")) 
+        world.save("slot1");
+      if(b.is("slot2")) 
+        world.save("slot2");
+      if(b.is("slot3")) 
+        world.save("slot3");
+      if(b.is("slot4")) 
+        world.save("slot4");
+      if(b.is("slot5")) 
+        world.save("slot5");
+    } else if(activemenu == loadmenu) {
+      if(b.is("slot1")) 
+        world.load("slot1");
+      if(b.is("slot2")) 
+        world.load("slot2");
+      if(b.is("slot3")) 
+        world.load("slot3");
+      if(b.is("slot4")) 
+        world.load("slot4");
+      if(b.is("slot5")) 
+        world.load("slot5");
+    } else if(activemenu == newgamemenu) {
+      if(b.is("newgame")) {
+        String race = "";
+        String weap = "";
+        for(MenuButton m : activemenu.buts) {
+          if(m instanceof MenuButtonGroup) {
+            MenuButtonGroup mbg = (MenuButtonGroup)m;
+            if(mbg.is("Race")) {
+              race = mbg.getSelected().name();
+            }
+            if(mbg.is("Weapon")) {
+              weap = mbg.getSelected().name();
+            }
+          }
+        }
+        world.newgame(race, weap);
+        if(!gamestarted) {
+          gamestarted = true;
+        }
+        activemenu.setsel(0);
+      }
+      if(b.is("back")) {
+        if(!gamestarted) {
+          world.newgame("human", "spartan laser");
+          gamestarted = true;
+        } else {
+          activemenu.setsel(0);
+        }
+      }
+    }
+    if(activemenu == initmenu) {
+      if(b.is("newgame")) {
+        String race = "";
+        String weap = "";
+        for(MenuButton m : activemenu.buts) {
+          if(m instanceof MenuButtonGroup) {
+            MenuButtonGroup mbg = (MenuButtonGroup)m;
+            if(mbg.is("Race")) {
+              race = mbg.getSelected().name();
+            }
+            if(mbg.is("Weapon")) {
+              weap = mbg.getSelected().name();
+            }
+          }
+        }
+        world.newgame(race, weap);
+        if(!gamestarted) {
+          gamestarted = true;
+        }
+        activemenu.setsel(1);
+        if(World.playmusic ) {
+          if( menu!=null) {
+            menu.fadeOut(.1);
+          }
+          world.changeSound(world.grass);
+        }
+      }
+    }
+    if(b.getmenu() != null) {
+      activemenu = b.getmenu();
+      activemenu.setactive(true);
+    }
+	}
 
 	public void log(String msg) {
 		System.out.print(msg);
@@ -508,6 +512,11 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 	}
 
 	public synchronized void mouseReleased(MouseEvent e) {
+    if( activemenu.active ) {
+      if( activemenu.geton().ison(e.getX(), e.getY()) ) {
+        activateButton(activemenu.geton());
+      }
+    }
 	}
 
 	public synchronized void mouseEntered(MouseEvent e) {
@@ -525,6 +534,14 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 	public synchronized void mouseMoved(MouseEvent e) {
 		mouse.x = e.getX();
 		mouse.y = e.getY();
+		if( activemenu.active ) {
+		  for( int index = 0; index < activemenu.buts.size(); index++ ) {
+		    MenuButton b = activemenu.buts.get(index);
+        if( b.ison(mouse.x, mouse.y) ) {
+          activemenu.setsel(index);
+        }
+		  }
+		}
 	}
 
 	public void mouseClicked(MouseEvent e) {

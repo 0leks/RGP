@@ -9,7 +9,6 @@ public class Shop extends Thing {
 		super(sx, sy, sw, sh, smyworld);
 		onsale = new ArrayList<Item>();
 		name = sname;
-		
 	}
 	
 	public String getName() { return name; }

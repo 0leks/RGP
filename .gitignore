@@ -2,6 +2,7 @@
 .classpath
 .project
 org.eclipse.jdt.core.prefs
+/bin/
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
