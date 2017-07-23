@@ -14,6 +14,9 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+
+import gui.Frame;
+
 import javax.swing.ImageIcon;
 
 import java.util.ArrayList;
@@ -45,13 +48,11 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 	private Menu loadmenu;
 	private Menu mainmenu;
 	private Menu newgamemenu;
-	private Menu initmenu;
+//	private Menu initmenu;
 	
 	private boolean gamestarted = false;
 
-	Sound menu;
-
-	public Panel() {
+	public Panel(String classType) {
 		Frame.println("Initializing Panel");
 //		DIMX = dimx;
 //		DIMY = dimy;
@@ -72,34 +73,24 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 		loadmenu = new Menu();
 		mainmenu = new Menu();
 		newgamemenu = new Menu();
-		initmenu = new Menu();
+//		initmenu = new Menu();
 
-		Frame.print("initmenu, ");
-		MenuButtonGroup m = new MenuButtonGroup("Race");
-		m.add(new MyButton("", 50, 120, 115, 40, "Human", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 50, 40, "Elf", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 95, 40, "Dwarf", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 125, 40, "Scholar", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 150, 40, "Assassin", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 120, 40, "Warrior", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 75, 40, "Baal", Color.black));
-		initmenu.add(m);
-
-		m = new MenuButtonGroup("Weapon");
-		m.add(new MyButton("", 50, 190, 145, 25, "wooden sword", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 190, 140, 25, "wooden spear", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 190, 135, 25, "wooden mace", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 190, 150, 25, "wooden dagger", Color.black));
-    m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 190, 170, 25, "wooden battleaxe", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 190, 100, 25, "shortbow", Color.black));
-		initmenu.add(m);
-		initmenu.add(new MenuButton( 50, 245, 150, 40, "newgame", Color.black, mainmenu));
+//		Frame.print("initmenu, ");
+//		MenuButtonGroup m = new MenuButtonGroup("Race");
+//		m.add(new MyButton("", 50, 120, 115, 40, "Human", Color.black));
+//		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 50, 40, "Elf", Color.black));
+//		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 95, 40, "Dwarf", Color.black));
+//		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 125, 40, "Scholar", Color.black));
+//		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 150, 40, "Assassin", Color.black));
+//		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 120, 40, "Warrior", Color.black));
+//		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 75, 40, "Baal", Color.black));
+//		initmenu.add(m);
+//		initmenu.add(new MenuButton( 50, 190, 150, 40, "newgame", Color.black, mainmenu));
 		
-
 		Frame.print("newgamemenu, ");
 		newgamemenu.add(new MenuButton( 50, 50, 120, 40, "back", Color.black, mainmenu));
 		
-		m = new MenuButtonGroup("Race");
+		MenuButtonGroup m = new MenuButtonGroup("Race");
 		m.add(new MyButton("", 50, 120, 105, 40, "Human", Color.black));
 		m.add(new MyButton("", 165, 120, 50, 40, "Elf", Color.black));
 		m.add(new MyButton("", 225, 120, 90, 40, "Dwarf", Color.black));
@@ -108,17 +99,8 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 		m.add(new MyButton("", 620, 120, 150, 40, "Warrior", Color.black));
 		m.add(new MyButton("", 780, 120, 65, 40, "Baal", Color.black));
 		newgamemenu.add(m);
+		newgamemenu.add(new MenuButton( 50, 190, 150, 40, "newgame", Color.black, mainmenu));
 		
-		m = new MenuButtonGroup("Weapon");
-		m.add(new MyButton("", 50, 190, 145, 25, "wooden sword", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 190, 140, 25, "wooden spear", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 190, 135, 25, "wooden mace", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 190, 150, 25, "wooden dagger", Color.black));
-		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 190, 100, 25, "shortbow", Color.black));
-		newgamemenu.add(m);
-		newgamemenu.add(new MenuButton( 50, 245, 150, 40, "newgame", Color.black, mainmenu));
-		
-
 		Frame.print("savemenu, ");
 		savemenu.add(new MenuButton( 50, 50, 120, 40, "back", Color.black, mainmenu));
 		savemenu.add(new MenuButton( 50, 120, 120, 40, "slot1", Color.black, null));
@@ -156,9 +138,9 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 		mainmenu.add(new MenuButton( 50, 330, 120, 40, "options", Color.black, optionsmenu));
 		mainmenu.add(new MenuButton( 50, 400, 120, 40, "exit", Color.black, null));
 
-		activemenu = initmenu;
+		activemenu = mainmenu;
 		activemenu.setactive(true);
-		activemenu.setsel(1);
+		activemenu.setsel(0);
 		Frame.println();
 
 		Frame.println("Initializing keys");
@@ -193,20 +175,24 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 		menublinktimer = new Timer(BLINK_TIMER_DELAY, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if(activemenu==newgamemenu || activemenu==initmenu) {
+				if(activemenu==newgamemenu) {
 					activemenu.tic();
 				}
 			}
 		});
 		this.activemenu.setsel(0);
 		Frame.println("Loading Menu Music");
-		menu = World.initSound("mainmenu.wav", -10, true);
-		if(world.playmusic)
-		  menu.play(-5);
 
 		Frame.println("Starting Game Timer and Menu Blink Timer");
 		timer.start();
 		menublinktimer.start();
+		
+    world.newgame(classType);
+    if(!gamestarted) {
+      gamestarted = true;
+    }
+    activemenu.setsel(0);
+    world.changeSound(world.grass);
 	}
 	Timer menublinktimer;
 	public void actionPerformed(ActionEvent e) {
@@ -368,7 +354,6 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
         else {
           world.startMusic();
         }
-        menu.stopplaying();
       }
     } else if(activemenu == customoptions) {
       if(b.is("useattackimage")) {
@@ -414,7 +399,7 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
             }
           }
         }
-        world.newgame(race, weap);
+        world.newgame(race);
         if(!gamestarted) {
           gamestarted = true;
         }
@@ -422,41 +407,41 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
       }
       if(b.is("back")) {
         if(!gamestarted) {
-          world.newgame("human", "spartan laser");
+          world.newgame("human");
           gamestarted = true;
         } else {
           activemenu.setsel(0);
         }
       }
     }
-    if(activemenu == initmenu) {
-      if(b.is("newgame")) {
-        String race = "";
-        String weap = "";
-        for(MenuButton m : activemenu.buts) {
-          if(m instanceof MenuButtonGroup) {
-            MenuButtonGroup mbg = (MenuButtonGroup)m;
-            if(mbg.is("Race")) {
-              race = mbg.getSelected().name();
-            }
-            if(mbg.is("Weapon")) {
-              weap = mbg.getSelected().name();
-            }
-          }
-        }
-        world.newgame(race, weap);
-        if(!gamestarted) {
-          gamestarted = true;
-        }
-        activemenu.setsel(1);
-        if(World.playmusic ) {
-          if( menu!=null) {
-            menu.fadeOut(.1);
-          }
-          world.changeSound(world.grass);
-        }
-      }
-    }
+//    if(activemenu == initmenu) {
+//      if(b.is("newgame")) {
+//        String race = "";
+//        String weap = "";
+//        for(MenuButton m : activemenu.buts) {
+//          if(m instanceof MenuButtonGroup) {
+//            MenuButtonGroup mbg = (MenuButtonGroup)m;
+//            if(mbg.is("Race")) {
+//              race = mbg.getSelected().name();
+//            }
+//            if(mbg.is("Weapon")) {
+//              weap = mbg.getSelected().name();
+//            }
+//          }
+//        }
+//        world.newgame(race, weap);
+//        if(!gamestarted) {
+//          gamestarted = true;
+//        }
+//        activemenu.setsel(1);
+//        if(World.playmusic ) {
+//          if( menu!=null) {
+//            menu.fadeOut(.1);
+//          }
+//          world.changeSound(world.grass);
+//        }
+//      }
+//    }
     if(b.getmenu() != null) {
       activemenu = b.getmenu();
       activemenu.setactive(true);

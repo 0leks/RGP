@@ -6,6 +6,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 
+import gui.Frame;
+
 public class Player extends Mob{
 	public ArrayList<Item> inv;
 	public Player(int sx, int sy,  World smyworld, Race r) {
@@ -22,7 +24,6 @@ public class Player extends Mob{
 			myworld.death.play(0);
       myworld.deathTransparency = 0;
 		}
-		alreadydead = dead;
 		return dead;
 	}
 	public void addItem(String s, int amount) {

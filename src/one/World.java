@@ -1,23 +1,26 @@
 package one;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.EOFException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Serializable;
+
+import gui.Constants;
+import gui.Frame;
 
 public class World implements Serializable {
   
@@ -208,8 +211,8 @@ public class World implements Serializable {
 	public void addMessage(String s, int time) {
 		messages.add(new Message(s, time));
 	}
-	public void newgame(String race, String weapon) {
-	  weapon = "fist";
+	public void newgame(String race) {
+	  String weapon = "fist";
 		initPlayer(400, 400, weapon, 15, new ArrayList<Item>(), race, 0);
 //		initPlayer(200, -3400, weapon, 15, new ArrayList<Item>(), race, 0);
 		//TODO INITPLAYER
@@ -866,7 +869,13 @@ public class World implements Serializable {
     g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, Frame.DIMX, Frame.GUIHEIGHT);
     g.setColor(new Color( 0, 190, 20));
     g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, (p.getCurrentHealth()*Frame.DIMX/p.getMaximumHealth()), Frame.GUIHEIGHT);
-    
+    g.setColor(Color.black);
+    Font preFont = g.getFont();
+    g.setFont(Constants.HEALTH_BAR_FONT);
+    FontMetrics fm = g.getFontMetrics();
+    String healthString = p.getCurrentHealth() + " / " + p.getMaximumHealth();
+    g.drawString(healthString, (Frame.DIMX - fm.stringWidth(healthString))/2, Frame.DIMY - Frame.GUIHEIGHT + (g.getFont().getSize() + Frame.GUIHEIGHT - 6)/2 );
+    g.setFont(preFont);
 		if(s == null) {
 			g.setColor(Color.black);
 			p.inshop = false;
