@@ -53,18 +53,34 @@ public class Item {
 			addbuff("reg", 50, true);
 			cost = 20;
 		}
+    if(name.equals("greaterregenring")) {
+      addbuff("reg", 300, true);
+      cost = 80;
+    }
 		if(name.equals("critring")) {
 			addcrit(20, 200);
 			cost = 20;
 		}
+    if(name.equals("greatercritring")) {
+      addcrit(30, 400);
+      cost = 80;
+    }
 		if(name.equals("healthring")) {
 			addbuff("hp", 150, true);
 			cost = 30;
 		}
+    if(name.equals("greaterhealthring")) {
+      addbuff("hp", 1000, true);
+      cost = 100;
+    }
 		if(name.equals("strengthring")) {
 			addbuff("str", 50, true);
 			cost = 30;
 		}
+    if(name.equals("greaterstrengthring")) {
+      addbuff("str", 300, true);
+      cost = 100;
+    }
 		if(name.equals("agilityring")) {
 			addbuff("agi", 15, true);
 			cost = 20;
@@ -73,6 +89,10 @@ public class Item {
 			addbuff("int", 5, true);
 			cost = 10;
 		}
+    if(name.equals("greaterintelligencering")) {
+      addbuff("int", 50, true);
+      cost = 50;
+    }
 		if(name.equals("statring")) {
 			addbuff("str", 10, true);
 			addbuff("agi", 4, true);
@@ -81,6 +101,14 @@ public class Item {
 			addbuff("reg", 5, true);
 			cost = 2;
 		}
+    if(name.equals("greaterstatring")) {
+      addbuff("str", 100, true);
+      addbuff("agi", 30, true);
+      addbuff("int", 10, true);
+      addbuff("hp", 300, true);
+      addbuff("reg", 100, true);
+      cost = 50;
+    }
 		if(name.equals("boots")) {
 			addbuff("accel", 2, true);
 			cost = 1;

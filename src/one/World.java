@@ -1461,6 +1461,15 @@ public class World implements Serializable {
 		shoptoadd.onsale.add(new Item("statring", 99, this));
 		shoptoadd.onsale.add(new Item("critring", 99, this));
 		
+    shoptoadd = new Shop(240, -3880, 150, 150, this, "Greater Rings");
+    shops.add(shoptoadd);
+    shoptoadd.onsale.add(new Item("greaterregenring", 99, this));
+    shoptoadd.onsale.add(new Item("greaterhealthring", 99, this));
+    shoptoadd.onsale.add(new Item("greaterstrengthring", 99, this));
+    shoptoadd.onsale.add(new Item("greaterintelligencering", 99, this));
+    shoptoadd.onsale.add(new Item("greaterstatring", 99, this));
+    shoptoadd.onsale.add(new Item("greatercritring", 99, this));
+		
 		walls.add(new Obstacle(500, 780, 600, 40, this, Color.blue, true));
 		walls.add(new Obstacle(780, -100, 40, 1400, this, Color.blue, true));
 		walls.add(new Obstacle(680, -100, 50, 50, this, Color.blue, true));
