@@ -111,24 +111,26 @@ public class Mob extends Thing{
 		asdf = 0;
 		addcrit(new Crit(100, 100));
 	}
+	public void removeItem( Item item ) {
+    for( Buff b : item.buffs) {
+      subbuff(b);
+    }
+    for(Crit c : item.crits) {
+      subcrit(c);
+    }
+    inv.remove(item);
+	}
   public void addItem(String s, int amount) {
     Item i = new Item(s, amount, myworld);
     inv.add(i);
-    System.out.println("adding item");
     lvlup("", 0);
     for(Buff b : i.buffs) {
-      System.out.println("adding buff");
       addbuff(b);
     }
     if(inv.size()>INV_SIZE) {
-      for( Buff b : inv.get(0).buffs) {
-        subbuff(b);
-      }
-      for(Crit c : inv.get(0).crits) {
-        subcrit(c);
-      }
-      inv.remove(0);
+      removeItem(inv.get(0));
     }
+    lvlup("", 0);
   }
   public int itemsininv() {
     int a = 0;
@@ -147,14 +149,8 @@ public class Mob extends Thing{
     for(Crit c : i.crits) {
       addcrit(c);
     }
-    if(inv.size()>=6) {
-      for( Buff b : inv.get(0).buffs) {
-        subbuff(b);
-      }
-      for(Crit c : inv.get(0).crits) {
-        subcrit(c);
-      }
-      inv.remove(0);
+    if(inv.size()>INV_SIZE) {
+      removeItem(inv.get(0));
     }
     lvlup("", 0);
   }
@@ -725,7 +721,7 @@ public class Mob extends Thing{
           cheapest = inv.get(i);
         }
       }
-      inv.remove(cheapest);
+      removeItem(cheapest);
     }
     return cheapest;
   }
@@ -738,7 +734,7 @@ public class Mob extends Thing{
 	        best = inv.get(i);
 	      }
 	    }
-	    inv.remove(best);
+	    removeItem(best);
 	  }
 	  return best;
 	}
