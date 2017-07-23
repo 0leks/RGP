@@ -99,6 +99,7 @@ public class NewGameMenuPanel extends JPanel{
     instructions.setHorizontalAlignment(SwingConstants.CENTER);
     add(instructions, "2,3,4,3");
     add(classPanel, "1,5,5,5");
+    // TODO display info about the selected class such as str, agi, health, etc.
     add(new Label(""), "1,6,5,6");
     add(start, "3,8");
     human.doClick();

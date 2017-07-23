@@ -90,10 +90,13 @@ public class Mob extends Thing{
 	protected Queue<Popup> popups;
 	protected Popup poisonpopup;
   protected int damagefrompoison;
-	
+
+  public static final int INV_SIZE = 5;
+  public ArrayList<Item> inv;
 	
 	public Mob(int sx, int sy, String sai, World smyworld, Race r) {
 		super(sx, sy, r.startwidth, r.startheight, smyworld);
+    inv = new ArrayList<Item>();
 		poly = new ArrayList<MyPolygon>();
 		buffs = new ArrayList<Buff>();
 		crits = new ArrayList<Crit>();
@@ -108,6 +111,53 @@ public class Mob extends Thing{
 		asdf = 0;
 		addcrit(new Crit(100, 100));
 	}
+  public void addItem(String s, int amount) {
+    Item i = new Item(s, amount, myworld);
+    inv.add(i);
+    System.out.println("adding item");
+    lvlup("", 0);
+    for(Buff b : i.buffs) {
+      System.out.println("adding buff");
+      addbuff(b);
+    }
+    if(inv.size()>INV_SIZE) {
+      for( Buff b : inv.get(0).buffs) {
+        subbuff(b);
+      }
+      for(Crit c : inv.get(0).crits) {
+        subcrit(c);
+      }
+      inv.remove(0);
+    }
+  }
+  public int itemsininv() {
+    int a = 0;
+    for(Item i : inv) {
+      if(i!=null)
+        a++;
+    }
+    return a;
+  }
+  public void addItem(Item i) {
+    inv.add(i);
+    
+    for(Buff b : i.buffs) {
+      addbuff(b);
+    }
+    for(Crit c : i.crits) {
+      addcrit(c);
+    }
+    if(inv.size()>=6) {
+      for( Buff b : inv.get(0).buffs) {
+        subbuff(b);
+      }
+      for(Crit c : inv.get(0).crits) {
+        subcrit(c);
+      }
+      inv.remove(0);
+    }
+    lvlup("", 0);
+  }
 	public void lvlupto(int lvl) {
 		while(lvl>0) {
 			experience = exptolvlup;
@@ -660,7 +710,91 @@ public class Mob extends Thing{
 		}
 		adraw--;
 	}
-	// TODO asdfqsdaf
+	public boolean isFullInventory() {
+	  return inv.size() >= 5;
+	}
+	public boolean isEmptyInventory() {
+	  return inv.size() == 0;
+	}
+  public Item removeCheapestItem() {
+    Item cheapest = null;
+    if( !inv.isEmpty() ) {
+      cheapest = inv.get(0);
+      for( int i = 1; i < inv.size(); i++ ) {
+        if( inv.get(i).cost < cheapest.cost ) { 
+          cheapest = inv.get(i);
+        }
+      }
+      inv.remove(cheapest);
+    }
+    return cheapest;
+  }
+	public Item removeMostExpensiveItem() {
+	  Item best = null;
+	  if( !inv.isEmpty() ) {
+	    best = inv.get(0);
+	    for( int i = 1; i < inv.size(); i++ ) {
+	      if( inv.get(i).cost > best.cost ) { 
+	        best = inv.get(i);
+	      }
+	    }
+	    inv.remove(best);
+	  }
+	  return best;
+	}
+  public int getMostExpensiveItemCost() {
+    int best = -1;
+    if( !inv.isEmpty() ) {
+      best = inv.get(0).cost;
+      for( int i = 1; i < inv.size(); i++ ) {
+        if( inv.get(i).cost > best ) { 
+          best = inv.get(i).cost;
+        }
+      }
+    }
+    return best;
+  }
+	public int getCheapestItemCost() {
+	  int cheapest = -1;
+	  if( !inv.isEmpty() ) {
+	    cheapest = inv.get(0).cost;
+      for( int i = 1; i < inv.size(); i++ ) {
+        if( inv.get(i).cost < cheapest ) { 
+          cheapest = inv.get(i).cost;
+        }
+      }
+	  }
+	  return cheapest;
+	}
+	public String inventoryToString() {
+	  String str = "Inv=(";
+	  for(int i = 0; i < inv.size(); i++ ) {
+	    str += inv.get(i).name + ":" + inv.get(i).cost;
+	    if( i != inv.size()-1 ) {
+	      str += ", ";
+	    }
+	  }
+	  return str + ")";
+	}
+	public void collectItems(Mob dead) {
+	  while( !isFullInventory() && !dead.isEmptyInventory() ) {
+	    // take the most expensive item from dead.
+	    Item best = dead.removeMostExpensiveItem();
+	    if( best != null ) {
+	      addItem(best);
+	    }
+	  }
+	  int worst = getCheapestItemCost();
+	  int deadBest = dead.getMostExpensiveItemCost();
+	  while( !dead.isEmptyInventory() && worst != -1 && worst < deadBest ) {
+	    Item best = dead.removeMostExpensiveItem();
+	    removeCheapestItem();
+	    addItem(best);
+	    worst = getCheapestItemCost();
+	    deadBest = dead.getMostExpensiveItemCost();
+	  }
+	}
+	// TODO setAttack
 	public void setAttack(String dir) {
 		if(weapon != null) { //weapon has not been initialized, so return function
   		int wi = weapon.width;

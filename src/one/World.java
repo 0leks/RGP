@@ -27,6 +27,7 @@ public class World implements Serializable {
 	public static final int CANTMOVE = -1;
 	public static final int CANMOVE = -2;
 	public static final int ZOOM = 1;
+	public static final int THREE_D_RATIO = 8;
 	public static final boolean DRAWPLAYEROBSTACLES = false;
 	
 	private Queue<Mob> mobs;
@@ -465,13 +466,13 @@ public class World implements Serializable {
     int distx = 0;
     int disty = 0;
     if(draw3d) {
-      distx = (drawx-Frame.MIDX)/10/World.ZOOM;
-      disty = (drawy-Frame.MIDY)/10/World.ZOOM;
+      distx = (drawx-Frame.MIDX)/THREE_D_RATIO/World.ZOOM;
+      disty = (drawy-Frame.MIDY)/THREE_D_RATIO/World.ZOOM;
     }
     if(drawx>MINDRAWX && drawx<MAXDRAWX && drawy>MINDRAWY && drawy<MAXDRAWY && World.ZOOM == 1) {
       g.setColor(Color.white);
       int l = Integer.toString(mob.level).toCharArray().length;
-      g.drawString(mob.level+"", drawx-l*5+2+distx, drawy+g.getFont().getSize()/2-1+disty);
+      g.drawString(mob.level+"", drawx-l*5+2+distx, drawy+g.getFont().getSize()/2-4+disty);
       
       g.setColor(new Color(200, 200, 200));
       double f = (double)mob.health/mob.getMaximumHealth();
@@ -495,6 +496,15 @@ public class World implements Serializable {
         g.drawRect(drawx-w/2, drawy-h/2-4, w, 4);
         g.setColor(Color.yellow);
         g.fillRect(drawx-w/2, drawy-h/2-4, (int) ((double)(mob.experience-mob.expatstartlvl)/(double)(mob.exptolvlup-mob.expatstartlvl)*w), 4);
+      }
+      else {
+        int xPadding = 1;
+        int itemWidth = 12/World.ZOOM;//(w - Mob.INV_SIZE*xPadding) / 5;
+        for( int i = 0; i < mob.inv.size(); i++ ) {
+          Item item = mob.inv.get(i);
+          g.drawImage(item.image, drawx - w/2 + xPadding*(i+1) + itemWidth * i + distx, drawy + h/2 - itemWidth - xPadding + disty, itemWidth, itemWidth, null);
+          
+        }
       }
     }
 	}
@@ -629,8 +639,8 @@ public class World implements Serializable {
       int distx = 0;
       int disty = 0;
       if(draw3d) {
-        distx = (drawx-Frame.MIDX)/10;
-        disty = (drawy-Frame.MIDY)/10;
+        distx = (drawx-Frame.MIDX)/THREE_D_RATIO;
+        disty = (drawy-Frame.MIDY)/THREE_D_RATIO;
         thing.poly.clear();
 
         MyPolygon bottom = new MyPolygon(colors[1]);
@@ -718,6 +728,9 @@ public class World implements Serializable {
 			}
 		}
 	}
+	/** 
+	 * @return World.CANTMOVE or World.CANMOVE or a positive number which is the level of the dead collision.
+	 */
 	@SuppressWarnings("serial")
 	public int collides(Mob what) {
 
@@ -753,6 +766,7 @@ public class World implements Serializable {
 									}
 								}
 							}
+							what.collectItems(temp);
 							return temp.level;
 						} else {
 							return World.CANTMOVE;
@@ -1179,7 +1193,7 @@ public class World implements Serializable {
 		initializemob(newmob, "wooden sword");
 		
 		
-		//TODO GHOST
+		//TODO GHOST AREA
 		walls.add(new Obstacle(-550, -2850, 900, 300, this, Color.darkGray, true));
 		walls.add(new Obstacle(700, -3750, 400, 700, this, Color.darkGray, true));
 		walls.add(new Obstacle(-250, -4250, 2300, 300, this, Color.darkGray, true));
@@ -1212,8 +1226,6 @@ public class World implements Serializable {
 			}
 		}
 		walls.add(new Obstacle(-700, -2520, 1000, 100, this, Color.darkGray, true));
-		
-		
 		
 		//TODO LAVA
 		walls.add(new Obstacle(2170, -1600, 300, 850, this, Color.red, true));
@@ -1367,21 +1379,16 @@ public class World implements Serializable {
 			}
 		}
 		//
-		
-		
 		walls.add(new Sign(150, 0, 150, 30, this, "baseleft", "Mountains"));
 		
 		// arena area
 		walls.add(new Sign(50, 500, 95, 30, this, "baseleft", "Arena"));
-		
 		
 		walls.add(new Obstacle(1200, 530, 400, 660, this,Color.blue, true));
 		walls.add(new Obstacle(1800, 500, 100, 1000, this, Color.blue, true));
 		walls.add(new Obstacle(1550, 20, 400, 100, this, Color.blue, true));
 		walls.add(new Obstacle(1200, -350, 400, 900, this, Color.blue, true));
 		//end arena area
-		
-		
 		
 		walls.add(new Sign(1200, 800, 145, 40, this, "baseright", "Training"));
 		
@@ -1394,7 +1401,7 @@ public class World implements Serializable {
 				t = "wooden ";
 			if(a==2)
 				t = "iron ";
-			for(int b=0; b<=5; b++) {
+			for(int b=0; b<=4; b++) {
 				String u = "";
 				if(b==0)
 					u = "sword";
@@ -1406,15 +1413,18 @@ public class World implements Serializable {
 					u = "mace";
 				if(b == 4)
 					u = "battleaxe";
-				if(b == 5)
-					u = "squareshield";
-				if(b == 5) {
-				  shoptoadd.onsale.add(new Item(t+u, 9, this));
-				} else {
-				  shoptoadd.onsale.add(new Weapon(t+u, 9, this));
-				}
+			  shoptoadd.onsale.add(new Weapon(t+u, 9, this));
 			}
 		}
+		for(int a=1; a<=2; a++) {
+      String t = "";
+      if(a==1) 
+        t = "wooden ";
+      if(a==2)
+        t = "iron ";
+      String u = "squareshield";
+      shoptoadd.onsale.add(new Item(t+u, 9, this));
+    }
 		
 		shoptoadd = new Shop(1000, 0, 400, 100, this, "Trader");
 		shops.add(shoptoadd);
@@ -1609,8 +1619,27 @@ public class World implements Serializable {
 						w+="sword";
 					}
 					newmob = new Mob(xp, yp, "random hostile", this, r);
-					mobs.add(newmob);
-					initializemob(newmob, w);
+					double rand = Math.random();
+					double chance = 0;
+					double ringChance = 0.1;
+          if (rand < (chance+=ringChance)) {
+            String ring = Item.getRandomRing();
+            if( Math.random() < 0.01 ) {
+              ring = "greater" + ring;
+            }
+            newmob.addItem(new Item(ring, 1, this));
+          } else if (rand < (chance+=ringChance)) {
+            newmob.addItem(new Item(Item.getRandomRankRoulet() + " squareshield", 1, this));
+          } else if (rand < (chance+=ringChance)) {
+            if( Math.random() < 0.75 ) {
+              newmob.addItem(new Item("boots", 1, this));
+            }
+            else {
+              newmob.addItem(new Item("elvishboots", 1, this));
+            }
+          }
+          mobs.add(newmob);
+          initializemob(newmob, w);
 				}
 			}
 		}

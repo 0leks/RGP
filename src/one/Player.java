@@ -9,10 +9,8 @@ import java.util.ArrayList;
 import gui.Frame;
 
 public class Player extends Mob{
-	public ArrayList<Item> inv;
 	public Player(int sx, int sy,  World smyworld, Race r) {
 		super(sx, sy, "player", smyworld, r);
-		inv = new ArrayList<Item>();
 	}
 	@Override
 	public boolean damage(int d) {
@@ -25,53 +23,6 @@ public class Player extends Mob{
       myworld.deathTransparency = 0;
 		}
 		return dead;
-	}
-	public void addItem(String s, int amount) {
-		Item i = new Item(s, amount, myworld);
-		inv.add(i);
-		System.out.println("adding item");
-		lvlup("", 0);
-		for(Buff b : i.buffs) {
-			System.out.println("adding buff");
-			addbuff(b);
-		}
-		if(inv.size()>=6) {
-			for( Buff b : inv.get(0).buffs) {
-				subbuff(b);
-			}
-			for(Crit c : inv.get(0).crits) {
-				subcrit(c);
-			}
-			inv.remove(0);
-		}
-	}
-	public int itemsininv() {
-		int a = 0;
-		for(Item i : inv) {
-			if(i!=null)
-				a++;
-		}
-		return a;
-	}
-	public void addItem(Item i) {
-		inv.add(i);
-		
-		for(Buff b : i.buffs) {
-			addbuff(b);
-		}
-		for(Crit c : i.crits) {
-			addcrit(c);
-		}
-		if(inv.size()>=6) {
-			for( Buff b : inv.get(0).buffs) {
-				subbuff(b);
-			}
-			for(Crit c : inv.get(0).crits) {
-				subcrit(c);
-			}
-			inv.remove(0);
-		}
-		lvlup("", 0);
 	}
 	public boolean buyItem(Item i) {
 		boolean buysuccessful = false;

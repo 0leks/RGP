@@ -17,6 +17,9 @@ public class Item {
 	public int cost;
 	protected Image image;
 	public World myworld;
+	
+	public static final String[] ranks = new String[] { "wooden", "iron", "steel", "mithril", "adamant", "rune", "dragon" };
+	public static final String[] rings = new String[] { "agilityring", "critring", "healthring", "regenring", "statring", "intelligencering", "strengthring" };
 	public Item(String sname, int samount, World m) {
 		name = sname;
 		buffs = new ArrayList<Buff>();
@@ -26,6 +29,42 @@ public class Item {
 		init();
 		
 	}
+	public static String getRandomRing() {
+	  return rings[(int)(Math.random()*rings.length)];
+	}
+	public static String getRandomRankRoulet() {
+	  double rand = Math.random();
+	  double chance = 0.5;
+	  if( rand > chance ) {
+	    return "wooden";
+	  }
+	  chance = chance/2;
+    if( rand > chance ) {
+	    return "iron";
+	  }
+    chance = chance/2;
+    if( rand > chance ) {
+      return "steel";
+    }
+    chance = chance/2;
+    if( rand > chance ) {
+      return "mithril";
+    }
+    chance = chance/2;
+    if( rand > chance ) {
+      return "adamant";
+    }
+    chance = chance/2;
+    if( rand > chance ) {
+      return "rune";
+    }
+    chance = chance/2;
+    if( rand > chance ) {
+      return "dragon";
+    }
+    return "wooden";
+	}
+	
 	public void init() {
 		int rank = 0;
 		if(name.contains("wooden")) {
@@ -85,6 +124,10 @@ public class Item {
 			addbuff("agi", 15, true);
 			cost = 20;
 		}
+    if(name.equals("greateragilityring")) {
+      addbuff("agi", 100, true);
+      cost = 80;
+    }
 		if(name.equals("intelligencering")) {
 			addbuff("int", 5, true);
 			cost = 10;
