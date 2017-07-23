@@ -58,6 +58,8 @@ public class World implements Serializable {
 	Sound boss1;
 	Sound barrack;
 	Sound lava;
+  Sound necro;
+  Sound empty;
 	Sound currentsound;
 	
 	public World() {
@@ -101,7 +103,7 @@ public class World implements Serializable {
 				return false;
 			}
 		});
-		training = initSound("training.wav", -7, true);
+		training = initSound("training.wav", -7, false);
 		sounds.add(new SoundArea(training) {
 			@Override
 			public boolean in(int x, int y) {
@@ -141,16 +143,39 @@ public class World implements Serializable {
 				return false;
 			}
 		});
-		lava = initSound("lava.wav", -5, false);
+		lava = initSound("lava.wav", -5, true);
 		sounds.add(new SoundArea(lava) {
 			@Override
 			public boolean in(int x, int y) {
 				if(x>1350 && x<3100 && y<-900 && y>-3200) {
 					return true;
 				}
+				if( x>450 && x < 1350 && y > -3200 && y < -2100 ) { 
+				  return true;
+				}
 				return false;
 			}
 		});
+    necro = initSound("necro.wav", -3, true);
+    sounds.add(new SoundArea(necro) {
+      @Override
+      public boolean in(int x, int y) {
+        if(x>-1400 && x<450 && y>-4100 && y<-3000) {
+          return true;
+        }
+        return false;
+      }
+    });
+    empty = initSound("empty.wav", -5, true);
+    sounds.add(new SoundArea(empty) {
+      @Override
+      public boolean in(int x, int y) {
+        if(x>-4000 && x<-100 && y>-2700 && y<-1400) {
+          return true;
+        }
+        return false;
+      }
+    });
 		Frame.println();
 	}
 	public void changeSound(Sound sound) {
