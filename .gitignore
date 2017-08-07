@@ -4,6 +4,8 @@
 org.eclipse.jdt.core.prefs
 /bin/
 
+/resources/images nontransparent copy
+
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
