@@ -29,6 +29,7 @@ public class World implements Serializable {
 	public static final int ZOOM = 1;
 	public static final int THREE_D_RATIO = 8;
 	public static final boolean DRAWPLAYEROBSTACLES = false;
+	public static final boolean NO_COLLISION = false;
 	
 	private Queue<Mob> mobs;
 	private Queue<Obstacle> walls;
@@ -217,21 +218,22 @@ public class World implements Serializable {
 	}
 	
 	public static Color darken(Color c, int mag) {
-		int r = c.getRed()-mag;
-		int g = c.getGreen()-mag;
-		int b = c.getBlue()-mag;
+	  int randomModifier = 2 - (int)(Math.random()*5);
+		int r = c.getRed() - mag + randomModifier;
+		int g = c.getGreen() - mag + randomModifier;
+		int b = c.getBlue() - mag + randomModifier;
 		if(r<0)
 			r=0;
 		if(g<0)
 			g=0;
 		if(b<0)
 			b=0;
-		if(r>255)
-			r=255;
-		if(g>255)
-			g=255;
-		if(b>255)
-			b=255;
+		if(r>250)
+			r=250;
+		if(g>250)
+			g=250;
+		if(b>250)
+			b=250;
 		return new Color(r, g, b);
 	}
 	public void addMessage(String s, int time) {
@@ -240,9 +242,11 @@ public class World implements Serializable {
 	public void newgame(String race) {
 	  String weapon = "fist";
 		initPlayer(400, 400, weapon, 15, new ArrayList<Item>(), race, 0);
+//  initPlayer(-1200, -1900, weapon, 15, new ArrayList<Item>(), race, 0);
 //		initPlayer(200, -3400, weapon, 15, new ArrayList<Item>(), race, 0);
 		//TODO INITPLAYER
 //		initPlayer(1300, -1500, weapon, 15, new ArrayList<Item>(), race, 0);
+//    initPlayer(850, -1350, weapon, 15, new ArrayList<Item>(), race, 0);
 	}
 	public void initializemob(Mob m, String weapon) {
 		Race r = m.race;
@@ -444,6 +448,12 @@ public class World implements Serializable {
     int drawy = (mob.y-p.y)/World.ZOOM+Frame.MIDY;
     int w = mob.w/World.ZOOM;
     int h = mob.h/World.ZOOM;
+    int distx = 0;
+    int disty = 0;
+    if(draw3d) {
+      distx = (drawx-Frame.MIDX)/THREE_D_RATIO/World.ZOOM;
+      disty = (drawy-Frame.MIDY)/THREE_D_RATIO/World.ZOOM;
+    }
     //g.fill(dim());
     if(mob.attack!=null && mob.adraw>=0) {
       int nx = (mob.attack.x-p.x)/World.ZOOM+Frame.MIDX;
@@ -487,34 +497,30 @@ public class World implements Serializable {
     if( mob.isStunned() ) {
       col[0] = Mob.BASH_COLOR;
     }
-    drawThing(g, mob, col);
-    int distx = 0;
-    int disty = 0;
-    if(draw3d) {
-      distx = (drawx-Frame.MIDX)/THREE_D_RATIO/World.ZOOM;
-      disty = (drawy-Frame.MIDY)/THREE_D_RATIO/World.ZOOM;
+    if(mob.dead) {
+      g.setColor(Color.black);
     }
+    drawThing(g, mob, col);
     if(drawx>MINDRAWX && drawx<MAXDRAWX && drawy>MINDRAWY && drawy<MAXDRAWY && World.ZOOM == 1) {
       g.setColor(Color.white);
       int l = Integer.toString(mob.level).toCharArray().length;
       g.drawString(mob.level+"", drawx-l*5+2+distx, drawy+g.getFont().getSize()/2-4+disty);
-      
-      g.setColor(new Color(200, 200, 200));
-      double f = (double)mob.health/mob.getMaximumHealth();
-      g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, mob.whiteline/10, 8);
-      
-      if(mob.whiteline/10>(f*w))
-        mob.whiteline-=w/30;
-      if(mob.whiteline/10<f*w)
-        mob.whiteline = (int) (f*w*10);
-      
-      if(mob.isHostile()) {
-        g.setColor(Color.red);
-      } else {
-        g.setColor(new Color( 0, 190, 20));
+      if( !mob.dead ) {
+        g.setColor(new Color(200, 200, 200));
+        double f = (double)mob.health/mob.getMaximumHealth();
+        g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, mob.whiteline/10, 8);
+        if(mob.whiteline/10>(f*w))
+          mob.whiteline-=w/30;
+        if(mob.whiteline/10<f*w)
+          mob.whiteline = (int) (f*w*10);
+        if(mob.isHostile()) {
+          g.setColor(Color.red);
+        } else {
+          g.setColor(new Color( 0, 190, 20));
+        }
+        g.drawRect(drawx-w/2+distx, drawy-h/2-13+disty, w, 8);
+        g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, (int) (f*w), 8);
       }
-      g.drawRect(drawx-w/2+distx, drawy-h/2-13+disty, w, 8);
-      g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, (int) (f*w), 8);
       
       if(mob instanceof Player) {
         g.setColor(new Color(150, 150, 0));
@@ -603,14 +609,15 @@ public class World implements Serializable {
       else {
         colors[0] = obst.color;
         for(int a=1; a<colors.length && a<3; a++) {
-          colors[a] = World.darken(obst.color, -100);
+          colors[a] = World.darken(obst.color, -90);
         }
         for(int a=3; a<colors.length; a++) {
-          colors[a] = World.darken(obst.color, 100);
+          colors[a] = World.darken(obst.color, 90);
         }
       }
       drawThing(g, obst, colors);
     } else if ( DRAWPLAYEROBSTACLES ) {
+      g.setColor(obst.color);
       int drawx = (obst.x-p.x)/World.ZOOM + Frame.MIDX;
       int drawy = (obst.y-p.y)/World.ZOOM + Frame.MIDY;
       g.drawRect(drawx-obst.w()/2/World.ZOOM, drawy-obst.h()/2/World.ZOOM, obst.w()/World.ZOOM, obst.h()/World.ZOOM);
@@ -748,8 +755,9 @@ public class World implements Serializable {
 		for(SoundArea s : sounds) {
 			if(s.in(p.x(), p.y())) {
 			  // only switch to new sound if music option set
-			  if( playmusic )
+			  if( playmusic ) {
 			    changeSound(s.getSound());
+			  }
 			}
 		}
 	}
@@ -758,7 +766,9 @@ public class World implements Serializable {
 	 */
 	@SuppressWarnings("serial")
 	public int collides(Mob what) {
-
+	  if( NO_COLLISION ) {
+	    return World.CANMOVE;
+	  }
     Iterator<Mob> itmob = mobs.iterator();
     while( itmob.hasNext() ) {
       Mob temp = itmob.next();
@@ -923,8 +933,8 @@ public class World implements Serializable {
 			int yy = -5;
 			int x1 = Frame.DIMX - Frame.GUIWIDTH + 30;
 			int x2 = Frame.DIMX - Frame.GUIWIDTH + 130;
-			drawStat(g, x1, yy+=35, "Health", p.health);
-			drawStat(g, x2, yy, "TotalHealth", p.getMaximumHealth());
+//			drawStat(g, x1, yy+=35, "Health", p.health);
+//			drawStat(g, x2, yy, "TotalHealth", p.getMaximumHealth());
 			drawStat(g, x1, yy+=35, "Money", p.money);
 			drawStat(g, x2, yy, "Attack Delay", p.getAttackDelay());
 			drawStat(g, x1, yy+=35, "Damage", p.getBaseDamage());
@@ -1204,7 +1214,8 @@ public class World implements Serializable {
 		loadraces(); // TODO continue debug output from here 
 
 		//THIS IS ONLY HERE TO PREVENT NULL POINTER EXCEPTIONS
-		initPlayer(0, 0, "dagger", 0, new ArrayList<Item>(), "Human", 0);
+		initPlayer(-1150, -950, "dagger", 0, new ArrayList<Item>(), "Human", 0);
+//    initPlayer(0, 0, "dagger", 0, new ArrayList<Item>(), "Human", 0);
 		
 		Mob newmob = new Mob(300, 300, "bettermovetowardsyou hostile", this, getrace("Dwarf"));
 		mobs.add(newmob);
@@ -1350,8 +1361,8 @@ public class World implements Serializable {
 		
 		//blue border
 		walls.add(new Obstacle(-300, -1200, 2200, 400, this, Color.blue, true));
-//		walls.add(new Obstacle(-1200, 0, 400, 2800, this, Color.black, true));
-		walls.add(new Obstacle(-1200, 400, 400, 2400, this, Color.black, true));
+		// TODO left wall
+		walls.add(new Obstacle(-1200, 300, 400, 2200, this, Color.black, true));
 		walls.add(new Obstacle(-1300, -900, 200, 200, this, Color.black, true));
 		walls.add(new Obstacle(200, 1200, 3200, 400, this, Color.blue, true));
 
@@ -1690,6 +1701,55 @@ public class World implements Serializable {
 				co= new Color(85,107,47);
 			walls.add(new Obstacle(xp, yp, xsize, ysize, this, co, true));
 		}
+		// TODO Icy mountains
+//		walls.add(new Obstacle(-2000, -2000, 3800, 1200, this, Color.black, true));
+//    walls.add(new Obstacle(-2050, -500, 900, 4000, this, Color.black, true));
+//    walls.add(new Obstacle(-2050, 1600, 900, 200, this, Color.lightGray, true));
+		walls.add(new Obstacle(-2050, 700, 900, 100, this, Color.yellow, false));
+    walls.add(new Obstacle(-2350, 1500, 300, 400, this, Color.lightGray, true));
+    walls.add(new Obstacle(-1750, 1500, 300, 400, this, Color.lightGray, true));
+    walls.add(new Obstacle(-2250, -2600, 900, 200, this, Color.lightGray, true));
+    walls.add(new Obstacle(-1500, 0, 200, 3400, this, Color.lightGray, true));
+    walls.add(new Obstacle(-1500, -2100, 200, 800, this, Color.yellow, false));
+    walls.add(new Obstacle(-2600, -400, 200, 4200, this, Color.lightGray, true));
+    for(int b=0; b<200; b++) {
+      int xsize = rand.nextInt(70)+20;
+      int ysize = rand.nextInt(70)+20;
+      int xp = rand.nextInt( 900) - 2500;
+      int yp = 0;
+      if( b < 50 ) {
+        yp = rand.nextInt(950) - 2500;
+      } else if( b < 100 ) {
+        yp = rand.nextInt(950) - 2500 + 950;
+      } else if( b < 150 ) {
+        yp = rand.nextInt(950) - 2500 + 950 + 950;
+      } else if( b < 200 ) {
+        yp = rand.nextInt(950) - 2500 + 950 + 950 + 950;
+      }
+      if( xp > -1600 - xsize/2 ) {
+        xp = -1600 - xsize/2;
+      }
+      if( yp > 1300 - ysize/2 ) {
+        yp = 1300 - ysize/2;
+      }
+      if( xp < -2500 + xsize/2 ) {
+        xp = xsize/2 - 2500;
+      }
+      if( yp < -2500 + ysize/2 ) {
+        yp = ysize/2 - 2500;
+      }
+      int c = rand.nextInt(4);
+      Color co ;
+      if(c == 0) 
+        co = new Color(175 + rand.nextInt(20), 175 + rand.nextInt(20), 200 + rand.nextInt(20));
+      else if(c==1)
+        co = new Color(175 + rand.nextInt(20), 170 + rand.nextInt(20), 190 + rand.nextInt(20));
+      else if(c == 2)
+        co = new Color(175 + rand.nextInt(20), 185 + rand.nextInt(20), 200 + rand.nextInt(20));
+      else
+        co= new Color(185 + rand.nextInt(20), 185 + rand.nextInt(20), 210 + rand.nextInt(20));
+      walls.add(new Obstacle(xp, yp, xsize, ysize, this, co, true));
+    }
 		
 		spawns.add(new Spawn(-525, -525, 750, 750, this, 10));
 		for(int a=0; a<5; a++) {
