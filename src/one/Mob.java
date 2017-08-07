@@ -110,6 +110,8 @@ public class Mob extends Thing{
 		hpup = 0;
 		asdf = 0;
 		addcrit(new Crit(100, 100));
+		rescale(); // something to do with stats
+    lvlup();
 	}
 	public void removeItem( Item item ) {
     for( Buff b : item.buffs) {
@@ -119,6 +121,7 @@ public class Mob extends Thing{
       subcrit(c);
     }
     inv.remove(item);
+    lvlup("", 0);
 	}
   public void addItem(String s, int amount) {
     Item i = new Item(s, amount, myworld);
@@ -268,7 +271,7 @@ public class Mob extends Thing{
 		} 
 		if(s.equals("actstr")) {
 			actstrength+=n;
-			health+=STR_HEALTH_MULTIPLIER*n;
+      health+=STR_HEALTH_MULTIPLIER*n;
 		} 
 		if(s.equals("agi")) {
 			agilitybuff+=n;
@@ -469,10 +472,8 @@ public class Mob extends Thing{
         clearDebuffs(); // clear debuffs so that it isn't still poisoned on respawn.
         poisonpopup = null; // delete the green poison damage popup
       } else {
-        
-        damagefrompoison += debuffs[Debuff.POISON].damage;
-        
         if( poisonpopup == null || poisonpopup.done()) { // if it does not currently have a poison popup
+          damagefrompoison = debuffs[Debuff.POISON].damage;
           
           int durationOfPopup = (debuffs[Debuff.POISON].duration<100)?300:debuffs[Debuff.POISON].duration; // duration of popup is 100 or more
           
@@ -481,6 +482,7 @@ public class Mob extends Thing{
           this.popups.add(poisonpopup);
         }
         else {
+          damagefrompoison += debuffs[Debuff.POISON].damage;
           poisonpopup.string = damagefrompoison + "";
         }
       }
@@ -696,7 +698,7 @@ public class Mob extends Thing{
   				if(hit.kill) {
   					experience+=hit.leveloftarget*10*(100+getIntelligence())*.01;
   				} 
-  				acd = (int) (getAttackDelay()*woradelay);
+  				acd = (int) (getAttackDelay()*woradelay + randomAttackDelayModifier());
   				if(weapon.continuous) 
   					acd = 0;
   			}
@@ -705,6 +707,9 @@ public class Mob extends Thing{
       acd--;
 		}
 		adraw--;
+	}
+	public static double randomAttackDelayModifier() {
+	  return 0.98 + Math.random() * 0.04;
 	}
 	public boolean isFullInventory() {
 	  return inv.size() >= 5;

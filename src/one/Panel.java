@@ -192,7 +192,9 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
       gamestarted = true;
     }
     activemenu.setsel(0);
-    world.changeSound(world.grass);
+    if( World.playmusic ) {
+      world.changeSound(world.grass);
+    }
 	}
 	Timer menublinktimer;
 	public void actionPerformed(ActionEvent e) {
