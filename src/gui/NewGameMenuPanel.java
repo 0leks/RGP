@@ -1,16 +1,22 @@
 package gui;
 
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.SwingConstants;
 
-import layout.TableLayout;
+//import layout.TableLayout;
 
 @SuppressWarnings("serial")
 public class NewGameMenuPanel extends JPanel{
@@ -76,24 +82,26 @@ public class NewGameMenuPanel extends JPanel{
       }
     });
     
-    double[][] classLayout = new double[][] {
-      { TableLayout.FILL, Constants.BUTTON_WIDTH, Constants.BUTTON_WIDTH, Constants.BUTTON_WIDTH, Constants.BUTTON_WIDTH, Constants.BUTTON_WIDTH, Constants.BUTTON_WIDTH, Constants.BUTTON_WIDTH, TableLayout.FILL },
-      { TableLayout.FILL, Constants.BUTTON_HEIGHT, TableLayout.FILL}};
     JPanel classPanel = new JPanel();
-    classPanel.setLayout(new TableLayout(classLayout));
-    classPanel.add(human, "1, 1");
-    classPanel.add(elf, "2, 1");
-    classPanel.add(dwarf, "3, 1");
-    classPanel.add(scholar, "4, 1");
-    classPanel.add(assassin, "5, 1");
-    classPanel.add(warrior, "6, 1");
-    classPanel.add(baal, "7, 1");
-    
-    double[][] layout = new double[][] {
-      { TableLayout.FILL, Constants.BUTTON_WIDTH*2, Constants.BUTTON_WIDTH, Constants.BUTTON_WIDTH, Constants.BUTTON_WIDTH, Constants.BUTTON_WIDTH*2, TableLayout.FILL },
-      { TableLayout.FILL, Constants.BUTTON_HEIGHT, Constants.BUTTON_HEIGHT, Constants.BUTTON_HEIGHT, Constants.BUTTON_HEIGHT, Constants.BUTTON_HEIGHT, Constants.BUTTON_HEIGHT, Constants.BUTTON_HEIGHT, Constants.BUTTON_HEIGHT, TableLayout.FILL}};
-    setLayout( new TableLayout(layout) );
-    
+    classPanel.setLayout(new BoxLayout(classPanel, BoxLayout.LINE_AXIS));
+    classPanel.add(Box.createHorizontalGlue());
+    setupClassButton(human);
+    classPanel.add(human);
+    setupClassButton(elf);
+    classPanel.add(elf);
+    setupClassButton(dwarf);
+    classPanel.add(dwarf);
+    setupClassButton(scholar);
+    classPanel.add(scholar);
+    setupClassButton(assassin);
+    classPanel.add(assassin);
+    setupClassButton(warrior);
+    classPanel.add(warrior);
+    setupClassButton(baal);
+    classPanel.add(baal);
+    classPanel.add(Box.createHorizontalGlue());
+
+    setLayout(new GridLayout(10, 6));
     add(back, "3,1");
     JLabel instructions = new Label("Choose your class");
     instructions.setHorizontalAlignment(SwingConstants.CENTER);
@@ -103,6 +111,15 @@ public class NewGameMenuPanel extends JPanel{
     add(new Label(""), "1,6,5,6");
     add(start, "3,8");
     human.doClick();
+  }
+  public void setupClassButton(Component button) {
+	  ((JComponent) button).setAlignmentY(Component.CENTER_ALIGNMENT);
+	    setComponentSize(button);
+  }
+  public static void setComponentSize(Component button) {
+	  button.setPreferredSize(new Dimension(Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT));
+	  button.setMinimumSize(new Dimension(Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT));
+	  button.setMaximumSize(new Dimension(Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT));
   }
   public void setMenuListener( MenuListener listener ) {
     this.listener = listener;
