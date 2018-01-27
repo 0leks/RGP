@@ -101,25 +101,36 @@ public class NewGameMenuPanel extends JPanel{
     classPanel.add(baal);
     classPanel.add(Box.createHorizontalGlue());
 
-    setLayout(new GridLayout(10, 6));
-    add(back, "3,1");
+    setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+    add(Box.createVerticalGlue());
+    setupClassButton(back);
+    add(back);
+    add(Box.createVerticalStrut(Constants.BUTTON_HEIGHT));
     JLabel instructions = new Label("Choose your class");
-    instructions.setHorizontalAlignment(SwingConstants.CENTER);
-    add(instructions, "2,3,4,3");
-    add(classPanel, "1,5,5,5");
+    setupClassButton(instructions);
+    setComponentSize(instructions, Constants.BUTTON_WIDTH*3, Constants.BUTTON_HEIGHT);
+    add(instructions);
+    add(classPanel);
     // TODO display info about the selected class such as str, agi, health, etc.
-    add(new Label(""), "1,6,5,6");
-    add(start, "3,8");
+    Label info = new Label("");
+    setupClassButton(info);
+    setComponentSize(info, Constants.BUTTON_WIDTH*3, Constants.BUTTON_HEIGHT*2);
+    add(info);
+    setupClassButton(start);
+    add(Box.createVerticalStrut(Constants.BUTTON_HEIGHT));
+    add(start);
+    add(Box.createVerticalGlue());
     human.doClick();
   }
   public void setupClassButton(Component button) {
 	  ((JComponent) button).setAlignmentY(Component.CENTER_ALIGNMENT);
-	    setComponentSize(button);
+    ((JComponent) button).setAlignmentX(Component.CENTER_ALIGNMENT);
+    setComponentSize(button, Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT);
   }
-  public static void setComponentSize(Component button) {
-	  button.setPreferredSize(new Dimension(Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT));
-	  button.setMinimumSize(new Dimension(Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT));
-	  button.setMaximumSize(new Dimension(Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT));
+  public static void setComponentSize(Component button, int width, int height) {
+	  button.setPreferredSize(new Dimension(width, height));
+	  button.setMinimumSize(new Dimension(width, height));
+	  button.setMaximumSize(new Dimension(width, height));
   }
   public void setMenuListener( MenuListener listener ) {
     this.listener = listener;
