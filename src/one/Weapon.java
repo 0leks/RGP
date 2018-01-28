@@ -154,7 +154,7 @@ public class Weapon extends Item {
 		if (name.contains("deathaura")) {
 			width = 60+10*rank;
 			length = 60+10*rank;
-			range = -(60+10*rank)+(60+10*rank)/2-myworld.p.w/2;
+			range = -(60+10*rank)+(60+10*rank)/2-myworld.playerASDF.w/2;
 			addbuff("dmg", 10+rank*10, false);
 			addbuff("hp", 100-rank*10, false);
 			continuous = true;

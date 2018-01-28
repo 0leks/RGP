@@ -24,14 +24,19 @@ import gui.Frame;
 
 public class World implements Serializable {
   
-	public static final int CANTMOVE = -1;
-	public static final int CANMOVE = -2;
+  // SETTINGS
 	public static final int ZOOM = 1;
 	public static final int THREE_D_RATIO = 8;
 	public static final boolean DRAWPLAYEROBSTACLES = false;
 	public static final boolean NO_COLLISION = false;
 	
+
+  public static final int CANTMOVE = -1;
+  public static final int CANMOVE = -2;
+  
 	private Queue<Mob> mobs;
+  private Queue<Projectile> projectiles;
+  private Queue<ProjectileRegion> projectileRegions;
 	private Queue<Obstacle> walls;
 	private Queue<Shop> shops;
 	private ArrayList<Spawn> spawns;
@@ -40,16 +45,16 @@ public class World implements Serializable {
 	private ArrayList<Race> races;
 	private ArrayList<SoundArea> sounds;
 	
-	public Player p;
+	public Player playerASDF;
 	private Mob snitch;
 	
 	protected int deathTransparency;
 	private Random rand;
 	private Point mouse;
 	public int selected = 0;
-	public boolean drawimage = true;
-	public boolean draw3d = true;
-	public static boolean playmusic = true;
+	public boolean drawimage = false;
+	public boolean draw3d = false;
+	public static boolean playmusic = false;
 	
 	Sound grass;
 	Sound arena;
@@ -67,6 +72,8 @@ public class World implements Serializable {
 		Frame.println("Initializing World");
 		mouse = new Point(0, 0);
 		mobs = new ConcurrentLinkedQueue<Mob>();
+		projectiles = new ConcurrentLinkedQueue<Projectile>();
+		projectileRegions = new ConcurrentLinkedQueue<ProjectileRegion>();
 		walls = new ConcurrentLinkedQueue<Obstacle>();
 		shops = new ConcurrentLinkedQueue <Shop>();
 		spawns = new ArrayList<Spawn>();
@@ -205,7 +212,7 @@ public class World implements Serializable {
 	public void startMusic() {
 	  playmusic = true;
 	  for(SoundArea s : sounds) {
-      if(s.in(p.x(), p.y())) {
+      if(s.in(playerASDF.x(), playerASDF.y())) {
         changeSound(s.getSound());
       }
     }
@@ -241,8 +248,8 @@ public class World implements Serializable {
 	}
 	public void newgame(String race) {
 	  String weapon = "fist";
-		initPlayer(400, 400, weapon, 15, new ArrayList<Item>(), race, 0);
-//  initPlayer(-1200, -1900, weapon, 15, new ArrayList<Item>(), race, 0);
+//		initPlayer(400, 400, weapon, 15, new ArrayList<Item>(), race, 0);
+  initPlayer(-1200, -1900, weapon, 15, new ArrayList<Item>(), race, 0);
 //		initPlayer(200, -3400, weapon, 15, new ArrayList<Item>(), race, 0);
 		//TODO INITPLAYER
 //		initPlayer(1300, -1500, weapon, 15, new ArrayList<Item>(), race, 0);
@@ -318,6 +325,12 @@ public class World implements Serializable {
 			b=255;
 		return new Color(r, g, b);
 	}
+	public void addProjectile(Projectile p ) {
+	  projectiles.add(p);
+	}
+  public void removeProjectile(Projectile p ) {
+    projectiles.remove(p);
+  }
 	public Mob initMob(String race, int exp, int money, int xx, int yy, int health, String weap, String ai) {
 		Mob m = new Mob(xx, yy, ai, this, getrace(race));
 		this.initializemob(m, weap);
@@ -325,7 +338,7 @@ public class World implements Serializable {
 		m.money = money;
 		m.lvlup();
 		m.health = health;
-		if(m.getCurrentHealth() <=0) {
+		if(m.getCurrentHealth() <= 0) {
 			m.dead = true;
 		}
 		mobs.add(m);
@@ -333,33 +346,33 @@ public class World implements Serializable {
 	}
 	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, String race, int exp, int health) {
 		System.out.println(race);
-		p = new Player(xx, yy, this, getrace(race));
-		this.initializemob(p, weap);
-		p.money = smoney;
+		playerASDF = new Player(xx, yy, this, getrace(race));
+		this.initializemob(playerASDF, weap);
+		playerASDF.money = smoney;
 		for(Item i : items) {
-			p.addItem(i);
+			playerASDF.addItem(i);
 		}
-		p.experience = exp;
+		playerASDF.experience = exp;
 //		p.lvlupto(40);
-		p.lvlup();
-		p.health = health;
-		if(p.getCurrentHealth()<=0) {
-			p.dead = true;
+		playerASDF.lvlup();
+		playerASDF.health = health;
+		if(playerASDF.getCurrentHealth()<=0) {
+			playerASDF.dead = true;
 		}
 	}
 	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, String race, int exp) {
 		System.out.println(race);
-		p = new Player(xx, yy, this, getrace(race));
-		this.initializemob(p, weap);
-		p.money = smoney;
+		playerASDF = new Player(xx, yy, this, getrace(race));
+		this.initializemob(playerASDF, weap);
+		playerASDF.money = smoney;
 		for(Item i : items) {
-			p.addItem(i);
+			playerASDF.addItem(i);
 		}
-		p.experience = exp;
+		playerASDF.experience = exp;
 //  p.lvlupto(40);
-		p.lvlup();
-		if(p.getCurrentHealth()<=0) {
-			p.dead = true;
+		playerASDF.lvlup();
+		if(playerASDF.getCurrentHealth()<=0) {
+			playerASDF.dead = true;
 		}
 	}
 	public void draw(Graphics2D g) {
@@ -370,6 +383,13 @@ public class World implements Serializable {
       Shop shop = iterator.next();
       drawShop(g, shop);
     }
+
+    // Draw the projectiles
+    Iterator<Projectile> itproj = projectiles.iterator();
+    while( itproj.hasNext() ) {
+      Projectile proj = itproj.next();
+      drawProjectile(g, proj);
+    }
     
     // Draw the Walls
     Iterator<Obstacle> itwall = walls().iterator();
@@ -379,7 +399,7 @@ public class World implements Serializable {
     }
 
     // Draw the player
-    drawPlayer(g, p);
+    drawPlayer(g, playerASDF);
 
     // Draw all the mobs
     Iterator<Mob> itmob = mobs().iterator();
@@ -417,7 +437,7 @@ public class World implements Serializable {
 		  drawPopups(g, m);
 		}
     // Draw the Player's popups
-		drawPopups(g, p);
+		drawPopups(g, playerASDF);
 		drawgui(g);
 	}
 	
@@ -426,8 +446,8 @@ public class World implements Serializable {
 	public int MINDRAWX, MINDRAWY, MAXDRAWX, MAXDRAWY;
 	
 	public void drawPopups( Graphics2D g, Mob mob ) {
-	  int drawx = (mob.x-p.x)/World.ZOOM+Frame.MIDX;
-    int drawy = (mob.y-p.y)/World.ZOOM+Frame.MIDY;
+	  int drawx = (mob.x-playerASDF.x)/World.ZOOM+Frame.MIDX;
+    int drawy = (mob.y-playerASDF.y)/World.ZOOM+Frame.MIDY;
     boolean draw = false;
     if(drawx>MINDRAWX && drawx<MAXDRAWX && drawy>MINDRAWY && drawy<MAXDRAWY) {
       draw = true;
@@ -443,9 +463,21 @@ public class World implements Serializable {
       }
     }
 	}
+	public void drawProjectile( Graphics2D g, Projectile projectile ) {
+    g.setColor(Color.blue);
+    Color[] colors = new Color[6];
+    colors[0] = projectile.getColor();
+    for(int a=1; a<colors.length && a<3; a++) {
+      colors[a] = World.darken(colors[0], -90);
+    }
+    for(int a=3; a<colors.length; a++) {
+      colors[a] = World.darken(colors[0], 90);
+    }
+    drawThing(g, projectile, colors, THREE_D_RATIO*4);
+  }
 	public void drawMob( Graphics2D g, Mob mob) {
-	  int drawx = (mob.x-p.x)/World.ZOOM+Frame.MIDX;
-    int drawy = (mob.y-p.y)/World.ZOOM+Frame.MIDY;
+	  int drawx = (mob.x-playerASDF.x)/World.ZOOM+Frame.MIDX;
+    int drawy = (mob.y-playerASDF.y)/World.ZOOM+Frame.MIDY;
     int w = mob.w/World.ZOOM;
     int h = mob.h/World.ZOOM;
     int distx = 0;
@@ -456,8 +488,8 @@ public class World implements Serializable {
     }
     //g.fill(dim());
     if(mob.attack!=null && mob.adraw>=0) {
-      int nx = (mob.attack.x-p.x)/World.ZOOM+Frame.MIDX;
-      int ny = (mob.attack.y-p.y)/World.ZOOM+Frame.MIDY;
+      int nx = (mob.attack.x-playerASDF.x)/World.ZOOM+Frame.MIDX;
+      int ny = (mob.attack.y-playerASDF.y)/World.ZOOM+Frame.MIDY;
       int nw = mob.attack.width/World.ZOOM;
       int nh = mob.attack.height/World.ZOOM;
       if(mob.attackdirection == 1 || mob.attackdirection==3) {
@@ -547,8 +579,8 @@ public class World implements Serializable {
     
     g.setColor(Color.green);
     if(player.attack!=null && player.adraw>=0) {
-      int nx = player.attack.x-p.x+Frame.MIDX;
-      int ny = player.attack.y-p.y+Frame.MIDY;
+      int nx = player.attack.x-playerASDF.x+Frame.MIDX;
+      int ny = player.attack.y-playerASDF.y+Frame.MIDY;
       int nw = player.attack.width;
       int nh = player.attack.height;
       if(player.attackdirection == 1 || player.attackdirection==3) {
@@ -618,16 +650,16 @@ public class World implements Serializable {
       drawThing(g, obst, colors);
     } else if ( DRAWPLAYEROBSTACLES ) {
       g.setColor(obst.color);
-      int drawx = (obst.x-p.x)/World.ZOOM + Frame.MIDX;
-      int drawy = (obst.y-p.y)/World.ZOOM + Frame.MIDY;
+      int drawx = (obst.x-playerASDF.x)/World.ZOOM + Frame.MIDX;
+      int drawy = (obst.y-playerASDF.y)/World.ZOOM + Frame.MIDY;
       g.drawRect(drawx-obst.w()/2/World.ZOOM, drawy-obst.h()/2/World.ZOOM, obst.w()/World.ZOOM, obst.h()/World.ZOOM);
     }
     if( obst instanceof Sign ) {
       Sign sign = (Sign) obst;
       int distx = 0;
       int disty = 0;
-      int drawx = (sign.x-p.x)/World.ZOOM + Frame.MIDX;
-      int drawy = (sign.y-p.y)/World.ZOOM + Frame.MIDY;
+      int drawx = (sign.x-playerASDF.x)/World.ZOOM + Frame.MIDX;
+      int drawy = (sign.y-playerASDF.y)/World.ZOOM + Frame.MIDY;
       int w = sign.w/World.ZOOM;
       int h = sign.h/World.ZOOM;
       if(drawx + w/2 >MINDRAWX && drawx - w/2 <MAXDRAWX && drawy + h/2 >MINDRAWY && drawy - h/2<MAXDRAWY) {
@@ -645,8 +677,8 @@ public class World implements Serializable {
     }
   }
 	public void drawShop( Graphics2D g, Shop shop ) {
-	  int drawx = (shop.x-p.x)/World.ZOOM+Frame.MIDX;
-    int drawy = (shop.y-p.y)/World.ZOOM+Frame.MIDY;
+	  int drawx = (shop.x-playerASDF.x)/World.ZOOM+Frame.MIDX;
+    int drawy = (shop.y-playerASDF.y)/World.ZOOM+Frame.MIDY;
     int w = shop.w/World.ZOOM;
     int h = shop.h/World.ZOOM;
     if(drawx + w/2 >MINDRAWX && drawx - w/2 <MAXDRAWX && drawy + h/2 >MINDRAWY && drawy - h/2<MAXDRAWY) {
@@ -658,11 +690,14 @@ public class World implements Serializable {
       g.setColor(cur);
     }
 	}
-  public void drawThing(Graphics2D g, Thing thing, Color[] colors) {
+	public void drawThing(Graphics2D g, Thing thing, Color[] colors) {
+	  drawThing(g, thing, colors, THREE_D_RATIO);
+	}
+  public void drawThing(Graphics2D g, Thing thing, Color[] colors, int threedRatio) {
 
     
-    int drawx = (thing.x-p.x)/World.ZOOM+Frame.MIDX;
-    int drawy = (thing.y-p.y)/World.ZOOM+Frame.MIDY;
+    int drawx = (thing.x-playerASDF.x)/World.ZOOM+Frame.MIDX;
+    int drawy = (thing.y-playerASDF.y)/World.ZOOM+Frame.MIDY;
     if(drawx + thing.w/2 >MINDRAWX && drawx - thing.w/2 <MAXDRAWX && drawy + thing.h/2 >MINDRAWY && drawy - thing.h/2<MAXDRAWY) {
       g.setColor(colors[0]);
       int w = thing.w/World.ZOOM;
@@ -671,8 +706,8 @@ public class World implements Serializable {
       int distx = 0;
       int disty = 0;
       if(draw3d) {
-        distx = (drawx-Frame.MIDX)/THREE_D_RATIO;
-        disty = (drawy-Frame.MIDY)/THREE_D_RATIO;
+        distx = (drawx-Frame.MIDX)/threedRatio;
+        disty = (drawy-Frame.MIDY)/threedRatio;
         thing.poly.clear();
 
         MyPolygon bottom = new MyPolygon(colors[1]);
@@ -738,12 +773,13 @@ public class World implements Serializable {
   
 	public void tic(Point m) {
 		mouse = m;
+    
 		Iterator<Mob> itmob = mobs.iterator();
 		while( itmob.hasNext() ) {
 		  Mob mob = itmob.next();
 		  mob.tic(this);
 		}
-		p.tic(this);
+		playerASDF.tic(this);
 	}
 	public void move() {
     Iterator<Mob> itmob = mobs.iterator();
@@ -751,9 +787,21 @@ public class World implements Serializable {
       Mob mob = itmob.next();
 			mob.move();
 		}
-		p.move();
+		playerASDF.move();
+
+    Iterator<Projectile> itproj = projectiles.iterator();
+    while( itproj.hasNext() ) {
+      Projectile p = itproj.next();
+      p.move();
+    }
+    Iterator<ProjectileRegion> itprojregion = projectileRegions.iterator();
+    while( itprojregion.hasNext() ) {
+      ProjectileRegion region = itprojregion.next();
+      region.move();
+    }
+    
 		for(SoundArea s : sounds) {
-			if(s.in(p.x(), p.y())) {
+			if(s.in(playerASDF.x(), playerASDF.y())) {
 			  // only switch to new sound if music option set
 			  if( playmusic ) {
 			    changeSound(s.getSound());
@@ -817,14 +865,14 @@ public class World implements Serializable {
         if(wall.blockPlayer()) {
           return World.CANTMOVE; 
         } else {
-          if(what != p) {
+          if(what != playerASDF) {
             return World.CANTMOVE;
           }
         }
       }
 		}
-		if(what != p)
-			if(p.dim().intersects(what.nextdim())) {
+		if(what != playerASDF)
+			if(playerASDF.dim().intersects(what.nextdim())) {
 				return World.CANTMOVE; 
 			}
 		return World.CANMOVE;
@@ -865,8 +913,8 @@ public class World implements Serializable {
 				return true; 
 			}
 		}
-		if(what != p)
-			if(p.dim().intersects(asdf)) {
+		if(what != playerASDF)
+			if(playerASDF.dim().intersects(asdf)) {
 				return true; 
 			}
 		return false;
@@ -890,7 +938,7 @@ public class World implements Serializable {
 				return true; 
 			}
 		}
-		if(p.dim().intersects(asdf)) {
+		if(playerASDF.dim().intersects(asdf)) {
 			return true; 
 		}
 		return false;
@@ -917,17 +965,17 @@ public class World implements Serializable {
     g.setColor(Color.red);
     g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, Frame.DIMX, Frame.GUIHEIGHT);
     g.setColor(new Color( 0, 190, 20));
-    g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, (p.getCurrentHealth()*Frame.DIMX/p.getMaximumHealth()), Frame.GUIHEIGHT);
+    g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, (playerASDF.getCurrentHealth()*Frame.DIMX/playerASDF.getMaximumHealth()), Frame.GUIHEIGHT);
     g.setColor(Color.black);
     Font preFont = g.getFont();
     g.setFont(Constants.HEALTH_BAR_FONT);
     FontMetrics fm = g.getFontMetrics();
-    String healthString = p.getCurrentHealth() + " / " + p.getMaximumHealth();
+    String healthString = playerASDF.getCurrentHealth() + " / " + playerASDF.getMaximumHealth();
     g.drawString(healthString, (Frame.DIMX - fm.stringWidth(healthString))/2, Frame.DIMY - Frame.GUIHEIGHT + (g.getFont().getSize() + Frame.GUIHEIGHT - 6)/2 );
     g.setFont(preFont);
 		if(s == null) {
 			g.setColor(Color.black);
-			p.inshop = false;
+			playerASDF.inshop = false;
 			selected = 0;
 			g.setColor(Color.black);
 			int yy = -5;
@@ -935,34 +983,34 @@ public class World implements Serializable {
 			int x2 = Frame.DIMX - Frame.GUIWIDTH + 130;
 //			drawStat(g, x1, yy+=35, "Health", p.health);
 //			drawStat(g, x2, yy, "TotalHealth", p.getMaximumHealth());
-			drawStat(g, x1, yy+=35, "Money", p.money);
-			drawStat(g, x2, yy, "Attack Delay", p.getAttackDelay());
-			drawStat(g, x1, yy+=35, "Damage", p.getBaseDamage());
-			drawStat(g, x2, yy, "Intelligence", p.getIntelligence());
-			drawStat(g, x1, yy+=35, "Agility", p.getAgility());
-			drawStat(g, x2, yy, "Strength", p.getStrength());
-			drawStat(g, x1, yy+=35, "Speed", p.getAccel());
-			drawStat(g, x2, yy, "Regen", p.getHealthRegen()*100);
-			drawStat(g, x1, yy+=35, "X", p.x);
-			drawStat(g, x2, yy, "Y", p.y);
-			drawStat(g, x2, yy+=35, "Armor", 100-p.damagetaken);
-			drawStat(g, x1, yy+=35, "Level", p.level);
-			drawStat(g, x2, yy, "Experience", p.experience);
+			drawStat(g, x1, yy+=35, "Money", playerASDF.money);
+			drawStat(g, x2, yy, "Attack Delay", playerASDF.getAttackDelay());
+			drawStat(g, x1, yy+=35, "Damage", playerASDF.getBaseDamage());
+			drawStat(g, x2, yy, "Intelligence", playerASDF.getIntelligence());
+			drawStat(g, x1, yy+=35, "Agility", playerASDF.getAgility());
+			drawStat(g, x2, yy, "Strength", playerASDF.getStrength());
+			drawStat(g, x1, yy+=35, "Speed", playerASDF.getAccel());
+			drawStat(g, x2, yy, "Regen", playerASDF.getHealthRegen()*100);
+			drawStat(g, x1, yy+=35, "X", playerASDF.x);
+			drawStat(g, x2, yy, "Y", playerASDF.y);
+			drawStat(g, x2, yy+=35, "Armor", 100-playerASDF.damagetaken);
+			drawStat(g, x1, yy+=35, "Level", playerASDF.level);
+			drawStat(g, x2, yy, "Experience", playerASDF.experience);
 			//drawStat(g, x1, yy+=35, "Exptolvlup", p.exptolvlup);
-			drawStat(g, x2, yy+=35, "Expleft", p.exptolvlup-p.experience);
-			g.drawString("Race: "+p.race.name, x1, yy+=35);
+			drawStat(g, x2, yy+=35, "Expleft", playerASDF.exptolvlup-playerASDF.experience);
+			g.drawString("Race: "+playerASDF.race.name, x1, yy+=35);
 		} else {
-			p.inshop = true;
+			playerASDF.inshop = true;
 			drawshop(g, s);
 		}
-		p.drawinv(g, mouse);
+		playerASDF.drawinv(g, mouse);
 		g.setColor(cur);
 	}
 	public Shop inshop() {
 	  Iterator<Shop> itshop = shops.iterator();
 	  while( itshop.hasNext() ) {
 	    Shop s = itshop.next();
-			if(s.dim().contains(p.dim())) {
+			if(s.dim().contains(playerASDF.dim())) {
 				return s;
 			}
 		}
@@ -970,7 +1018,7 @@ public class World implements Serializable {
 	}
 	public void drawshop(Graphics2D g, Shop s) {
     g.setColor(Color.blue);
-    drawStat(g, Frame.DIMX-Frame.GUIWIDTH+20, 35, "Money", p.money);
+    drawStat(g, Frame.DIMX-Frame.GUIWIDTH+20, 35, "Money", playerASDF.money);
     for(int a=0; a<s.onsale.size(); a++) {
       g.setColor(Color.blue);
       Item i = s.onsale.get(a);
@@ -1030,7 +1078,7 @@ public class World implements Serializable {
 			// Create file
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("saves\\"+slot+".sav")));
 			ArrayList<String> towrite = new ArrayList<String>();
-			towrite.add(p.tosave());
+			towrite.add(playerASDF.tosave());
 			ArrayList<Mob> inaspawn = new ArrayList<Mob>();
 			for(Spawn s : spawns) {
 				for(Mob m : s.mobs) {
@@ -1712,6 +1760,25 @@ public class World implements Serializable {
     walls.add(new Obstacle(-1500, 0, 200, 3400, this, Color.lightGray, true));
     walls.add(new Obstacle(-1500, -2100, 200, 800, this, Color.yellow, false));
     walls.add(new Obstacle(-2600, -400, 200, 4200, this, Color.lightGray, true));
+    ProjectileRegion region = new ProjectileRegion(-2500, -2550, 900, 3850, this, 200) {
+      @Override
+      public Point getNewSpawnLocation() {
+        double tx = (int)(w*Math.random()*2/3);
+        if( tx > w/3 ) {
+          tx += w/3;
+        }
+        return new Point((int) (x + tx), this.y + this.h);
+      }
+      @Override
+      public Point getNewTargetLocation() {
+        return new Point((int) (x + w*Math.random()), this.y);
+      }
+      @Override
+      public float getSpeed() {
+        return 30f;
+      }
+    };
+    projectileRegions.add(region);
     for(int b=0; b<200; b++) {
       int xsize = rand.nextInt(70)+20;
       int ysize = rand.nextInt(70)+20;

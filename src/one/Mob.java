@@ -541,19 +541,19 @@ public class Mob extends Thing{
 						asdf = 0;
 					int dx;
 					int dy;
-					if(x<myworld.p.x-accel) {
+					if(x<myworld.playerASDF.x-accel) {
 						dx = rand.nextInt(3);
 						dx = (int)((dx+1)/2);
-					} else if(x>myworld.p.x+accel) {
+					} else if(x>myworld.playerASDF.x+accel) {
 						dx = rand.nextInt(3);
 						dx = -(int)((dx+1)/2);
 					} else {
 						dx= rand.nextInt(3)-1;
 					}
-					if(y<myworld.p.y-accel) {
+					if(y<myworld.playerASDF.y-accel) {
 						dy = rand.nextInt(2);
 						dy = (int)((dy+1)/2);
-					} else if(y>myworld.p.y+accel) {
+					} else if(y>myworld.playerASDF.y+accel) {
 						dy = rand.nextInt(2);
 						dy = -(int)((dy+1)/2);
 					} else {
@@ -636,16 +636,16 @@ public class Mob extends Thing{
 					asdf = 0;
 				int dx;
 				int dy;
-				if(x<myworld.p.x-accel) {
+				if(x<myworld.playerASDF.x-accel) {
 					dx = 1;
-				} else if(x>myworld.p.x+accel) {
+				} else if(x>myworld.playerASDF.x+accel) {
 					dx = -1;
 				} else {
 					dx= 0;
 				}
-				if(y<myworld.p.y-accel) {
+				if(y<myworld.playerASDF.y-accel) {
 					dy = 1;
-				} else if(y>myworld.p.y+accel) {
+				} else if(y>myworld.playerASDF.y+accel) {
 					dy = -1;
 				} else {
 					dy= 0;
@@ -881,7 +881,7 @@ public class Mob extends Thing{
 				}
 			}
 		}
-		Player m = myworld.p;
+		Player m = myworld.playerASDF;
 		if(m != this && m.dim().intersects(r)) {
 			int dmgtodeal = getdmgaftercrit(dmg, m);
 			m.popups.add(new Popup(dmgtodeal+"", 300));

@@ -245,32 +245,32 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 					}
 				} else {
 					if(k.name().equals("w")) {
-						world.p.setspeed(0, -1);
+						world.playerASDF.setspeed(0, -1);
 					}
 					if(k.name().equals("a")) {
-						world.p.setspeed(-1, 0);
+						world.playerASDF.setspeed(-1, 0);
 					}
 					if(k.name().equals("s")) {
-						world.p.setspeed(0, 1);
+						world.playerASDF.setspeed(0, 1);
 					}
 					if(k.name().equals("d")) {
-						world.p.setspeed(1, 0);
+						world.playerASDF.setspeed(1, 0);
 					}
-					if(!world.p.inshop) {
+					if(!world.playerASDF.inshop) {
 						if(k.name().equals("up")) {
-							world.p.setAttack("up");
+							world.playerASDF.setAttack("up");
 						}
 						if(k.name().equals("left")) {
-							world.p.setAttack("left");
+							world.playerASDF.setAttack("left");
 						}
 						if(k.name().equals("down")) {
-							world.p.setAttack("down");
+							world.playerASDF.setAttack("down");
 						}
 						if(k.name().equals("right")) {
-							world.p.setAttack("right");
+							world.playerASDF.setAttack("right");
 						}
 					}
-					if(world.p.inshop) {
+					if(world.playerASDF.inshop) {
 						if(k.name().equals("up") && k.justchecked == false) {
 							k.justchecked = true;
 							if(world.selected-5>=0)
@@ -291,12 +291,12 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 							if(world.selected+1<world.inshop().onsale.size())
 								world.selected++;
 						}
-						if(k.name().equals("space") && k.justchecked == false && world.p.inshop) {
+						if(k.name().equals("space") && k.justchecked == false && world.playerASDF.inshop) {
 							k.justchecked = true;
 							Shop s = world.inshop();
 							Item i = s.onsale.get(world.selected);
 							if(i.amount>0) {
-								if(world.p.buyItem(i)) {
+								if(world.playerASDF.buyItem(i)) {
 									s.buy(world.selected);
 								}
 							}
@@ -308,16 +308,16 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 					
 				} else {
 					if(k.name().equals("w")) {
-						world.p.setspeed(0, -2);
+						world.playerASDF.setspeed(0, -2);
 					}
 					if(k.name().equals("a")) {
-						world.p.setspeed(-2, 0);
+						world.playerASDF.setspeed(-2, 0);
 					}
 					if(k.name().equals("s")) {
-						world.p.setspeed(0, 2);
+						world.playerASDF.setspeed(0, 2);
 					}
 					if(k.name().equals("d")) {
-						world.p.setspeed(2, 0);
+						world.playerASDF.setspeed(2, 0);
 					}
 				}
 				
@@ -481,7 +481,7 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 		if(gamestarted)
 			world.draw(g2d);
 
-    if( world.p.dead ) {
+    if( world.playerASDF.dead ) {
       g.setColor(new Color( 0, 0, 0, (world.deathTransparency++)/4) );
       if( world.deathTransparency > 1020) {
         world.deathTransparency = 1020;
@@ -554,22 +554,22 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 				
 			}
 			if(key == KeyEvent.VK_U) {
-				world.p.agilitybuff += 1000;
-				world.p.strengthbuff += 1000;
-				world.p.regenbuff += 1;
-				world.p.lvlup();
+				world.playerASDF.agilitybuff += 1000;
+				world.playerASDF.strengthbuff += 1000;
+				world.playerASDF.regenbuff += 1;
+				world.playerASDF.lvlup();
 			}
 			if(key == KeyEvent.VK_O) {
-				world.p.agilitybuff += 100;
-				world.p.lvlup();
+				world.playerASDF.agilitybuff += 100;
+				world.playerASDF.lvlup();
 			}
 			if(key == KeyEvent.VK_I) {
-				world.p.accel++;
-				world.p.lvlup();
+				world.playerASDF.accel++;
+				world.playerASDF.lvlup();
 			}
 			if(key == KeyEvent.VK_C) {
-				world.p.money +=100;
-				world.p.lvlup("",  0);
+				world.playerASDF.money +=100;
+				world.playerASDF.lvlup("",  0);
 			}
 			if(key == KeyEvent.VK_ESCAPE) {
 				openmenu();
