@@ -5,11 +5,12 @@ import java.awt.Toolkit;
 import java.util.Observable;
 import java.util.Observer;
 
-import javax.swing.JFrame;
+import javax.swing.*;
 
 import one.Panel;
 import one.Sound;
 import one.World;
+import resources.*;
 
 public class Frame extends JFrame implements MenuListener {
 
@@ -24,6 +25,8 @@ public class Frame extends JFrame implements MenuListener {
   private Panel game;
   private MainMenuPanel mainMenu;
   private NewGameMenuPanel newGameMenu;
+  private ContinueGameMenuPanel loadGameMenu;
+  private JPanel currentPanel;
   private Sound menu;
 
   public Frame() {
@@ -39,16 +42,30 @@ public class Frame extends JFrame implements MenuListener {
     MIDY = (DIMY - GUIHEIGHT) / 2;
     mainMenu = new MainMenuPanel();
     newGameMenu = new NewGameMenuPanel();
+    loadGameMenu = new ContinueGameMenuPanel();
     mainMenu.setMenuListener(this);
     newGameMenu.setMenuListener(this);
-    this.add(mainMenu, BorderLayout.CENTER);
+    loadGameMenu.setMenuListener(this);
+    switchTo(mainMenu);
     setVisible(true);
 
     menu = World.initSound("mainmenu.wav", -10, true);
     if(World.playmusic)
       menu.play(-5);
   }
-
+  private void removeCurrent() {
+    if( currentPanel != null ) {
+      remove(currentPanel);
+      currentPanel = null;
+    }
+  }
+  private void switchTo(JPanel panel) {
+    removeCurrent();
+    add(panel, BorderLayout.CENTER);
+    currentPanel = panel;
+    validate();
+    repaint();
+  }
   @Override
   public void menuAction(int action, Object obj) {
     switch (action) {
@@ -56,29 +73,31 @@ public class Frame extends JFrame implements MenuListener {
       System.exit(0);
       break;
     case MenuListener.NEW_GAME:
-      remove(mainMenu);
-      add(newGameMenu, BorderLayout.CENTER);
-      validate();
-      repaint();
+      switchTo(newGameMenu);
       break;
     case MenuListener.BACK:
-      remove(newGameMenu);
-      add(mainMenu, BorderLayout.CENTER);
-      validate();
-      repaint();
+      switchTo(mainMenu);
       break;
     case MenuListener.START:
-      game = new Panel((String)obj);
+      String clas = "Human";
+      if( obj instanceof String ) {
+        clas = (String)obj;
+      }
+      game = new Panel(clas);
+      if( obj instanceof SaveInstance ) {
+        game.loadSave(((SaveInstance)obj).getFileNameNoExtension());
+      }
       if(World.playmusic ) {
         if( menu!=null) {
           menu.fadeOut(.1);
         }
       }
-      remove(newGameMenu);
-      add(game, BorderLayout.CENTER);
-      validate();
-      repaint();
+      switchTo(game);
       game.requestFocusInWindow();
+      break;
+
+    case MenuListener.CONTINUE:
+      switchTo(loadGameMenu);
       break;
     }
   }

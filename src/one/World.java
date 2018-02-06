@@ -25,11 +25,17 @@ import gui.Frame;
 public class World implements Serializable {
   
   // SETTINGS
-	public static final int ZOOM = 1;
 	public static final int THREE_D_RATIO = 8;
 	public static final boolean DRAWPLAYEROBSTACLES = false;
-	public static final boolean NO_COLLISION = false;
+	public static boolean NO_COLLISION = false;
+  public static int ZOOM = 1;
 	
+
+	// default settings
+  public boolean drawimage = true;
+  public boolean draw3d = true;
+  public static boolean playmusic = false;
+  
 
   public static final int CANTMOVE = -1;
   public static final int CANMOVE = -2;
@@ -52,9 +58,6 @@ public class World implements Serializable {
 	private Random rand;
 	private Point mouse;
 	public int selected = 0;
-	public boolean drawimage = false;
-	public boolean draw3d = false;
-	public static boolean playmusic = false;
 	
 	Sound grass;
 	Sound arena;
@@ -248,8 +251,8 @@ public class World implements Serializable {
 	}
 	public void newgame(String race) {
 	  String weapon = "fist";
-//		initPlayer(400, 400, weapon, 15, new ArrayList<Item>(), race, 0);
-  initPlayer(-1200, -1900, weapon, 15, new ArrayList<Item>(), race, 0);
+		initPlayer(400, 400, weapon, 15, new ArrayList<Item>(), race, 0);
+//  initPlayer(-1200, -1900, weapon, 15, new ArrayList<Item>(), race, 0);
 //		initPlayer(200, -3400, weapon, 15, new ArrayList<Item>(), race, 0);
 		//TODO INITPLAYER
 //		initPlayer(1300, -1500, weapon, 15, new ArrayList<Item>(), race, 0);

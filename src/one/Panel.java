@@ -196,6 +196,10 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
       world.changeSound(world.grass);
     }
 	}
+	
+	public void loadSave(String slot) {
+    world.load(slot);
+	}
 	Timer menublinktimer;
 	public void actionPerformed(ActionEvent e) {
 		if(active && gamestarted) {
@@ -559,6 +563,12 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 				world.playerASDF.regenbuff += 1;
 				world.playerASDF.lvlup();
 			}
+      if(key == KeyEvent.VK_P) {
+        World.NO_COLLISION = !World.NO_COLLISION;
+      }
+      if(key == KeyEvent.VK_L) {
+        World.ZOOM = (World.ZOOM==8)?1:8;
+      }
 			if(key == KeyEvent.VK_O) {
 				world.playerASDF.agilitybuff += 100;
 				world.playerASDF.lvlup();

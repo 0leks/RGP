@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class MainMenuPanel extends JPanel {
   private JButton newGame;
+  private JButton continueGame;
   private JButton exit;
   private MenuListener listener;
   public MainMenuPanel() {
@@ -39,6 +40,15 @@ public class MainMenuPanel extends JPanel {
     this.add(newGame);
     this.add(Box.createVerticalStrut(Constants.BUTTON_HEIGHT));
     
+
+    continueGame = new MenuButton("Continue");
+    continueGame.setAlignmentX(Component.CENTER_ALIGNMENT);
+    continueGame.setPreferredSize(new Dimension(Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT));
+    continueGame.setMinimumSize(new Dimension(Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT));
+    continueGame.setMaximumSize(new Dimension(Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT));
+    this.add(continueGame);
+    this.add(Box.createVerticalStrut(Constants.BUTTON_HEIGHT));
+    
     exit = new MenuButton("Exit");
     exit.setAlignmentX(Component.CENTER_ALIGNMENT);
     exit.setPreferredSize(new Dimension(Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT));
@@ -52,6 +62,14 @@ public class MainMenuPanel extends JPanel {
       public void actionPerformed(ActionEvent arg0) {
         if( listener != null ) {
           listener.menuAction(MenuListener.NEW_GAME, null);
+        }
+      }
+    } );
+    continueGame.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
+        if( listener != null ) {
+          listener.menuAction(MenuListener.CONTINUE, null);
         }
       }
     } );
