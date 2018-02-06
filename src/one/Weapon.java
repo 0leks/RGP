@@ -78,7 +78,11 @@ public class Weapon extends Item {
 			rank = 6;
 		} else if(name.contains("dragon")) {
 			rank = 7;
-		}
+		} else if(name.contains("ghost")) {
+      rank = 8;
+    } else if(name.contains("frost")) {
+      rank = 9;
+    }
 		int multiplier = (int) Math.pow(rank, 2);
 		if (name.contains("bomb")) {
 			width = 200+40*rank;
@@ -155,11 +159,28 @@ public class Weapon extends Item {
 			width = 60+10*rank;
 			length = 60+10*rank;
 			range = -(60+10*rank)+(60+10*rank)/2-myworld.playerASDF.w/2;
-			addbuff("dmg", 10+rank*10, false);
+//			addbuff("dmg", 10+rank*10, false);
+			addbuff("dmg", 0, false);
 			addbuff("hp", 100-rank*10, false);
+      Debuff d = new Debuff( Debuff.POISON, 1);
+      d.damage = rank;
+      debuffs.add(d);
 			continuous = true;
 			cost = 50+24*multiplier;
 		}
+    if (name.equals("ghost beam")) {
+      width = 90;
+      length = 750;
+      range = 5;
+      addbuff("dmg", 0, false);
+      Debuff d = new Debuff( Debuff.POISON, 1);
+      d.damage = 5;
+      debuffs.add(d);
+      d = new Debuff( Debuff.STUN, 1, .95);
+      debuffs.add(d);
+      continuous = true;
+      cost = 500;
+    }
 
 		if (name.equals("longbow")) {
 			width = 60;

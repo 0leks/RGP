@@ -251,9 +251,10 @@ public class World implements Serializable {
 	}
 	public void newgame(String race) {
 	  String weapon = "fist";
+//	  weapon = "diamond laser";
 		initPlayer(400, 400, weapon, 15, new ArrayList<Item>(), race, 0);
 //  initPlayer(-1200, -1900, weapon, 15, new ArrayList<Item>(), race, 0);
-//		initPlayer(200, -3400, weapon, 15, new ArrayList<Item>(), race, 0);
+//		initPlayer(-300, -3050, weapon, 15, new ArrayList<Item>(), race, 0);
 		//TODO INITPLAYER
 //		initPlayer(1300, -1500, weapon, 15, new ArrayList<Item>(), race, 0);
 //    initPlayer(850, -1350, weapon, 15, new ArrayList<Item>(), race, 0);
@@ -1281,16 +1282,53 @@ public class World implements Serializable {
 		
 		
 		//TODO GHOST AREA
+		// border
 		walls.add(new Obstacle(-550, -2850, 900, 300, this, Color.darkGray, true));
 		walls.add(new Obstacle(700, -3750, 400, 700, this, Color.darkGray, true));
 		walls.add(new Obstacle(-250, -4250, 2300, 300, this, Color.darkGray, true));
 		walls.add(new Obstacle(-1600, -3450, 400, 1900, this, Color.darkGray, true));
+		// right side left side lich walls
+    walls.add(new Obstacle(150, -3650, 700, 100, this, Color.darkGray, true));
+    walls.add(new Obstacle(150, -3850, 700, 100, this, Color.darkGray, true));
+    walls.add(new Obstacle(-1050, -3450, 700, 100, this, Color.darkGray, true));
+    walls.add(new Obstacle(-1050, -3650, 700, 100, this, Color.darkGray, true));
+    walls.add(new Obstacle(-1050, -3850, 700, 100, this, Color.darkGray, true));
+    walls.add(new Obstacle(-1050, -4050, 700, 100, this, Color.darkGray, true));
+    // middle divider
+    walls.add(new Obstacle(-450, -3500, 200, 1000, this, Color.darkGray, true));
+    // boss obstruction
+    walls.add(new Obstacle(-825, -3200, 200, 200, this, Color.darkGray, true));
 
+    newmob = new Mob(440, -3750, "leftattack", this, getrace("Lich"));
+    mobs.add(newmob);
+    initializemob(newmob, "ghost beam");
+    newmob = new Mob(-1345, -3550, "rightattack", this, getrace("Lich"));
+    mobs.add(newmob);
+    initializemob(newmob, "ghost beam");
+    newmob = new Mob(-1345, -3750, "rightattack", this, getrace("Lich"));
+    mobs.add(newmob);
+    initializemob(newmob, "ghost beam");
+    newmob = new Mob(-1345, -3950, "rightattack", this, getrace("Lich"));
+    mobs.add(newmob);
+    initializemob(newmob, "ghost beam");
+    newmob = new Mob(-275, -4050, "downattack", this, getrace("Lich"));
+    mobs.add(newmob);
+    initializemob(newmob, "ghost beam");
+    
+    Shop shoptoadd = new Shop(240, -4000, 150, 150, this, "Greater Rings");
+    shops.add(shoptoadd);
+    shoptoadd.onsale.add(new Item("greaterregenring", 99, this));
+    shoptoadd.onsale.add(new Item("greaterhealthring", 99, this));
+    shoptoadd.onsale.add(new Item("greaterstrengthring", 99, this));
+    shoptoadd.onsale.add(new Item("greaterintelligencering", 99, this));
+    shoptoadd.onsale.add(new Item("greaterstatring", 99, this));
+    shoptoadd.onsale.add(new Item("greatercritring", 99, this));
+    
 		newmob = new Mob(-1200, -2850, "random hostile nomiss", this, getrace("bigboss"));
 		mobs.add(newmob);
-		initializemob(newmob, "dragon bomb");
+		initializemob(newmob, "ghost bomb");
 		newmob.lvlupto(60);
-		Shop shoptoadd = new Shop(-1200, -2850, 120, 120, this, "Dragon");
+		shoptoadd = new Shop(-1200, -2850, 120, 120, this, "Dragon");
 		shops.add(shoptoadd);
 		for(int b=0; b<=5; b++) {
 			String u = "";
@@ -1394,14 +1432,12 @@ public class World implements Serializable {
 		newmob = new Mob(400, -3100, "random hostile", this, getrace("bigboss"));
 		mobs.add(newmob);
 		
-		initializemob(newmob, "rune bomb");
+		initializemob(newmob, "dragon bomb");
 		newmob.lvlupto(40);
 		
 //		walls.add(new Obstacle(850, -950, 110, 110, this, Color.orange, false));
 //		walls.add(new Obstacle(950, -850, 110, 110, this, Color.orange, false));
 		walls.add(new Obstacle(900, -900, 400, 400, this, Color.orange, false));
-		
-		
 
 		walls.add(new Obstacle(2400, -2800, 100, 900, this, Color.red, true));
 		walls.add(new Obstacle(2650, -2300, 650, 100, this, Color.red, true));
@@ -1558,14 +1594,6 @@ public class World implements Serializable {
 		shoptoadd.onsale.add(new Item("statring", 99, this));
 		shoptoadd.onsale.add(new Item("critring", 99, this));
 		
-    shoptoadd = new Shop(240, -3880, 150, 150, this, "Greater Rings");
-    shops.add(shoptoadd);
-    shoptoadd.onsale.add(new Item("greaterregenring", 99, this));
-    shoptoadd.onsale.add(new Item("greaterhealthring", 99, this));
-    shoptoadd.onsale.add(new Item("greaterstrengthring", 99, this));
-    shoptoadd.onsale.add(new Item("greaterintelligencering", 99, this));
-    shoptoadd.onsale.add(new Item("greaterstatring", 99, this));
-    shoptoadd.onsale.add(new Item("greatercritring", 99, this));
 		
 		walls.add(new Obstacle(500, 780, 600, 40, this, Color.blue, true));
 		walls.add(new Obstacle(780, -100, 40, 1400, this, Color.blue, true));
@@ -1763,6 +1791,12 @@ public class World implements Serializable {
     walls.add(new Obstacle(-1500, 0, 200, 3400, this, Color.lightGray, true));
     walls.add(new Obstacle(-1500, -2100, 200, 800, this, Color.yellow, false));
     walls.add(new Obstacle(-2600, -400, 200, 4200, this, Color.lightGray, true));
+
+    newmob = new Mob(-2050, 1500, "random hostile nomiss", this, getrace("bigboss"));
+    mobs.add(newmob);
+    initializemob(newmob, "frost bomb");
+    newmob.lvlupto(80);
+    
     ProjectileRegion region = new ProjectileRegion(-2500, -2550, 900, 3850, this, 200) {
       @Override
       public Point getNewSpawnLocation() {
@@ -1893,6 +1927,10 @@ public class World implements Serializable {
 		    1, 1, 1, 10, 
 		    1, 25, 0, 
 		    1, 10, 3));
+    races.add(new Race("Lich", 10, 10, 10, 
+        50, 50, 10, 10, 
+        100, 0, 0.3, 
+        60, 60, 40));
 		races.add(new Race("bigboss", 5, 13, 2, 
 		    50, 100, 16, 10, 
 		    100, 0, .5, 

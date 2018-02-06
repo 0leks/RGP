@@ -53,6 +53,10 @@ public class Projectile extends Thing {
     }
     return false;
   }
-  
+
+  public String tosave() {
+    // TODO SAVING AND LOADING PROJECTILES
+    return "Projectile "+x+" "+y+" "+w+" "+h+" "+color.getRed()+" "+color.getGreen()+" "+color.getBlue();
+  }
   
 }

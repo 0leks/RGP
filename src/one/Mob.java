@@ -158,14 +158,20 @@ public class Mob extends Thing{
     lvlup("", 0);
   }
 	public void lvlupto(int lvl) {
-		while(lvl>0) {
+		while(level < lvl) {
 			experience = exptolvlup;
 			lvlup();
-			lvl--;
 			rescale();
 		}
-		
 	}
+  public void lvlupby(int lvl) {
+    while(lvl>0) {
+      experience = exptolvlup;
+      lvlup();
+      lvl--;
+      rescale();
+    }
+  }
 	
 	/**
 	 * Gives this mob the weapon specified by the input string
@@ -516,6 +522,18 @@ public class Mob extends Thing{
 			if(nomiss) {
 				randomize = 4;
 			}
+			if(ai.contains("leftattack")) {
+        setAttack("left");
+			}
+      if(ai.contains("rightattack")) {
+        setAttack("right");
+      }
+      if(ai.contains("upattack")) {
+        setAttack("up");
+      }
+      if(ai.contains("downattack")) {
+        setAttack("down");
+      }
 			if(ai.contains("random")) {
 				int a = rand.nextInt(5);
 				if(a==0) {

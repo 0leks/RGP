@@ -566,6 +566,10 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
       if(key == KeyEvent.VK_P) {
         World.NO_COLLISION = !World.NO_COLLISION;
       }
+      if(key == KeyEvent.VK_K) {
+        world.playerASDF.experience += 4000;
+        world.playerASDF.lvlup();
+      }
       if(key == KeyEvent.VK_L) {
         World.ZOOM = (World.ZOOM==8)?1:8;
       }
