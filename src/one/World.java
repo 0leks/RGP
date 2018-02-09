@@ -380,7 +380,8 @@ public class World implements Serializable {
 		}
 	}
 	public void draw(Graphics2D g) {
-		
+		g.setColor(new Color(220, 220, 220));
+		g.fillRect(0, 0, 1960, 1080);
 	  // Draw the shops
 		Iterator<Shop> iterator = shops().iterator();
     while (iterator.hasNext()) {
@@ -450,8 +451,8 @@ public class World implements Serializable {
 	public int MINDRAWX, MINDRAWY, MAXDRAWX, MAXDRAWY;
 	
 	public void drawPopups( Graphics2D g, Mob mob ) {
-	  int drawx = (mob.x-playerASDF.x)/World.ZOOM+Frame.MIDX;
-    int drawy = (mob.y-playerASDF.y)/World.ZOOM+Frame.MIDY;
+	  int drawx = (mob.x-playerASDF.x)/World.ZOOM+Panel.MIDX;
+    int drawy = (mob.y-playerASDF.y)/World.ZOOM+Panel.MIDY;
     boolean draw = false;
     if(drawx>MINDRAWX && drawx<MAXDRAWX && drawy>MINDRAWY && drawy<MAXDRAWY) {
       draw = true;
@@ -477,23 +478,23 @@ public class World implements Serializable {
     for(int a=3; a<colors.length; a++) {
       colors[a] = World.darken(colors[0], 90);
     }
-    drawThing(g, projectile, colors, THREE_D_RATIO*4);
+    drawThing(g, projectile, colors, 0);
   }
 	public void drawMob( Graphics2D g, Mob mob) {
-	  int drawx = (mob.x-playerASDF.x)/World.ZOOM+Frame.MIDX;
-    int drawy = (mob.y-playerASDF.y)/World.ZOOM+Frame.MIDY;
+	  int drawx = (mob.x-playerASDF.x)/World.ZOOM+Panel.MIDX;
+    int drawy = (mob.y-playerASDF.y)/World.ZOOM+Panel.MIDY;
     int w = mob.w/World.ZOOM;
     int h = mob.h/World.ZOOM;
     int distx = 0;
     int disty = 0;
     if(draw3d) {
-      distx = (drawx-Frame.MIDX)/THREE_D_RATIO/World.ZOOM;
-      disty = (drawy-Frame.MIDY)/THREE_D_RATIO/World.ZOOM;
+      distx = (drawx-Panel.MIDX)/THREE_D_RATIO/World.ZOOM;
+      disty = (drawy-Panel.MIDY)/THREE_D_RATIO/World.ZOOM;
     }
     //g.fill(dim());
     if(mob.attack!=null && mob.adraw>=0) {
-      int nx = (mob.attack.x-playerASDF.x)/World.ZOOM+Frame.MIDX;
-      int ny = (mob.attack.y-playerASDF.y)/World.ZOOM+Frame.MIDY;
+      int nx = (mob.attack.x-playerASDF.x)/World.ZOOM+Panel.MIDX;
+      int ny = (mob.attack.y-playerASDF.y)/World.ZOOM+Panel.MIDY;
       int nw = mob.attack.width/World.ZOOM;
       int nh = mob.attack.height/World.ZOOM;
       if(mob.attackdirection == 1 || mob.attackdirection==3) {
@@ -576,15 +577,15 @@ public class World implements Serializable {
     }
 	}
 	public void drawPlayer( Graphics2D g, Player player ) {
-	  int drawx = Frame.MIDX;
-    int drawy = Frame.MIDY; 
+	  int drawx = Panel.MIDX;
+    int drawy = Panel.MIDY; 
     int w = player.w/World.ZOOM;
     int h = player.h/World.ZOOM;
     
     g.setColor(Color.green);
     if(player.attack!=null && player.adraw>=0) {
-      int nx = player.attack.x-playerASDF.x+Frame.MIDX;
-      int ny = player.attack.y-playerASDF.y+Frame.MIDY;
+      int nx = player.attack.x-playerASDF.x+Panel.MIDX;
+      int ny = player.attack.y-playerASDF.y+Panel.MIDY;
       int nw = player.attack.width;
       int nh = player.attack.height;
       if(player.attackdirection == 1 || player.attackdirection==3) {
@@ -654,16 +655,16 @@ public class World implements Serializable {
       drawThing(g, obst, colors);
     } else if ( DRAWPLAYEROBSTACLES ) {
       g.setColor(obst.color);
-      int drawx = (obst.x-playerASDF.x)/World.ZOOM + Frame.MIDX;
-      int drawy = (obst.y-playerASDF.y)/World.ZOOM + Frame.MIDY;
+      int drawx = (obst.x-playerASDF.x)/World.ZOOM + Panel.MIDX;
+      int drawy = (obst.y-playerASDF.y)/World.ZOOM + Panel.MIDY;
       g.drawRect(drawx-obst.w()/2/World.ZOOM, drawy-obst.h()/2/World.ZOOM, obst.w()/World.ZOOM, obst.h()/World.ZOOM);
     }
     if( obst instanceof Sign ) {
       Sign sign = (Sign) obst;
       int distx = 0;
       int disty = 0;
-      int drawx = (sign.x-playerASDF.x)/World.ZOOM + Frame.MIDX;
-      int drawy = (sign.y-playerASDF.y)/World.ZOOM + Frame.MIDY;
+      int drawx = (sign.x-playerASDF.x)/World.ZOOM + Panel.MIDX;
+      int drawy = (sign.y-playerASDF.y)/World.ZOOM + Panel.MIDY;
       int w = sign.w/World.ZOOM;
       int h = sign.h/World.ZOOM;
       if(drawx + w/2 >MINDRAWX && drawx - w/2 <MAXDRAWX && drawy + h/2 >MINDRAWY && drawy - h/2<MAXDRAWY) {
@@ -671,8 +672,8 @@ public class World implements Serializable {
         g.setFont(sign.font);
         g.setColor(Color.black);
         if(draw3d) {
-          distx = (drawx-Frame.MIDX)/10;
-          disty = (drawy-Frame.MIDY)/10;
+          distx = (drawx-Panel.MIDX)/10;
+          disty = (drawy-Panel.MIDY)/10;
         }
         g.drawImage(sign.skin, drawx-w/2+distx, drawy-h/2+disty, w, h, null);
         g.drawString(sign.message, drawx-w/2+1+sign.sx+distx, drawy+h/4+sign.sy+disty);
@@ -681,8 +682,8 @@ public class World implements Serializable {
     }
   }
 	public void drawShop( Graphics2D g, Shop shop ) {
-	  int drawx = (shop.x-playerASDF.x)/World.ZOOM+Frame.MIDX;
-    int drawy = (shop.y-playerASDF.y)/World.ZOOM+Frame.MIDY;
+	  int drawx = (shop.x-playerASDF.x)/World.ZOOM+Panel.MIDX;
+    int drawy = (shop.y-playerASDF.y)/World.ZOOM+Panel.MIDY;
     int w = shop.w/World.ZOOM;
     int h = shop.h/World.ZOOM;
     if(drawx + w/2 >MINDRAWX && drawx - w/2 <MAXDRAWX && drawy + h/2 >MINDRAWY && drawy - h/2<MAXDRAWY) {
@@ -698,10 +699,9 @@ public class World implements Serializable {
 	  drawThing(g, thing, colors, THREE_D_RATIO);
 	}
   public void drawThing(Graphics2D g, Thing thing, Color[] colors, int threedRatio) {
-
     
-    int drawx = (thing.x-playerASDF.x)/World.ZOOM+Frame.MIDX;
-    int drawy = (thing.y-playerASDF.y)/World.ZOOM+Frame.MIDY;
+    int drawx = (thing.x-playerASDF.x)/World.ZOOM+Panel.MIDX;
+    int drawy = (thing.y-playerASDF.y)/World.ZOOM+Panel.MIDY;
     if(drawx + thing.w/2 >MINDRAWX && drawx - thing.w/2 <MAXDRAWX && drawy + thing.h/2 >MINDRAWY && drawy - thing.h/2<MAXDRAWY) {
       g.setColor(colors[0]);
       int w = thing.w/World.ZOOM;
@@ -709,9 +709,9 @@ public class World implements Serializable {
       g.fillRect(drawx-w/2, drawy-h/2, w, h);
       int distx = 0;
       int disty = 0;
-      if(draw3d) {
-        distx = (drawx-Frame.MIDX)/threedRatio;
-        disty = (drawy-Frame.MIDY)/threedRatio;
+      if( draw3d && threedRatio > 0 ) {
+        distx = (drawx-Panel.MIDX)/threedRatio;
+        disty = (drawy-Panel.MIDY)/threedRatio;
         thing.poly.clear();
 
         MyPolygon bottom = new MyPolygon(colors[1]);
@@ -775,15 +775,8 @@ public class World implements Serializable {
     }
   }
   
-	public void tic(Point m) {
+	public void updateMouseLocation(Point m) {
 		mouse = m;
-    
-		Iterator<Mob> itmob = mobs.iterator();
-		while( itmob.hasNext() ) {
-		  Mob mob = itmob.next();
-		  mob.tic(this);
-		}
-		playerASDF.tic(this);
 	}
 	public void move() {
     Iterator<Mob> itmob = mobs.iterator();
@@ -962,20 +955,20 @@ public class World implements Serializable {
 	public void drawgui(Graphics2D g) {
 		Color cur = g.getColor();
 		g.setColor(new Color(210, 180, 180));
-		g.fillRect(Frame.DIMX-Frame.GUIWIDTH, 0, Frame.GUIWIDTH, Frame.DIMY);
+		g.fillRect(Panel.DIMX-Panel.GUIWIDTH, 0, Panel.GUIWIDTH, Panel.DIMY);
 		Shop s = inshop();
 		
 		// draw health bar
     g.setColor(Color.red);
-    g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, Frame.DIMX, Frame.GUIHEIGHT);
+    g.fillRect(0, Panel.DIMY-Panel.GUIHEIGHT, Panel.DIMX, Panel.GUIHEIGHT);
     g.setColor(new Color( 0, 190, 20));
-    g.fillRect(0, Frame.DIMY-Frame.GUIHEIGHT, (playerASDF.getCurrentHealth()*Frame.DIMX/playerASDF.getMaximumHealth()), Frame.GUIHEIGHT);
+    g.fillRect(0, Panel.DIMY-Panel.GUIHEIGHT, (playerASDF.getCurrentHealth()*Panel.DIMX/playerASDF.getMaximumHealth()), Panel.GUIHEIGHT);
     g.setColor(Color.black);
     Font preFont = g.getFont();
     g.setFont(Constants.HEALTH_BAR_FONT);
     FontMetrics fm = g.getFontMetrics();
     String healthString = playerASDF.getCurrentHealth() + " / " + playerASDF.getMaximumHealth();
-    g.drawString(healthString, (Frame.DIMX - fm.stringWidth(healthString))/2, Frame.DIMY - Frame.GUIHEIGHT + (g.getFont().getSize() + Frame.GUIHEIGHT - 6)/2 );
+    g.drawString(healthString, (Panel.DIMX - fm.stringWidth(healthString))/2, Panel.DIMY - Panel.GUIHEIGHT + (g.getFont().getSize() + Panel.GUIHEIGHT - 6)/2 );
     g.setFont(preFont);
 		if(s == null) {
 			g.setColor(Color.black);
@@ -983,8 +976,8 @@ public class World implements Serializable {
 			selected = 0;
 			g.setColor(Color.black);
 			int yy = -5;
-			int x1 = Frame.DIMX - Frame.GUIWIDTH + 30;
-			int x2 = Frame.DIMX - Frame.GUIWIDTH + 130;
+			int x1 = Panel.DIMX - Panel.GUIWIDTH + 30;
+			int x2 = Panel.DIMX - Panel.GUIWIDTH + 130;
 //			drawStat(g, x1, yy+=35, "Health", p.health);
 //			drawStat(g, x2, yy, "TotalHealth", p.getMaximumHealth());
 			drawStat(g, x1, yy+=35, "Money", playerASDF.money);
@@ -1022,13 +1015,13 @@ public class World implements Serializable {
 	}
 	public void drawshop(Graphics2D g, Shop s) {
     g.setColor(Color.blue);
-    drawStat(g, Frame.DIMX-Frame.GUIWIDTH+20, 35, "Money", playerASDF.money);
+    drawStat(g, Panel.DIMX-Panel.GUIWIDTH+20, 35, "Money", playerASDF.money);
     for(int a=0; a<s.onsale.size(); a++) {
       g.setColor(Color.blue);
       Item i = s.onsale.get(a);
       int xp = a%5;
       int yp = a/5;
-      xp = Frame.DIMX-Frame.GUIWIDTH + 25 + xp*50;
+      xp = Panel.DIMX-Panel.GUIWIDTH + 25 + xp*50;
       yp = 50+yp*50;
       i.draw(g, xp, yp, 40, 40, mouse, true);
       
@@ -1300,18 +1293,23 @@ public class World implements Serializable {
     walls.add(new Obstacle(-825, -3200, 200, 200, this, Color.darkGray, true));
 
     newmob = new Mob(440, -3750, "leftattack", this, getrace("Lich"));
+    newmob.lvlupto(30);
     mobs.add(newmob);
     initializemob(newmob, "ghost beam");
     newmob = new Mob(-1345, -3550, "rightattack", this, getrace("Lich"));
+    newmob.lvlupto(30);
     mobs.add(newmob);
     initializemob(newmob, "ghost beam");
     newmob = new Mob(-1345, -3750, "rightattack", this, getrace("Lich"));
+    newmob.lvlupto(30);
     mobs.add(newmob);
     initializemob(newmob, "ghost beam");
     newmob = new Mob(-1345, -3950, "rightattack", this, getrace("Lich"));
+    newmob.lvlupto(30);
     mobs.add(newmob);
     initializemob(newmob, "ghost beam");
     newmob = new Mob(-275, -4050, "downattack", this, getrace("Lich"));
+    newmob.lvlupto(30);
     mobs.add(newmob);
     initializemob(newmob, "ghost beam");
     

@@ -21,26 +21,25 @@ import javax.swing.ImageIcon;
 
 import java.util.ArrayList;
 
-public class Panel extends JPanel implements ActionListener, MouseListener,	MouseMotionListener {
+public class Panel extends JPanel implements MouseListener,	MouseMotionListener {
 	private static final long serialVersionUID = 1L;
-	public static final int TIMER_DELAY = 8;
 	public static final int BLINK_TIMER_DELAY = 200;
+
+  public static int DIMX;
+  public static int DIMY;
+  public static int MIDX;
+  public static int MIDY;
+  public static final int GUIWIDTH = 300;
+  public static final int GUIHEIGHT = 30;
+  
 	private Random rand;
-	private Timer timer;
-	private Image image;
 	private World world;
 	private ArrayList<Key> keys;
 	private Point mouse;
 	
 	boolean active = false;
-	
-//	public static int DIMX = 940;
-//	public static int DIMY = 620;
-	
-	public static final int ACTCD = 5;
-	private int actcd = 5;
-//	public Frame frame;
-	
+
+  private Timer menublinktimer;
 	private Menu optionsmenu;
 	private Menu customoptions;
 	private Menu activemenu;
@@ -48,14 +47,11 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 	private Menu loadmenu;
 	private Menu mainmenu;
 	private Menu newgamemenu;
-//	private Menu initmenu;
 	
 	private boolean gamestarted = false;
 
 	public Panel(String classType) {
 		Frame.println("Initializing Panel");
-//		DIMX = dimx;
-//		DIMY = dimy;
 		mouse = new Point(0, 0);
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -73,19 +69,6 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 		loadmenu = new Menu();
 		mainmenu = new Menu();
 		newgamemenu = new Menu();
-//		initmenu = new Menu();
-
-//		Frame.print("initmenu, ");
-//		MenuButtonGroup m = new MenuButtonGroup("Race");
-//		m.add(new MyButton("", 50, 120, 115, 40, "Human", Color.black));
-//		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 50, 40, "Elf", Color.black));
-//		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 95, 40, "Dwarf", Color.black));
-//		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 125, 40, "Scholar", Color.black));
-//		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 150, 40, "Assassin", Color.black));
-//		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 120, 40, "Warrior", Color.black));
-//		m.add(new MyButton("", m.buts.get(m.buts.size()-1).getX()+m.buts.get(m.buts.size()-1).getWidth()+10, 120, 75, 40, "Baal", Color.black));
-//		initmenu.add(m);
-//		initmenu.add(new MenuButton( 50, 190, 150, 40, "newgame", Color.black, mainmenu));
 		
 		Frame.print("newgamemenu, ");
 		newgamemenu.add(new MenuButton( 50, 50, 120, 40, "back", Color.black, mainmenu));
@@ -162,14 +145,7 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 		keys.add(new Key(KeyEvent.VK_ENTER, "enter"));
 
 		world = new World();
-		// initialize draw boundaries
-		world.MINDRAWX = 0 - World.DRAWCHECK;
-    world.MINDRAWY = 0 - World.DRAWCHECK;
-    world.MAXDRAWX = Frame.DIMX - Frame.GUIWIDTH + World.DRAWCHECK;
-    world.MAXDRAWY = Frame.DIMY - Frame.GUIHEIGHT + World.DRAWCHECK;
-		
-		Frame.println("Creating Game Timer with delay: " + TIMER_DELAY);
-		timer = new Timer(TIMER_DELAY, this);
+		updateSize();
 
 		Frame.println("Creating Menu Blink Timer with delay: " + BLINK_TIMER_DELAY);
 		menublinktimer = new Timer(BLINK_TIMER_DELAY, new ActionListener() {
@@ -183,8 +159,7 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 		this.activemenu.setsel(0);
 		Frame.println("Loading Menu Music");
 
-		Frame.println("Starting Game Timer and Menu Blink Timer");
-		timer.start();
+		Frame.println("Starting Menu Blink Timer");
 		menublinktimer.start();
 		
     world.newgame(classType);
@@ -197,19 +172,31 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
     }
 	}
 	
+	public void updateSize() {
+    // initialize draw boundaries
+    world.MINDRAWX = 0 - World.DRAWCHECK;
+    world.MINDRAWY = 0 - World.DRAWCHECK;
+
+    DIMX = this.getWidth();
+    DIMY = this.getHeight();
+    MIDX = (DIMX - GUIWIDTH) / 2;
+    MIDY = (DIMY - GUIHEIGHT) / 2;
+    
+    world.MAXDRAWX = DIMX - GUIWIDTH + World.DRAWCHECK;
+    world.MAXDRAWY = DIMY - GUIHEIGHT + World.DRAWCHECK;
+	}
+	
 	public void loadSave(String slot) {
     world.load(slot);
 	}
-	Timer menublinktimer;
-	public void actionPerformed(ActionEvent e) {
+	@Override
+	public void paintComponent(Graphics g) {
+    world.updateMouseLocation(mouse);
+    super.paintComponent(g);
+	}
+	public void gameTic() {
 		if(active && gamestarted) {
-			if(actcd <= 0) {
-				world.move();
-				actcd = ACTCD;
-			} else {
-				actcd--;
-			}
-			world.tic(mouse);
+      world.move();
 		}
 		
 		for(Key k : keys) {
@@ -327,7 +314,7 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 				
 			}
 		}
-		repaint();
+//		repaint();
 		
 	}
 	public void activateButton(MenuButton b) {
@@ -457,14 +444,14 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 	public void log(String msg) {
 		System.out.print(msg);
 	}
-	public void setactive(boolean a) {
-		active = !active;
-		if(active) {
-			timer.start();
-		} else {
-			timer.stop();
-		}
-	}
+//	public void setactive(boolean a) {
+//		active = !active;
+//		if(active) {
+//			timer.start();
+//		} else {
+//			timer.stop();
+//		}
+//	}
 	public void paint(Graphics g) {
 	
 		super.paint(g);
@@ -490,13 +477,19 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
       if( world.deathTransparency > 1020) {
         world.deathTransparency = 1020;
       }
-      g2d.fillRect(0, 0, Frame.DIMX, Frame.DIMY);
+      g2d.fillRect(0, 0, DIMX, DIMY);
     }
 		
 		activemenu.draw(g2d);
 		
 		Toolkit.getDefaultToolkit().sync();
 		g.dispose();
+	}
+	@Override
+	public void doLayout() {
+	  super.doLayout();
+	  System.err.println("Panel doLayout");
+    updateSize();
 	}
 
 	public synchronized void mousePressed(MouseEvent e) {
@@ -601,4 +594,5 @@ public class Panel extends JPanel implements ActionListener, MouseListener,	Mous
 		activemenu.setactive(true);
 		active = false;
 	}
+
 }

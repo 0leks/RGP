@@ -45,67 +45,37 @@ public class Player extends Mob{
 	}
 	public void drawinv(Graphics2D g, Point m) {
 		g.setColor(Color.red);
+		int dx = 190;
+		int dy1 = 210;
+		int dy2 = 120;
 		if(inv.size()>0) {
-			inv.get(0).draw(g, Frame.DIMX - 190, Frame.DIMY - 210, 80, 80, m, false);
+			inv.get(0).draw(g, Panel.DIMX - dx, Panel.DIMY - dy1, 80, 80, m, false);
 		} else {
-			g.drawRect(Frame.DIMX - 190, Frame.DIMY - 210, 80, 80);
+			g.drawRect(Panel.DIMX - dx, Panel.DIMY - dy1, 80, 80);
 		}
 		if(inv.size()>1) {
-			inv.get(1).draw(g, Frame.DIMX - 100, Frame.DIMY - 210, 80, 80, m, false);
+			inv.get(1).draw(g, Panel.DIMX - dx+90, Panel.DIMY - dy1, 80, 80, m, false);
 		} else {
-			g.drawRect(Frame.DIMX - 100, Frame.DIMY - 210, 80, 80);
+			g.drawRect(Panel.DIMX - dx+90, Panel.DIMY - dy1, 80, 80);
 		} 
 		if(inv.size()>2) {
-			inv.get(2).draw(g, Frame.DIMX - 280, Frame.DIMY - 120, 80, 80, m, false);
+			inv.get(2).draw(g, Panel.DIMX - dx-90, Panel.DIMY - dy2, 80, 80, m, false);
 		} else {
-			g.drawRect(Frame.DIMX - 280, Frame.DIMY - 120, 80, 80);
+			g.drawRect(Panel.DIMX - dx-90, Panel.DIMY - dy2, 80, 80);
 		}
 		if(inv.size()>3) {
-			inv.get(3).draw(g, Frame.DIMX - 190, Frame.DIMY - 120, 80, 80, m, false);
+			inv.get(3).draw(g, Panel.DIMX - dx, Panel.DIMY - dy2, 80, 80, m, false);
 		} else {
-			g.drawRect(Frame.DIMX - 190, Frame.DIMY - 120, 80, 80);
+			g.drawRect(Panel.DIMX - dx, Panel.DIMY - dy2, 80, 80);
 		}
 		if(inv.size()>4) {
-			inv.get(4).draw(g, Frame.DIMX - 100, Frame.DIMY - 120, 80, 80, m, false);
+			inv.get(4).draw(g, Panel.DIMX - dx+90, Panel.DIMY - dy2, 80, 80, m, false);
 		} else {
-			g.drawRect(Frame.DIMX - 100, Frame.DIMY - 120, 80, 80);
+			g.drawRect(Panel.DIMX - dx+90, Panel.DIMY - dy2, 80, 80);
 		}
-		weapon.draw(g, Frame.DIMX - 280, Frame.DIMY - 210, 80, 80, m, false);
+		weapon.draw(g, Panel.DIMX - dx-90, Panel.DIMY - dy1, 80, 80, m, false);
 	}
-//	public void drawinv(Graphics2D g) {
-//		g.setColor(Color.red);
-//		if(inv.size()>0) {
-//      inv.get(0).draw(g, Frame.DIMX - 190, Frame.DIMY - 210, 80, 80);
-//    } else {
-//      g.drawRect(Frame.DIMX - 190, Frame.DIMY - 210, 80, 80);
-//    }
-//    if(inv.size()>1) {
-//      inv.get(1).draw(g, Frame.DIMX - 100, Frame.DIMY - 210, 80, 80);
-//    } else {
-//      g.drawRect(Frame.DIMX - 100, Frame.DIMY - 210, 80, 80);
-//    } 
-//    if(inv.size()>2) {
-//      inv.get(2).draw(g, Frame.DIMX - 280, Frame.DIMY - 120, 80, 80);
-//    } else {
-//      g.drawRect(Frame.DIMX - 280, Frame.DIMY - 120, 80, 80);
-//    }
-//    if(inv.size()>3) {
-//      inv.get(3).draw(g, Frame.DIMX - 190, Frame.DIMY - 120, 80, 80);
-//    } else {
-//      g.drawRect(Frame.DIMX - 190, Frame.DIMY - 120, 80, 80);
-//    }
-//    if(inv.size()>4) {
-//      inv.get(4).draw(g, Frame.DIMX - 100, Frame.DIMY - 120, 80, 80);
-//    } else {
-//      g.drawRect(Frame.DIMX - 100, Frame.DIMY - 120, 80, 80);
-//    }
-//		weapon.draw(g, Frame.DIMX - 282, Frame.DIMY - 210, 84, 84);
-//	}
 	
-	@Override
-	public void tic(World w) {
-		myworld = w;
-	}
 	public void setspeed(int xs, int ys) {
 		if(xs==1) {
 			xspeed = getAccel();

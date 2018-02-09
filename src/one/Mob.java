@@ -885,10 +885,10 @@ public class Mob extends Thing{
 						myworld.addMessage("A Boss has been defeated", 100);
 					}
 					hit.kill = true;
-					m.popups.add(new Popup(dmgtodeal+"", 300));
+					m.popups.add(new Popup(dmgtodeal+"", Popup.DURATION));
 					hit.damage+=dmgtodeal;
 				} else {
-					m.popups.add(new Popup(dmgtodeal+"", 300));
+					m.popups.add(new Popup(dmgtodeal+"", Popup.DURATION));
 					hit.damage+=dmgtodeal;
 					
 					for( Debuff debuff : weapon.debuffs ) {
@@ -902,7 +902,7 @@ public class Mob extends Thing{
 		Player m = myworld.playerASDF;
 		if(m != this && m.dim().intersects(r)) {
 			int dmgtodeal = getdmgaftercrit(dmg, m);
-			m.popups.add(new Popup(dmgtodeal+"", 300));
+			m.popups.add(new Popup(dmgtodeal+"", Popup.DURATION));
 			if(m.damage(dmgtodeal)) {
 				hit.kill = true;
 				hit.damage+=dmgtodeal;
@@ -925,14 +925,6 @@ public class Mob extends Thing{
 	 */
 	public int getCurrentHealth() {
 		return health;
-	}
-	
-	/**
-	 * no idea what this does
-	 * @param w
-	 */
-	public void tic(World w) {
-		myworld = w;
 	}
 	
 	/**

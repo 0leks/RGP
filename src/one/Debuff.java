@@ -1,5 +1,7 @@
 package one;
 
+import controller.*;
+
 public class Debuff {
   
   // total types of debuffs
@@ -56,6 +58,6 @@ public class Debuff {
     return s;
   }
   public double toSeconds( int tics ) {
-    return Panel.TIMER_DELAY*Panel.ACTCD*tics*.001;
+    return GameController.TIMER_DELAY*tics*.001;
   }
 }

@@ -7,6 +7,7 @@ import java.util.Observer;
 
 import javax.swing.*;
 
+import controller.*;
 import one.Panel;
 import one.Sound;
 import one.World;
@@ -15,34 +16,28 @@ import resources.*;
 public class Frame extends JFrame implements MenuListener {
 
   private static final long serialVersionUID = 1L;
-  public static int DIMX;
-  public static int DIMY;
-  public static int MIDX;
-  public static int MIDY;
-  public static final int GUIWIDTH = 300;
-  public static final int GUIHEIGHT = 30;
   public static boolean debugmode = true;
-  private Panel game;
+  private GamePanel gamePanel;
   private MainMenuPanel mainMenu;
   private NewGameMenuPanel newGameMenu;
   private ContinueGameMenuPanel loadGameMenu;
   private JPanel currentPanel;
   private Sound menu;
+  
+  private GameControllerInterface gameController;
 
-  public Frame() {
+  public Frame(GameControllerInterface gameController) {
     Frame.println("Initializing Frame");
+    this.gameController = gameController;
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    setTitle("RGP 1.4");
+    setTitle("RGP 2.0");
     setResizable(false);
     this.setUndecorated(true);
     this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
-    DIMX = this.getWidth();
-    DIMY = this.getHeight();
-    MIDX = (DIMX - GUIWIDTH) / 2;
-    MIDY = (DIMY - GUIHEIGHT) / 2;
     mainMenu = new MainMenuPanel();
     newGameMenu = new NewGameMenuPanel();
     loadGameMenu = new ContinueGameMenuPanel();
+    gamePanel = new GamePanel();
     mainMenu.setMenuListener(this);
     newGameMenu.setMenuListener(this);
     loadGameMenu.setMenuListener(this);
@@ -79,21 +74,14 @@ public class Frame extends JFrame implements MenuListener {
       switchTo(mainMenu);
       break;
     case MenuListener.START:
-      String clas = "Human";
-      if( obj instanceof String ) {
-        clas = (String)obj;
-      }
-      game = new Panel(clas);
-      if( obj instanceof SaveInstance ) {
-        game.loadSave(((SaveInstance)obj).getFileNameNoExtension());
-      }
+      gamePanel.addGamePanel(gameController.startGame(obj));
       if(World.playmusic ) {
         if( menu!=null) {
           menu.fadeOut(.1);
         }
       }
-      switchTo(game);
-      game.requestFocusInWindow();
+      switchTo(gamePanel);
+      gamePanel.requestFocusInWindow();
       break;
 
     case MenuListener.CONTINUE:

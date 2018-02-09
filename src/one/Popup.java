@@ -4,7 +4,10 @@ import java.awt.Color;
 import java.util.Random;
 
 public class Popup extends Message{
-	private static int dist = 50;
+  
+  public  static final int DURATION = 80;
+  
+	private static int dist = 40;
 	protected double dx;
 	protected double dy;
 	protected double x;

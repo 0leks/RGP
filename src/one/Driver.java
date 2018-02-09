@@ -1,5 +1,6 @@
 package one;
 
+import controller.*;
 import gui.Frame;
 
 public class Driver {
@@ -18,6 +19,6 @@ public class Driver {
 //		System.out.println(World.getNextWeapon("mithril spear"));
 //		System.out.println(World.getNextWeapon("adamant sword"));
 //		System.out.println(World.getNextWeapon("rune mace"));
-		new Frame();
+		new GameController();
 	}
 }
