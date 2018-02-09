@@ -10,7 +10,7 @@ import resources.*;
 
 public class GameController implements GameControllerInterface {
 
-  public static final int TIMER_DELAY = 60;
+  public static final int TIMER_DELAY = 10;
   public static final int REPAINT_DELAY = 20;
 
   private Timer timer;
@@ -43,15 +43,16 @@ public class GameController implements GameControllerInterface {
       @Override
       public void run() {
         try {
+          long timeBuffer = 0;
           while(true) {
             long startTime = System.currentTimeMillis();
             panel.gameTic();
             long deltaTime = System.currentTimeMillis() - startTime;
-            if( deltaTime > 4 ) {
-              System.err.println("Took " + deltaTime + " milliseconds to compute game tic");
-            }
-            if( deltaTime < TIMER_DELAY ) {
-              Thread.sleep(TIMER_DELAY - deltaTime);
+            timeBuffer -= deltaTime;
+            timeBuffer += TIMER_DELAY;
+            if( timeBuffer > 0 ) {
+              Thread.sleep(timeBuffer);
+              timeBuffer = 0;
             }
           }
         } catch (InterruptedException e) {
@@ -65,15 +66,8 @@ public class GameController implements GameControllerInterface {
       public void run() {
         try {
           while(true) {
-            long startTime = System.currentTimeMillis();
             panel.repaint();
-            long deltaTime = System.currentTimeMillis() - startTime;
-            if( deltaTime > 4 ) {
-              System.err.println("Took " + deltaTime + " milliseconds to compute repaint");
-            }
-            if( deltaTime < REPAINT_DELAY ) {
-              Thread.sleep(REPAINT_DELAY - deltaTime);
-            }
+            Thread.sleep(REPAINT_DELAY);
           }
         } catch (InterruptedException e) {
           e.printStackTrace();

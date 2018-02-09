@@ -478,7 +478,7 @@ public class World implements Serializable {
     for(int a=3; a<colors.length; a++) {
       colors[a] = World.darken(colors[0], 90);
     }
-    drawThing(g, projectile, colors, 0);
+    drawThing(g, projectile, colors, World.THREE_D_RATIO*8);
   }
 	public void drawMob( Graphics2D g, Mob mob) {
 	  int drawx = (mob.x-playerASDF.x)/World.ZOOM+Panel.MIDX;
@@ -1810,7 +1810,7 @@ public class World implements Serializable {
       }
       @Override
       public float getSpeed() {
-        return 30f;
+        return (float) (29F + Math.random());
       }
     };
     projectileRegions.add(region);
