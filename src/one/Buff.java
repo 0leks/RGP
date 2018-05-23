@@ -1,15 +1,15 @@
 package one;
 
 public class Buff {
-	public String stat;
+	public Attribute stat;
 	public int value;
 	public boolean raw;
-	public Buff(String sstat, int svalue, boolean sraw) {
+	public Buff(Attribute sstat, int svalue, boolean sraw) {
 		stat = sstat;
 		value = svalue;
 		raw = sraw;
 	}
-	public Buff(String sstat, double svalue, boolean sraw) {
+	public Buff(Attribute sstat, double svalue, boolean sraw) {
 		stat = sstat;
 		value = (int)(svalue*100);
 		raw = sraw;

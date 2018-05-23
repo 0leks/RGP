@@ -121,19 +121,19 @@ public class Mob extends Thing{
       subcrit(c);
     }
     inv.remove(item);
-    lvlup("", 0);
+    rescale();
 	}
   public void addItem(String s, int amount) {
     Item i = new Item(s, amount, myworld);
     inv.add(i);
-    lvlup("", 0);
+    rescale();
     for(Buff b : i.buffs) {
       addbuff(b);
     }
     if(inv.size()>INV_SIZE) {
       removeItem(inv.get(0));
     }
-    lvlup("", 0);
+    rescale();
   }
   public int itemsininv() {
     int a = 0;
@@ -155,7 +155,7 @@ public class Mob extends Thing{
     if(inv.size()>INV_SIZE) {
       removeItem(inv.get(0));
     }
-    lvlup("", 0);
+    rescale();
   }
 	public void lvlupto(int lvl) {
 		while(level < lvl) {
@@ -262,78 +262,78 @@ public class Mob extends Thing{
 		if(experience>=exptolvlup) {
 			expatstartlvl = exptolvlup;
 			exptolvlup += (int) (Math.pow(level, 2)*5)+30;
-			lvlup("actstr", race.strinc);
-			lvlup("actagi", race.agiinc);
+			lvlup(Attribute.ACTUAL_STRENGTH, race.strinc);
+			lvlup(Attribute.ACTUAL_AGILITY, race.agiinc);
 			damagebuff+=race.dmginc;
 			level++;
 			lvlup();
 		}
 		rescale();
 	}
-	public void lvlup(String s, int n) {
-		if(s.equals("str")) {
+	public void lvlup(Attribute attribute, int n) {
+	  if( attribute == Attribute.STRENGTH ) {
 			strengthbuff+=n;
 			health+=STR_HEALTH_MULTIPLIER*n;
 		} 
-		if(s.equals("actstr")) {
+	  if( attribute == Attribute.ACTUAL_STRENGTH ) {
 			actstrength+=n;
       health+=STR_HEALTH_MULTIPLIER*n;
 		} 
-		if(s.equals("agi")) {
+    if( attribute == Attribute.AGILITY ) {
 			agilitybuff+=n;
 		} 
-		if(s.equals("actagi")) {
+    if( attribute == Attribute.ACTUAL_AGILITY ) {
 			actagility+=n;
 		} 
-		if(s.equals("int")) {
+    if( attribute == Attribute.INTELLIGENCE ) {
 			intelligencebuff+=n;
 		} 
-		if(s.equals("actint")) {
+    if( attribute == Attribute.ACTUAL_INTELLIGENCE ) {
 			actintelligence+=n;
 		} 
-		if(s.equals("hp")) {
+    if( attribute == Attribute.HEALTH ) {
 			totalhealthbuff+=n;
 		} 
-		if(s.equals("dmg")) {
+    if( attribute == Attribute.DAMAGE ) {
 			damagebuff+=n;
 		}
-		if(s.equals("reg")) {
+    if( attribute == Attribute.REGEN ) {
 			regenbuff+=n*.01;
 		}
-		if(s.equals("accel")) {
+    if( attribute == Attribute.ACCELERATION ) {
 			accel+=n;
 		}
-		if(s.equals("Armor")) {
+    if( attribute == Attribute.ARMOR ) {
 			armorbuff+=n;
 		}
 		rescale();
 	}
-	public void worlvlup(String s, double n) {
-		if(s.equals("str")) {
+	public void worlvlup(Attribute attribute, double n) {
+    if( attribute == Attribute.STRENGTH ) {
 			worstrength*=n;
 		}
-		if(s.equals("agi")) {
+    if( attribute == Attribute.AGILITY ) {
 			woragility*=n;
 		}
-		if(s.equals("int")) {
+    if( attribute == Attribute.INTELLIGENCE ) {
 			worintelligence*=n;
 		}
-		if(s.equals("hp")) {
+    if( attribute == Attribute.HEALTH ) {
 			worhealth*=n;
 		} 
-		if(s.equals("dmg")) {
+    if( attribute == Attribute.DAMAGE ) {
 			wordamage*=n;
 		}
-		if(s.equals("reg")) {
+    if( attribute == Attribute.REGEN ) {
 			worregen*=n;
 		}
-		if(s.equals("accel")) {
+    if( attribute == Attribute.ACCELERATION ) {
 			woraccel*=n;
 		}
-		if(s.equals("adelay")) {
+    if( attribute == Attribute.ATTACK_DELAY ) {
 			woradelay*=n;
 		}
-		if(s.equals("Armor")) {
+    if( attribute == Attribute.ARMOR ) {
 			worarmor*=n;
 		}
 		rescale();

@@ -26,7 +26,7 @@ public class World implements Serializable {
   
   // SETTINGS
 	public static final int THREE_D_RATIO = 8;
-	public static final boolean DRAWPLAYEROBSTACLES = false;
+	public static final boolean DRAWPLAYEROBSTACLES = true;
 	public static boolean NO_COLLISION = false;
   public static int ZOOM = 1;
 	

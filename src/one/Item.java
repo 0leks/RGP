@@ -83,17 +83,17 @@ public class Item {
 			rank = 7;
 		}
 		if(name.contains("squareshield")) {
-			addbuff("Armor", 4+2*rank, true);
-			addbuff("accel", -1, true);
+			addbuff(Attribute.ARMOR, 4+2*rank, true);
+			addbuff(Attribute.ACCELERATION, -1, true);
 			cost = 1+3*rank;
 		}
 		
 		if(name.equals("regenring")) {
-			addbuff("reg", 50, true);
+			addbuff(Attribute.REGEN, 50, true);
 			cost = 20;
 		}
     if(name.equals("greaterregenring")) {
-      addbuff("reg", 300, true);
+      addbuff(Attribute.REGEN, 300, true);
       cost = 80;
     }
 		if(name.equals("critring")) {
@@ -105,66 +105,66 @@ public class Item {
       cost = 80;
     }
 		if(name.equals("healthring")) {
-			addbuff("hp", 150, true);
+			addbuff(Attribute.HEALTH, 150, true);
 			cost = 30;
 		}
     if(name.equals("greaterhealthring")) {
-      addbuff("hp", 1000, true);
+      addbuff(Attribute.HEALTH, 1000, true);
       cost = 100;
     }
 		if(name.equals("strengthring")) {
-			addbuff("str", 50, true);
+			addbuff(Attribute.STRENGTH, 50, true);
 			cost = 30;
 		}
     if(name.equals("greaterstrengthring")) {
-      addbuff("str", 300, true);
+      addbuff(Attribute.STRENGTH, 300, true);
       cost = 100;
     }
 		if(name.equals("agilityring")) {
-			addbuff("agi", 15, true);
+			addbuff(Attribute.AGILITY, 15, true);
 			cost = 20;
 		}
     if(name.equals("greateragilityring")) {
-      addbuff("agi", 100, true);
+      addbuff(Attribute.AGILITY, 100, true);
       cost = 80;
     }
 		if(name.equals("intelligencering")) {
-			addbuff("int", 5, true);
+			addbuff(Attribute.INTELLIGENCE, 5, true);
 			cost = 10;
 		}
     if(name.equals("greaterintelligencering")) {
-      addbuff("int", 50, true);
+      addbuff(Attribute.INTELLIGENCE, 50, true);
       cost = 50;
     }
 		if(name.equals("statring")) {
-			addbuff("str", 10, true);
-			addbuff("agi", 4, true);
-			addbuff("int", 1, true);
-			addbuff("hp", 10, true);
-			addbuff("reg", 5, true);
+			addbuff(Attribute.STRENGTH, 10, true);
+			addbuff(Attribute.AGILITY, 4, true);
+			addbuff(Attribute.INTELLIGENCE, 1, true);
+			addbuff(Attribute.HEALTH, 10, true);
+			addbuff(Attribute.REGEN, 5, true);
 			cost = 2;
 		}
     if(name.equals("greaterstatring")) {
-      addbuff("str", 100, true);
-      addbuff("agi", 30, true);
-      addbuff("int", 10, true);
-      addbuff("hp", 300, true);
-      addbuff("reg", 100, true);
+      addbuff(Attribute.STRENGTH, 100, true);
+      addbuff(Attribute.AGILITY, 30, true);
+      addbuff(Attribute.INTELLIGENCE, 10, true);
+      addbuff(Attribute.HEALTH, 300, true);
+      addbuff(Attribute.REGEN, 100, true);
       cost = 50;
     }
 		if(name.equals("boots")) {
-			addbuff("accel", 2, true);
+			addbuff(Attribute.ACCELERATION, 2, true);
 			cost = 1;
 		}
 		if(name.equals("elvishboots")) {
-			addbuff("accel", 4, true);
-			addbuff("agi", 5, true);
+			addbuff(Attribute.ACCELERATION, 4, true);
+			addbuff(Attribute.AGILITY, 5, true);
 			cost = 10;
 		}
 		ImageIcon ii = new ImageIcon("resources\\images\\items\\"+name+".png");
 		image = ii.getImage();
 	}
-	public void addbuff(String stat, int val, boolean raw) {
+	public void addbuff(Attribute stat, int val, boolean raw) {
 		buffs.add(new Buff(stat, val, raw));
 	}
 	public void addcrit(int chance, int damage) {

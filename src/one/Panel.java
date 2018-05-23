@@ -576,7 +576,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 			}
 			if(key == KeyEvent.VK_C) {
 				world.playerASDF.money +=100;
-				world.playerASDF.lvlup("",  0);
+				world.playerASDF.rescale();
 			}
 			if(key == KeyEvent.VK_ESCAPE) {
 				openmenu();

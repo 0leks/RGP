@@ -88,7 +88,7 @@ public class Weapon extends Item {
 			width = 200+40*rank;
 			length = 200+40*rank;
 			range = 2*rank;
-			addbuff("dmg", 5+6*multiplier, true);
+			addbuff(Attribute.DAMAGE, 5+6*multiplier, true);
       Debuff d = new Debuff( Debuff.STUN, 10 + rank*2, .5);
       debuffs.add(d);
 			cost = 100+12*multiplier;
@@ -97,8 +97,8 @@ public class Weapon extends Item {
 			width = 45+10*rank;
 			length = 45+10*rank;
 			range = rank*2;
-			addbuff("dmg", 4+3*multiplier, true);
-			addbuff("str", 5+5*multiplier, true);
+			addbuff(Attribute.DAMAGE, 4+3*multiplier, true);
+			addbuff(Attribute.STRENGTH, 5+5*multiplier, true);
 			addcrit(5+rank, 100+35*rank);
       Debuff d = new Debuff( Debuff.STUN, 20 + rank*6, .8);
       debuffs.add(d);
@@ -108,17 +108,17 @@ public class Weapon extends Item {
 			width = 40+3*rank;
 			length = 40+3*rank;
 			range = rank/2;
-			addbuff("dmg", 2+multiplier, true);
-			addbuff("hp", 10+multiplier*12, true);
-			addbuff("adelay", 100-7*rank, false);
+			addbuff(Attribute.DAMAGE, 2+multiplier, true);
+			addbuff(Attribute.HEALTH, 10+multiplier*12, true);
+			addbuff(Attribute.ATTACK_DELAY, 100-7*rank, false);
 			cost = multiplier;
 		}
 		if (name.contains("sword")) {
 			width = 100+12*rank;
 			length = 20+8*rank;
 			range = 2*rank;
-			addbuff("dmg", 3+multiplier*3, true);
-			addbuff("int", 1+3*multiplier, true);
+			addbuff(Attribute.DAMAGE, 3+multiplier*3, true);
+			addbuff(Attribute.INTELLIGENCE, 1+3*multiplier, true);
       Debuff d = new Debuff( Debuff.STUN, 12, .8 - rank/20.0);
       debuffs.add(d);
 			cost = 5*multiplier;
@@ -127,9 +127,9 @@ public class Weapon extends Item {
 			width = 20+5*rank;
 			length = 40+6*rank;
 			range = (int) (1.5*rank);
-			addbuff("dmg", 3+2*multiplier, true);
-			addbuff("agi", 1+1*multiplier/2, true);
-			addbuff("adelay", 100-6*rank, false);
+			addbuff(Attribute.DAMAGE, 3+2*multiplier, true);
+			addbuff(Attribute.AGILITY, 1+1*multiplier/2, true);
+			addbuff(Attribute.ATTACK_DELAY, 100-6*rank, false);
       Debuff d = new Debuff( Debuff.POISON, 10 + multiplier/2);
       d.damage = 2;
       debuffs.add(d);
@@ -139,8 +139,8 @@ public class Weapon extends Item {
 			width = 120+12*rank;
 			length = 30+8*rank;
 			range = 30+0*rank;
-			addbuff("dmg", 4+multiplier*4, true);
-			addbuff("int", 2+4*multiplier, true);
+			addbuff(Attribute.DAMAGE, 4+multiplier*4, true);
+			addbuff(Attribute.INTELLIGENCE, 2+4*multiplier, true);
       Debuff d = new Debuff( Debuff.STUN, 12, .75 - rank/20.0);
       debuffs.add(d);
       //TODO add new debuff weakness next attack deals less damage
@@ -150,8 +150,8 @@ public class Weapon extends Item {
 			width = 20+5*rank;
 			length = 98+12*rank;
 			range = 5+3*rank;
-			addbuff("dmg", 2+multiplier*3, true);
-			addbuff("reg", 4+5*multiplier, true);
+			addbuff(Attribute.DAMAGE, 2+multiplier*3, true);
+			addbuff(Attribute.REGEN, 4+5*multiplier, true);
 			addcrit(10+5*rank, 100+10*rank);
 			cost = 7*multiplier;
 		}
@@ -160,8 +160,8 @@ public class Weapon extends Item {
 			length = 60+10*rank;
 			range = -(60+10*rank)+(60+10*rank)/2-myworld.playerASDF.w/2;
 //			addbuff("dmg", 10+rank*10, false);
-			addbuff("dmg", 0, false);
-			addbuff("hp", 100-rank*10, false);
+			addbuff(Attribute.DAMAGE, 0, false);
+			addbuff(Attribute.HEALTH, 100-rank*10, false);
       Debuff d = new Debuff( Debuff.POISON, 1);
       d.damage = rank;
       debuffs.add(d);
@@ -172,7 +172,7 @@ public class Weapon extends Item {
       width = 90;
       length = 750;
       range = 5;
-      addbuff("dmg", 0, false);
+      addbuff(Attribute.DAMAGE, 0, false);
       Debuff d = new Debuff( Debuff.POISON, 1);
       d.damage = 5;
       debuffs.add(d);
@@ -186,8 +186,8 @@ public class Weapon extends Item {
 			width = 60;
 			length = 210;
 			range = 190;
-			addbuff("dmg", 120, false);
-			addbuff("dmg", 10, true);
+			addbuff(Attribute.DAMAGE, 120, false);
+			addbuff(Attribute.DAMAGE, 10, true);
 			addcrit(15, 200);
 			cost = 25;
 		}
@@ -195,8 +195,8 @@ public class Weapon extends Item {
 			width = 40;
 			length = 130;
 			range = 125;
-			addbuff("dmg", 110, false);
-			addbuff("dmg", 5, true);
+			addbuff(Attribute.DAMAGE, 110, false);
+			addbuff(Attribute.DAMAGE, 5, true);
 			addcrit(15, 160);
 			cost = 15;
 		}
@@ -204,12 +204,12 @@ public class Weapon extends Item {
 			width = 70;
 			length = 160;
 			range = 5;
-			addbuff("agi", 300, false);
-			addbuff("str", 500, false);
-			addbuff("int", 10, false);
-			addbuff("reg", 500, false);
-			addbuff("adelay", 40, false);
-			addbuff("hp", 500, false);
+			addbuff(Attribute.AGILITY, 300, false);
+			addbuff(Attribute.STRENGTH, 500, false);
+			addbuff(Attribute.INTELLIGENCE, 10, false);
+			addbuff(Attribute.REGEN, 500, false);
+			addbuff(Attribute.ATTACK_DELAY, 40, false);
+			addbuff(Attribute.HEALTH, 500, false);
       Debuff d = new Debuff( Debuff.STUN, 50, .1);
       debuffs.add(d);
 			cost = 9999;
@@ -218,16 +218,16 @@ public class Weapon extends Item {
 			width = 20;
 			length = 600;
 			range = 1;
-			addbuff("dmg", 200, true);
-			addbuff("adelay", 400, false);
-			addbuff("agi", -20, true);
+			addbuff(Attribute.DAMAGE, 200, true);
+			addbuff(Attribute.ATTACK_DELAY, 400, false);
+			addbuff(Attribute.AGILITY, -20, true);
 			cost = 200;
 		}
 		if (name.equals("laser")) {
 			width = 4;
 			length = 500;
 			range = 1;
-			addbuff("dmg", 1, false);
+			addbuff(Attribute.DAMAGE, 1, false);
 			continuous = true;
 			cost = 100;
 		}
@@ -235,7 +235,7 @@ public class Weapon extends Item {
 			width = 30;
 			length = 300;
 			range = 4;
-			addbuff("dmg", 2, false);
+			addbuff(Attribute.DAMAGE, 2, false);
 			continuous = true;
 			cost = 150;
 		}
@@ -243,24 +243,24 @@ public class Weapon extends Item {
 			width = 50;
 			length = 50;
 			range = 230;
-			addbuff("dmg", 10, true);
-			addbuff("adelay", 200, false);
+			addbuff(Attribute.DAMAGE, 10, true);
+			addbuff(Attribute.ATTACK_DELAY, 200, false);
 			cost = 50;
 		}
 		if (name.contains("sniper rifle")) {
 			width = 10;
 			length = 10;
 			range = 300;
-			addbuff("dmg", 50, true);
-			addbuff("adelay", 300, false);
+			addbuff(Attribute.DAMAGE, 50, true);
+			addbuff(Attribute.ATTACK_DELAY, 300, false);
 			cost = 70;
 		}
 		if (name.equals("diamond dagger")) {
 			width = 50;
 			length = 70;
 			range = 5;
-			addbuff("dmg", 10, true);
-			addbuff("agi", 100, true);
+			addbuff(Attribute.DAMAGE, 10, true);
+			addbuff(Attribute.AGILITY, 100, true);
 			addcrit(40, 30);
       Debuff d = new Debuff( Debuff.POISON, 50, .0);
       d.damage = 5;
@@ -271,7 +271,7 @@ public class Weapon extends Item {
 		image = ii.getImage();
 	}
 
-	public void addbuff(String stat, int val, boolean raw) {
+	public void addbuff(Attribute stat, int val, boolean raw) {
 		buffs.add(new Buff(stat, val, raw));
 	}
 

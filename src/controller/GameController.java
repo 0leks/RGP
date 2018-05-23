@@ -10,7 +10,7 @@ import resources.*;
 
 public class GameController implements GameControllerInterface {
 
-  public static final int TIMER_DELAY = 10;
+  public static final int TIMER_DELAY = 60;
   public static final int REPAINT_DELAY = 20;
 
   private Timer timer;
