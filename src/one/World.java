@@ -1,28 +1,16 @@
 package one;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.awt.*;
+import java.io.*;
+import java.util.*;
 import java.util.Queue;
-import java.util.Random;
-import java.util.StringTokenizer;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 
-import gui.Constants;
+import gui.*;
 import gui.Frame;
+import player.*;
+import sound.*;
 
-public class World implements Serializable {
+public class World implements Serializable, PlayerLocation {
   
   // SETTINGS
 	public static final int THREE_D_RATIO = 8;
@@ -34,7 +22,7 @@ public class World implements Serializable {
 	// default settings
   public boolean drawimage = true;
   public boolean draw3d = true;
-  public static boolean playmusic = false;
+  public static boolean playmusic = true;
   
 
   public static final int CANTMOVE = -1;
@@ -59,20 +47,11 @@ public class World implements Serializable {
 	private Point mouse;
 	public int selected = 0;
 	
-	Sound grass;
-	Sound arena;
-	Sound training;
-	Sound death;
-	Sound mountain;
-	Sound boss1;
-	Sound barrack;
-	Sound lava;
-  Sound necro;
-  Sound empty;
-	Sound currentsound;
+	private SoundManager soundManager;
 	
-	public World() {
+	public World(SoundManager soundManager) {
 		Frame.println("Initializing World");
+		this.soundManager = soundManager;
 		mouse = new Point(0, 0);
 		mobs = new ConcurrentLinkedQueue<Mob>();
 		projectiles = new ConcurrentLinkedQueue<Projectile>();
@@ -86,145 +65,36 @@ public class World implements Serializable {
 		sounds = new ArrayList<SoundArea>();
 		rand = new Random();
 
-		initializeSounds();
+		initializeSoundAreas();
 		initializeworld();
-		//changeSound(null);
 	}
 	
-	public void initializeSounds() {
-		Frame.print("Loading World Music: ");
-		death = initSound("death.wav", -2, false);
-		grass = initSound("grass.wav", -15, true);
-		sounds.add(new SoundArea(grass) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>-50 && x<1150 && y>-250 && y<1000) {
-					return true;
-				}
-				return false;
-			}
-		});
-		arena = initSound("combat1.wav", -15, true);
-		sounds.add(new SoundArea(arena) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>-1200 && x<-70 && y>100 && y<1000) {
-					return true;
-				}
-				return false;
-			}
-		});
-		training = initSound("training.wav", -7, false);
-		sounds.add(new SoundArea(training) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>1400 && x<1750 && y>90 && y<1000) {
-					return true;
-				}
-				return false;
-			}
-		});
-		mountain = initSound("stronghold.wav", -16, true);
-		sounds.add(new SoundArea(mountain) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>-1100 && x<-50 && y>-1000 && y<100) {
-					return true;
-				}
-				return false;
-			}
-		});
-		boss1 = initSound("combat4.wav", -5, false);
-		sounds.add(new SoundArea(boss1) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>350 && x<1000 && y>-1100 && y<-450) {
-					return true;
-				}
-				return false;
-			}
-		});
-		barrack = initSound("combat3.wav", -5, true);
-		sounds.add(new SoundArea(barrack) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>250 && x<1350 && y<-1400 && y>-2000) {
-					return true;
-				}
-				return false;
-			}
-		});
-		lava = initSound("lava.wav", -5, true);
-		sounds.add(new SoundArea(lava) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>1350 && x<3100 && y<-900 && y>-3200) {
-					return true;
-				}
-				if( x>450 && x < 1350 && y > -3200 && y < -2100 ) { 
-				  return true;
-				}
-				return false;
-			}
-		});
-    necro = initSound("necro.wav", -3, true);
-    sounds.add(new SoundArea(necro) {
-      @Override
-      public boolean in(int x, int y) {
-        if(x>-1400 && x<450 && y>-4100 && y<-3000) {
-          return true;
-        }
-        return false;
-      }
-    });
-    empty = initSound("empty.wav", -5, true);
-    sounds.add(new SoundArea(empty) {
-      @Override
-      public boolean in(int x, int y) {
-        if(x>-4000 && x<-100 && y>-2700 && y<-1400) {
-          return true;
-        }
-        return false;
-      }
-    });
-		Frame.println();
+	public void playerDied(Player player) {
+	  soundManager.playDeathMusic();
+    deathTransparency = 0;
 	}
-	public void changeSound(Sound sound) {
-		if(currentsound!=sound) {
-			if(currentsound!=null) {
-				currentsound.fadeOut(.15);
-			}
-			if(sound!=null) {
-				sound.fadeIn(.05);
-			}
-			currentsound = sound;
-			if(currentsound!=null)
-				System.out.println("currentsound is now " + currentsound.getUrl());
-		} else {
-			
-		}
-	}
-	public void stopMusic() {
-	  playmusic = false;
-	  if( currentsound != null ) {
-	    currentsound.fadeOut(10);
-	    currentsound.stopplaying();
-	    currentsound = null;
+	
+	public void toggleMusic() {
+	  playmusic = !playmusic;
+	  if( playmusic ) {
+	    soundManager.playMusic();
+	  }
+	  else {
+      soundManager.stopMusic();
 	  }
 	}
-	public void startMusic() {
-	  playmusic = true;
-	  for(SoundArea s : sounds) {
-      if(s.in(playerASDF.x(), playerASDF.y())) {
-        changeSound(s.getSound());
-      }
-    }
-	}
-	public static Sound initSound(final String url, float volume, boolean loop) {
-		Frame.print(url +", ");
-		Sound bob = new Sound(url, volume, loop);
-		bob.start();
-		return bob;
+	
+	public void initializeSoundAreas() {
+		soundManager.addSoundArea("grass.wav", -50, 1150, -250, 1000);
+    soundManager.addSoundArea("combat1.wav", -1200, -70, 100, 1000);
+    soundManager.addSoundArea("training.wav", 1400, 1750, 90, 1000);
+    soundManager.addSoundArea("stronghold.wav", -1100, -50, -1000, 100);
+    soundManager.addSoundArea("combat4.wav", 350, 1000, -1100, -450);
+    soundManager.addSoundArea("combat3.wav", 250, 1350, -2000, -1400);
+    soundManager.addSoundArea("lava.wav", 1350, 3100, -3200, -900);
+    soundManager.addSoundArea("lava.wav", 450, 1350, -3200, -2100);
+    soundManager.addSoundArea("necro.wav", -1400, 450, -4100, -3000);
+    soundManager.addSoundArea("empty.wav", -4000, -100, -2700, -1400);
 	}
 	
 	public static Color darken(Color c, int mag) {
@@ -796,15 +666,7 @@ public class World implements Serializable {
       ProjectileRegion region = itprojregion.next();
       region.move();
     }
-    
-		for(SoundArea s : sounds) {
-			if(s.in(playerASDF.x(), playerASDF.y())) {
-			  // only switch to new sound if music option set
-			  if( playmusic ) {
-			    changeSound(s.getSound());
-			  }
-			}
-		}
+    soundManager.playMusic();
 	}
 	/** 
 	 * @return World.CANTMOVE or World.CANMOVE or a positive number which is the level of the dead collision.
@@ -1961,4 +1823,14 @@ public class World implements Serializable {
 //	public String converttosave(String s) {
 //		
 //	}
+
+  @Override
+  public int getPlayerX() {
+    return playerASDF.x();
+  }
+
+  @Override
+  public int getPlayerY() {
+    return playerASDF.y();
+  }
 }

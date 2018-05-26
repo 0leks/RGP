@@ -18,9 +18,7 @@ public class Player extends Mob{
 		health-=d;
 		dead = (health<=0);
 		if(dead && !alreadydead) {
-			myworld.changeSound(null);
-			myworld.death.play(0);
-      myworld.deathTransparency = 0;
+		  myworld.playerDied(this);
 		}
 		return dead;
 	}

@@ -7,6 +7,7 @@ import javax.swing.*;
 import gui.*;
 import one.*;
 import resources.*;
+import sound.*;
 
 public class GameController implements GameControllerInterface {
 
@@ -21,9 +22,12 @@ public class GameController implements GameControllerInterface {
   private Thread gameThread;
   private Thread repaintThread;
   
+  private SoundManager soundManager;
+  
   public GameController() {
-    frame = new Frame(this);
-    
+    soundManager = new SoundManager();
+    soundManager.loadResources();
+    frame = new Frame(this, soundManager);
   }
   
   @Override
@@ -32,7 +36,7 @@ public class GameController implements GameControllerInterface {
     if( obj instanceof String ) {
       clas = (String)obj;
     }
-    panel = new Panel(clas);
+    panel = new Panel(clas, soundManager);
     if( obj instanceof SaveInstance ) {
       panel.loadSave(((SaveInstance)obj).getFileNameNoExtension());
     }

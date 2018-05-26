@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import gui.Frame;
+import sound.*;
 
 import javax.swing.ImageIcon;
 
@@ -49,9 +50,12 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 	private Menu newgamemenu;
 	
 	private boolean gamestarted = false;
+	
+	private SoundManager soundManager;
 
-	public Panel(String classType) {
+	public Panel(String classType, SoundManager soundManager) {
 		Frame.println("Initializing Panel");
+		this.soundManager = soundManager;
 		mouse = new Point(0, 0);
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -144,7 +148,8 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 		keys.add(new Key(KeyEvent.VK_SPACE, "space"));
 		keys.add(new Key(KeyEvent.VK_ENTER, "enter"));
 
-		world = new World();
+		world = new World(soundManager);
+		soundManager.addPlayerLocation(world);
 		updateSize();
 
 		Frame.println("Creating Menu Blink Timer with delay: " + BLINK_TIMER_DELAY);
@@ -167,9 +172,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
       gamestarted = true;
     }
     activemenu.setsel(0);
-    if( World.playmusic ) {
-      world.changeSound(world.grass);
-    }
+    soundManager.playMusic();
 	}
 	
 	public void updateSize() {
@@ -341,12 +344,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
         world.draw3d = true;
       }
       if( b.is("music")) {
-        if( world.playmusic ) {
-          world.stopMusic();
-        }
-        else {
-          world.startMusic();
-        }
+        world.toggleMusic();
       }
     } else if(activemenu == customoptions) {
       if(b.is("useattackimage")) {
@@ -590,7 +588,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 	}
 	
 	public void openmenu() {
-		world.changeSound(null);
+	  soundManager.fadeOutMusic();
 		activemenu.setactive(true);
 		active = false;
 	}
