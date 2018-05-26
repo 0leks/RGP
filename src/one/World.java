@@ -322,7 +322,7 @@ public class World implements Serializable, PlayerLocation {
       disty = (drawy-Panel.MIDY)/THREE_D_RATIO/World.ZOOM;
     }
     //g.fill(dim());
-    if(mob.adraw>=0) {
+    if(mob.getDrawDelay()>=0) {
       Optional<Rectangle> attackOpt = mob.getAttack();
       attackOpt.ifPresent(attack -> {
         int nx = (attack.x-playerASDF.x)/World.ZOOM+Panel.MIDX;
@@ -415,7 +415,7 @@ public class World implements Serializable, PlayerLocation {
     int h = player.h/World.ZOOM;
     
     g.setColor(Color.green);
-    if(player.adraw>=0) {
+    if(player.getDrawDelay()>=0) {
       Optional<Rectangle> attackOpt = player.getAttack();
       attackOpt.ifPresent(attack -> {
         int nx = attack.x-playerASDF.x+Panel.MIDX;

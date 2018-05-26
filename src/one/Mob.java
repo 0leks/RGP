@@ -30,8 +30,8 @@ public class Mob extends Thing{
 	private Rectangle attack;
 	private int attackdirection;
 	
-	protected int adraw; // TODO continue privatizing from here
-	protected boolean att;
+	private int drawDelay; 
+	private boolean att;
 	protected int acd;
 	/**
 	 * Current health
@@ -712,7 +712,7 @@ public class Mob extends Thing{
 			// attack cooldown ticks whether or not stunned
       acd--;
 		}
-		adraw--;
+		decremenetDrawDelay();
 	}
 	
 	public void handleAttacking() {
@@ -846,11 +846,12 @@ public class Mob extends Thing{
   //				attack = new Rectangle(x+ra+w/2+le/2, y, le, wi);
   			}
   			att = true;
-  			adraw = (int) (getAttackDelay()*woradelay/2);
-  			if (adraw<=0)
-  				adraw = 1;
+  			setDrawDelay((int) (getAttackDelay()*woradelay/2));
+  			if (getDrawDelay()<=0) {
+  			  setDrawDelay(1);
+  			}
   			if(weapon.continuous) {
-  				adraw = 1;
+          setDrawDelay(1);
   			}
   		}
 		}
@@ -1063,6 +1064,18 @@ public class Mob extends Thing{
   }
   public void setYSpeed(int yspeed) {
     this.yspeed = yspeed;
+  }
+  
+  public int getDrawDelay() {
+    return drawDelay;
+  }
+  
+  private void setDrawDelay(int delay) {
+    drawDelay = delay;
+  }
+  
+  private void decremenetDrawDelay() {
+    drawDelay--;
   }
 	/**
 	 * compute this mob's health regeneration stat
