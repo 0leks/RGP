@@ -322,39 +322,41 @@ public class World implements Serializable, PlayerLocation {
       disty = (drawy-Panel.MIDY)/THREE_D_RATIO/World.ZOOM;
     }
     //g.fill(dim());
-    if(mob.attack!=null && mob.adraw>=0) {
-      int nx = (mob.attack.x-playerASDF.x)/World.ZOOM+Panel.MIDX;
-      int ny = (mob.attack.y-playerASDF.y)/World.ZOOM+Panel.MIDY;
-      int nw = mob.attack.width/World.ZOOM;
-      int nh = mob.attack.height/World.ZOOM;
-      if(mob.attackdirection == 1 || mob.attackdirection==3) {
-        nw = mob.attack.height/World.ZOOM;
-        nh = mob.attack.width/World.ZOOM;
-      }
-      if(nx+nw>MINDRAWX && nx-nw<MAXDRAWX && ny+nh>MINDRAWY && ny-nh<MAXDRAWY) {
-        Color cur = g.getColor();
-        if(mob.isHostile()) {
-          g.setColor(Color.red);
-        } else {
-          g.setColor(Color.green);
+    if(mob.adraw>=0) {
+      Optional<Rectangle> attackOpt = mob.getAttack();
+      attackOpt.ifPresent(attack -> {
+        int nx = (attack.x-playerASDF.x)/World.ZOOM+Panel.MIDX;
+        int ny = (attack.y-playerASDF.y)/World.ZOOM+Panel.MIDY;
+        int nw = attack.width/World.ZOOM;
+        int nh = attack.height/World.ZOOM;
+        if(mob.getAttackDirection() == 1 || mob.getAttackDirection()==3) {
+          nw = attack.height/World.ZOOM;
+          nh = attack.width/World.ZOOM;
         }
-        Graphics2D g2d = (Graphics2D)g;
-        g2d.translate(nx, ny);
-        g2d.rotate(Math.toRadians(mob.attackdirection*90));
-        if(mob.myworld.drawimage) {
-//          g2d.drawImage(weapon.image, nx, ny, nw, nh, null);
-          g2d.drawImage(mob.weapon.image, -nw/2, -nh/2, nw, nh, null);
+        if(nx+nw>MINDRAWX && nx-nw<MAXDRAWX && ny+nh>MINDRAWY && ny-nh<MAXDRAWY) {
+          Color cur = g.getColor();
+          if(mob.isHostile()) {
+            g.setColor(Color.red);
+          } else {
+            g.setColor(Color.green);
+          }
+          Graphics2D g2d = (Graphics2D)g;
+          g2d.translate(nx, ny);
+          g2d.rotate(Math.toRadians(mob.getAttackDirection()*90));
+          if(mob.myworld.drawimage) {
+//            g2d.drawImage(weapon.image, nx, ny, nw, nh, null);
+            g2d.drawImage(mob.weapon.image, -nw/2, -nh/2, nw, nh, null);
 
+          }
+//          g.draw(new Rectangle(nx, ny, nw, nh));
+          g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
+          g.setColor(cur);
+          g2d.rotate(Math.toRadians((4-mob.getAttackDirection())*90));
+          g2d.translate(-nx, -ny);
         }
-//        g.draw(new Rectangle(nx, ny, nw, nh));
-        g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
-        g.setColor(cur);
-        g2d.rotate(Math.toRadians((4-mob.attackdirection)*90));
-        g2d.translate(-nx, -ny);
-      }
-    } else {
-      mob.attackdirection = 0;
+      });
     }
+    
     if(!mob.isDead()) {
       g.setColor(Color.blue);
     } else {
@@ -413,24 +415,27 @@ public class World implements Serializable, PlayerLocation {
     int h = player.h/World.ZOOM;
     
     g.setColor(Color.green);
-    if(player.attack!=null && player.adraw>=0) {
-      int nx = player.attack.x-playerASDF.x+Panel.MIDX;
-      int ny = player.attack.y-playerASDF.y+Panel.MIDY;
-      int nw = player.attack.width;
-      int nh = player.attack.height;
-      if(player.attackdirection == 1 || player.attackdirection==3) {
-        nw = player.attack.height;
-        nh = player.attack.width;
-      }
-      Graphics2D g2d = (Graphics2D)g;
-      g2d.translate(nx, ny);
-      g2d.rotate(Math.toRadians(player.attackdirection*90));
-      if(drawimage) {
-        g2d.drawImage(player.weapon.image, -nw/2, -nh/2, nw, nh, null);
-      }
-      g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
-      g2d.rotate(Math.toRadians((4-player.attackdirection)*90));
-      g2d.translate(-nx, -ny);
+    if(player.adraw>=0) {
+      Optional<Rectangle> attackOpt = player.getAttack();
+      attackOpt.ifPresent(attack -> {
+        int nx = attack.x-playerASDF.x+Panel.MIDX;
+        int ny = attack.y-playerASDF.y+Panel.MIDY;
+        int nw = attack.width;
+        int nh = attack.height;
+        if(player.getAttackDirection() == 1 || player.getAttackDirection()==3) {
+          nw = attack.height;
+          nh = attack.width;
+        }
+        Graphics2D g2d = (Graphics2D)g;
+        g2d.translate(nx, ny);
+        g2d.rotate(Math.toRadians(player.getAttackDirection()*90));
+        if(drawimage) {
+          g2d.drawImage(player.weapon.image, -nw/2, -nh/2, nw, nh, null);
+        }
+        g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
+        g2d.rotate(Math.toRadians((4-player.getAttackDirection())*90));
+        g2d.translate(-nx, -ny);
+      });
     }
     if( player.isStunned() ) {
       g.setColor(Mob.BASH_COLOR);

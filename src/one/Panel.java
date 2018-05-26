@@ -239,16 +239,16 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 					}
 				} else {
 					if(k.name().equals("w")) {
-						world.playerASDF.setspeed(0, -1);
+					  world.playerASDF.moveUp();
 					}
 					if(k.name().equals("a")) {
-						world.playerASDF.setspeed(-1, 0);
+					  world.playerASDF.moveLeft();
 					}
 					if(k.name().equals("s")) {
-						world.playerASDF.setspeed(0, 1);
+					  world.playerASDF.moveDown();
 					}
 					if(k.name().equals("d")) {
-						world.playerASDF.setspeed(1, 0);
+					  world.playerASDF.moveRight();
 					}
 					if(!world.playerASDF.inshop) {
 						if(k.name().equals("up")) {
@@ -302,16 +302,16 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 					
 				} else {
 					if(k.name().equals("w")) {
-						world.playerASDF.setspeed(0, -2);
+					  world.playerASDF.stopMovingUp();
 					}
 					if(k.name().equals("a")) {
-						world.playerASDF.setspeed(-2, 0);
+					  world.playerASDF.stopMovingLeft();
 					}
 					if(k.name().equals("s")) {
-						world.playerASDF.setspeed(0, 2);
+					  world.playerASDF.stopMovingDown();
 					}
 					if(k.name().equals("d")) {
-						world.playerASDF.setspeed(2, 0);
+					  world.playerASDF.stopMovingRight();
 					}
 				}
 				

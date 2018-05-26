@@ -6,30 +6,31 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 public class Mob extends Thing{
+  
+  private static final int ATTACKUP = 4;
+  private static final int ATTACKRIGHT = 1;
+  private static final int ATTACKDOWN = 2;
+  private static final int ATTACKLEFT = 3;
+  
+  public static final Color BASH_COLOR = Color.GRAY;
+  
+  private static final int STR_HEALTH_MULTIPLIER = 2;
+
+  private Random rand = new Random();
+  
 	private boolean dead;
-	protected String ai;
-	Random rand = new Random();
-	protected int xspeed;
-	protected int yspeed;
-	protected Rectangle attack;
-	protected int attackdirection;
-	protected static final int ATTACKUP = 4;
-	protected static final int ATTACKRIGHT = 1;
-	protected static final int ATTACKDOWN = 2;
-	protected static final int ATTACKLEFT = 3;
-	public static final Color BASH_COLOR = Color.GRAY;
+	private String ai;
+	private int xspeed;
+	private int yspeed;
+	private Rectangle attack;
+	private int attackdirection;
 	
-	public static final int STR_HEALTH_MULTIPLIER = 2;
-	
-	protected int adraw;
+	protected int adraw; // TODO continue privatizing from here
 	protected boolean att;
 	protected int acd;
 	/**
@@ -106,7 +107,6 @@ public class Mob extends Thing{
     debuffs[Debuff.POISON] = new Debuff( Debuff.POISON, 0 );
 		race = r;
 		ai = sai;
-		dead = false;
 		hpup = 0;
 		asdf = 0;
 		addcrit(new Crit(100, 100));
@@ -464,11 +464,11 @@ public class Mob extends Thing{
 //	}
 	public boolean damage(int d) {
 		health-=d;
-		dead = (health<=0);
-		return dead;
+		updateDeadStatus();
+		return isDead();
 	}
 	public Rectangle nextdim() {
-		return new Rectangle(x-w/2+xspeed, y-h/2+yspeed, w, h);
+		return new Rectangle(x-w/2+getXSpeed(), y-h/2+getYSpeed(), w, h);
 	}
 	
 	public void handlePoison() {
@@ -498,7 +498,7 @@ public class Mob extends Thing{
 	}
 	
 	public void move() {
-		if(!dead) {
+		if(!isDead()) {
 			rescale(); // something to do with stats
 			lvlup(); // check if it got a level up
 			double thealth = getMaximumHealth(); // get the maximum health of this mob
@@ -541,8 +541,8 @@ public class Mob extends Thing{
 				if(a==0) {
 					int x = rand.nextInt(3)-1;
 					int y = rand.nextInt(3)-1;
-					xspeed = x*getAccel();
-					yspeed = y*getAccel();
+					setXSpeed(x*getAccel());
+					setYSpeed(y*getAccel());
 				}
 				a = rand.nextInt(randomize);
 				if(a==0) {
@@ -579,8 +579,8 @@ public class Mob extends Thing{
 					} else {
 						dy= rand.nextInt(3)-1;
 					}
-					xspeed = (int) (dx*getAccel());
-					yspeed = (int) (dy*getAccel());
+					setXSpeed((int) (dx*getAccel()));
+					setYSpeed((int) (dy*getAccel()));
 					int a = rand.nextInt(randomize);
 					if(a==0) {
 						setAttack("up");
@@ -598,8 +598,8 @@ public class Mob extends Thing{
 					asdf = 0;
 				double x =  (Math.sin(2*toRadians(asdf)));
 				double y =  (Math.cos(3*toRadians(asdf)));
-				xspeed = (int) (x*getAccel());
-				yspeed = (int) (y*getAccel());
+				setXSpeed((int) (x*getAccel()));
+				setYSpeed((int) (y*getAccel()));
 				int a = rand.nextInt(randomize);
 				if(a==0) {
 					setAttack("up");
@@ -618,8 +618,8 @@ public class Mob extends Thing{
 				int lengthofzigzag = 50;
 				double x =  Math.pow(-1, asdf/lengthofzigzag-(int)(asdf/(lengthofzigzag*2))*2);
 				double y =  -(Math.sin(toRadians(40*asdf)));
-				xspeed = (int) (x*getAccel());
-				yspeed = (int) (y*0);//(int) (y*accel());
+				setXSpeed((int) (x*getAccel()));
+				setYSpeed((int) (y*0));//(int) (y*accel()));
 				int a = rand.nextInt(randomize);
 				if(a==0) {
 					setAttack("up");
@@ -637,8 +637,8 @@ public class Mob extends Thing{
 					asdf = 0;
 				double x =  Math.pow(-1, asdf/20-(int)(asdf/40)*2);
 				double y =  -(Math.sin(toRadians(3*asdf)));
-				xspeed = (int) (x*getAccel());
-				yspeed = (int) (y*getAccel());
+				setXSpeed((int) (x*getAccel()));
+				setYSpeed((int) (y*getAccel()));
 				int a = rand.nextInt(randomize);
 				if(a==0) {
 					setAttack("up");
@@ -670,8 +670,8 @@ public class Mob extends Thing{
 				} else {
 					dy= 0;
 				}
-				xspeed = (int) (dx*getAccel());
-				yspeed = (int) (dy*getAccel());
+				setXSpeed((int) (dx*getAccel()));
+				setXSpeed((int) (dy*getAccel()));
 				int a = rand.nextInt(randomize);
 				if(a==0) {
 					setAttack("up");
@@ -693,8 +693,8 @@ public class Mob extends Thing{
 			  for( int a = 0; a < 5; a++ ) {
     			int col = myworld.collides(this);
     			if(col != World.CANTMOVE) {
-    				x += xspeed;
-    				y += yspeed;
+    				x += getXSpeed();
+    				y += getYSpeed();
     				if(col>0) {
     					experience+=col;
               if(this.level>col)
@@ -704,8 +704,8 @@ public class Mob extends Thing{
     				}
     				break;
     			}
-    			xspeed /= 2;
-    			yspeed /= 2;
+    			setXSpeed(getXSpeed()/2);
+          setYSpeed(getYSpeed()/2);
 			  }
   			handleAttacking();
 			}
@@ -718,17 +718,19 @@ public class Mob extends Thing{
 	public void handleAttacking() {
 	// Can only attack if attack box is set, attack cooldown is ready. No idea what att is
     // the inshop boolean is only set for the player, so it only has effect when the player is in a shop, mobs can attack anyways
-    if(attack!=null && acd<0 && att && !inshop) {
-      Hit hit = attack(attack);
-      if(hit.damage > 0) {
-        experience+=(hit.damage*(100+getIntelligence())*.01);
-      } 
-      if(hit.kill) {
-        experience+=hit.leveloftarget*10*(100+getIntelligence())*.01;
-      } 
-      acd = (int) (getAttackDelay()*woradelay + randomAttackDelayModifier());
-      if(weapon.continuous) 
-        acd = 0;
+    if(acd<0 && att && !inshop) {
+      getAttack().ifPresent(attack -> {
+        Hit hit = attack(attack);
+        if(hit.damage > 0) {
+          experience+=(hit.damage*(100+getIntelligence())*.01);
+        } 
+        if(hit.kill) {
+          experience+=hit.leveloftarget*10*(100+getIntelligence())*.01;
+        } 
+        acd = (int) (getAttackDelay()*woradelay + randomAttackDelayModifier());
+        if(weapon.continuous) 
+          acd = 0;
+      });
     }
 	}
 	public static double randomAttackDelayModifier() {
@@ -883,7 +885,7 @@ public class Mob extends Thing{
 			if(m != this && m.dim().intersects(r)) {
 				hit.leveloftarget = m.level;
 				int dmgtodeal = getdmgaftercrit(dmg, m);
-				if(m.dead) {
+				if(m.isDead()) {
 				  
 				} else if(m.damage(dmgtodeal)) {
 					if(m.race.name.equals("bigboss")) {
@@ -1040,7 +1042,28 @@ public class Mob extends Thing{
   public boolean isDead() {
     return dead;
   }
+  
+  public Optional<Rectangle> getAttack() {
+    return Optional.ofNullable(attack);
+  }
 	
+  public int getAttackDirection() {
+    return attackdirection;
+  }
+  
+  public int getXSpeed() {
+    return xspeed;
+  }
+  public int getYSpeed() {
+    return yspeed;
+  }
+  
+  public void setXSpeed(int xspeed) {
+    this.xspeed = xspeed;
+  }
+  public void setYSpeed(int yspeed) {
+    this.yspeed = yspeed;
+  }
 	/**
 	 * compute this mob's health regeneration stat
 	 * @return
