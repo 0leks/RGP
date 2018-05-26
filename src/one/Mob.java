@@ -17,6 +17,8 @@ public class Mob extends Thing {
   
   private static final int STR_HEALTH_MULTIPLIER = 2;
 
+  public static final int INVENTORY_SIZE = 5;
+
   private Random rand = new Random();
   
 	private boolean dead;
@@ -34,15 +36,15 @@ public class Mob extends Thing {
 	 */
 	protected int health;
 	private int whiteline;
-	protected double hpup;
+	private double healingBuffer;
 	protected int money;
 	protected int experience;
 	protected int exptolvlup;
 	protected int expatstartlvl;
 	protected Weapon weapon;
 	protected Race race;
-	protected int asdf;
-	protected boolean inshop;
+	private int aiCounter;
+	private boolean inshop;
 	
 	protected double basedamage;
 	protected double damagebuff;
@@ -79,16 +81,15 @@ public class Mob extends Thing {
 	protected double worarmor;
 	protected double damagetaken;
 	
-	protected ArrayList<Crit> crits;
+	private ArrayList<Crit> crits;
 	
 	public ArrayList<Buff> buffs;
 	public Debuff[] debuffs;
 	
 	protected Queue<Popup> popups;
-	protected Popup poisonpopup;
-  protected int damagefrompoison;
+	private Popup poisonpopup;
+  private int damagefrompoison;
 
-  public static final int INV_SIZE = 5;
   public ArrayList<Item> inv;
 	
 	public Mob(int sx, int sy, String sai, World smyworld, Race r) {
@@ -103,8 +104,6 @@ public class Mob extends Thing {
     debuffs[Debuff.POISON] = new Debuff( Debuff.POISON, 0 );
 		race = r;
 		ai = sai;
-		hpup = 0;
-		asdf = 0;
 		addcrit(new Crit(100, 100));
 		rescale(); // something to do with stats
     lvlup();
@@ -128,7 +127,7 @@ public class Mob extends Thing {
     for(Buff b : i.buffs) {
       addbuff(b);
     }
-    if(inv.size()>INV_SIZE) {
+    if(inv.size()>INVENTORY_SIZE) {
       removeItem(inv.get(0));
     }
     rescale();
@@ -150,7 +149,7 @@ public class Mob extends Thing {
     for(Crit c : i.crits) {
       addcrit(c);
     }
-    if(inv.size()>INV_SIZE) {
+    if(inv.size()>INVENTORY_SIZE) {
       removeItem(inv.get(0));
     }
     rescale();
@@ -493,27 +492,32 @@ public class Mob extends Thing {
     }
 	}
 	
+	public void fillHealingBuffer() {
+    double maximumHealth = getMaximumHealth(); // get the maximum health of this mob
+    
+    if(health+getHealthRegen()<=maximumHealth) { // health is an integer.
+      healingBuffer+=getHealthRegen();              // hpup is used as a buffer to store up and decimal additions to heal
+    } else {
+      if(health<maximumHealth)
+        healingBuffer+=maximumHealth-health;
+    }
+	}
+	public void useHealingBuffer() {
+	  if(healingBuffer>=1) {                 // transfer from the double hpup buffer to the actual health of the mob.
+      health+=(int)healingBuffer;         
+      healingBuffer = healingBuffer-(int)healingBuffer;
+    }
+    healingBuffer = Math.max(0, healingBuffer);    // make sure hpup is non negative ( just in case )
+	}
+	
 	public void move() {
 		if(!isDead()) {
 			rescale(); // something to do with stats
 			lvlup(); // check if it got a level up
-			double thealth = getMaximumHealth(); // get the maximum health of this mob
-			
-			handlePoison();
-			
-			if(health+getHealthRegen()<=thealth) { // health is an integer.
-				hpup+=getHealthRegen();              // hpup is used as a buffer to store up and decimal additions to heal
-			} else {
-				if(health<thealth)
-					hpup+=thealth-health;
-			}
-			
-			if(hpup>=1) {                 // transfer from the double hpup buffer to the actual health of the mob.
-				health+=(int)hpup;         
-				hpup = hpup-(int)hpup;
-			}
-			hpup = Math.max(0, hpup);    // make sure hpup is non negative ( just in case )
-			
+      handlePoison();
+      
+      fillHealingBuffer();
+      useHealingBuffer();
 			
 			boolean nomiss = ai.contains("nomiss");
 			int randomize = 5;
@@ -552,9 +556,9 @@ public class Mob extends Thing {
 				}
 			}
 			if(ai.contains("bettermovetowardsyou")) {
-					asdf+=1;
-					if(asdf>=3600)
-						asdf = 0;
+					aiCounter+=1;
+					if(aiCounter>=3600)
+						aiCounter = 0;
 					int dx;
 					int dy;
 					if(x<myworld.playerASDF.x-accel) {
@@ -589,11 +593,11 @@ public class Mob extends Thing {
 					}
 				}
 			if(ai.contains("sway")) {
-				asdf+=1;
-				if(asdf>=360)
-					asdf = 0;
-				double x =  (Math.sin(2*toRadians(asdf)));
-				double y =  (Math.cos(3*toRadians(asdf)));
+				aiCounter+=1;
+				if(aiCounter>=360)
+					aiCounter = 0;
+				double x =  (Math.sin(2*toRadians(aiCounter)));
+				double y =  (Math.cos(3*toRadians(aiCounter)));
 				setXSpeed((int) (x*getAccel()));
 				setYSpeed((int) (y*getAccel()));
 				int a = rand.nextInt(randomize);
@@ -608,12 +612,12 @@ public class Mob extends Thing {
 				}
 			}
 			if(ai.contains("horizontalpatrol")) {
-				asdf+=1;
-				if(asdf>=3600)
-					asdf = 0;
+				aiCounter+=1;
+				if(aiCounter>=3600)
+					aiCounter = 0;
 				int lengthofzigzag = 50;
-				double x =  Math.pow(-1, asdf/lengthofzigzag-(int)(asdf/(lengthofzigzag*2))*2);
-				double y =  -(Math.sin(toRadians(40*asdf)));
+				double x =  Math.pow(-1, aiCounter/lengthofzigzag-(int)(aiCounter/(lengthofzigzag*2))*2);
+				double y =  -(Math.sin(toRadians(40*aiCounter)));
 				setXSpeed((int) (x*getAccel()));
 				setYSpeed((int) (y*0));//(int) (y*accel()));
 				int a = rand.nextInt(randomize);
@@ -628,11 +632,11 @@ public class Mob extends Thing {
 				}
 				
 			} else if(ai.contains("zigzag")) {
-				asdf+=1;
-				if(asdf>=3600)
-					asdf = 0;
-				double x =  Math.pow(-1, asdf/20-(int)(asdf/40)*2);
-				double y =  -(Math.sin(toRadians(3*asdf)));
+				aiCounter+=1;
+				if(aiCounter>=3600)
+					aiCounter = 0;
+				double x =  Math.pow(-1, aiCounter/20-(int)(aiCounter/40)*2);
+				double y =  -(Math.sin(toRadians(3*aiCounter)));
 				setXSpeed((int) (x*getAccel()));
 				setYSpeed((int) (y*getAccel()));
 				int a = rand.nextInt(randomize);
@@ -647,9 +651,9 @@ public class Mob extends Thing {
 				}
 			}
 			if(ai.contains("hunter")) {
-				asdf+=1;
-				if(asdf>=3600)
-					asdf = 0;
+				aiCounter+=1;
+				if(aiCounter>=3600)
+					aiCounter = 0;
 				int dx;
 				int dy;
 				if(x<myworld.playerASDF.x()-accel) {
@@ -714,7 +718,7 @@ public class Mob extends Thing {
 	public void handleAttacking() {
 	// Can only attack if attack box is set, attack cooldown is ready. No idea what att is
     // the inshop boolean is only set for the player, so it only has effect when the player is in a shop, mobs can attack anyways
-    if(getAttackCooldown()<0 && isAttackReady() && !inshop) {
+    if(getAttackCooldown()<0 && isAttackReady() && !isInShop()) {
       getAttack().ifPresent(attack -> {
         Hit hit = attack(attack);
         if(hit.damage > 0) {
@@ -1098,6 +1102,18 @@ public class Mob extends Thing {
   
   public void setWhiteLine(int whiteLine) {
     this.whiteline = whiteLine;
+  }
+  
+  public boolean isInShop() {
+    return inshop;
+  }
+  
+  public void setInShop(boolean inshop) {
+    this.inshop = inshop;
+  }
+  
+  public void clearPopups() {
+    popups.clear();
   }
 	/**
 	 * compute this mob's health regeneration stat

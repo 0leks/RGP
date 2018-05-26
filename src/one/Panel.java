@@ -250,7 +250,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 					if(k.name().equals("d")) {
 					  world.playerASDF.moveRight();
 					}
-					if(!world.playerASDF.inshop) {
+					if(!world.playerASDF.isInShop()) {
 						if(k.name().equals("up")) {
 							world.playerASDF.setAttack("up");
 						}
@@ -264,7 +264,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 							world.playerASDF.setAttack("right");
 						}
 					}
-					if(world.playerASDF.inshop) {
+					if(world.playerASDF.isInShop()) {
 						if(k.name().equals("up") && k.justchecked == false) {
 							k.justchecked = true;
 							if(world.selected-5>=0)
@@ -285,7 +285,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 							if(world.selected+1<world.inshop().onsale.size())
 								world.selected++;
 						}
-						if(k.name().equals("space") && k.justchecked == false && world.playerASDF.inshop) {
+						if(k.name().equals("space") && k.justchecked == false && world.playerASDF.isInShop()) {
 							k.justchecked = true;
 							Shop s = world.inshop();
 							Item i = s.onsale.get(world.selected);

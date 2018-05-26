@@ -23,7 +23,7 @@ public class World implements Serializable, PlayerLocation {
 	// default settings
   public boolean drawimage = true;
   public boolean draw3d = true;
-  public static boolean playmusic = true;
+  public static boolean playmusic = false;
   
 
   public static final int CANTMOVE = -1;
@@ -799,7 +799,7 @@ public class World implements Serializable, PlayerLocation {
     g.setFont(preFont);
 		if(s == null) {
 			g.setColor(Color.black);
-			playerASDF.inshop = false;
+			playerASDF.setInShop(false);
 			selected = 0;
 			g.setColor(Color.black);
 			int yy = -5;
@@ -824,7 +824,7 @@ public class World implements Serializable, PlayerLocation {
 			drawStat(g, x2, yy+=35, "Expleft", playerASDF.exptolvlup-playerASDF.experience);
 			g.drawString("Race: "+playerASDF.race.name, x1, yy+=35);
 		} else {
-			playerASDF.inshop = true;
+		  playerASDF.setInShop(true);
 			drawshop(g, s);
 		}
 		playerASDF.drawinv(g, mouse);

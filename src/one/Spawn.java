@@ -44,7 +44,7 @@ public class Spawn extends Thing{
 			}
 		}
 		m.setPos(xp, yp);
-		m.popups.clear();
+		m.clearPopups();
 		m.experience+=experience;
 		m.lvlup();
 		m.health = m.getMaximumHealth();
