@@ -1,16 +1,12 @@
 package one;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.awt.geom.AffineTransform;
-import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
-public class Mob extends Thing{
+public class Mob extends Thing {
   
   private static final int ATTACKUP = 4;
   private static final int ATTACKRIGHT = 1;
@@ -27,17 +23,17 @@ public class Mob extends Thing{
 	private String ai;
 	private int xspeed;
 	private int yspeed;
+	
 	private Rectangle attack;
 	private int attackdirection;
-	
 	private int drawDelay; 
-	private boolean att;
-	protected int acd;
+	private boolean attackReady;
+	private int attackCooldown;
 	/**
 	 * Current health
 	 */
 	protected int health;
-	protected int whiteline;
+	private int whiteline;
 	protected double hpup;
 	protected int money;
 	protected int experience;
@@ -710,7 +706,7 @@ public class Mob extends Thing{
   			handleAttacking();
 			}
 			// attack cooldown ticks whether or not stunned
-      acd--;
+			decrementAttackCooldown();
 		}
 		decremenetDrawDelay();
 	}
@@ -718,7 +714,7 @@ public class Mob extends Thing{
 	public void handleAttacking() {
 	// Can only attack if attack box is set, attack cooldown is ready. No idea what att is
     // the inshop boolean is only set for the player, so it only has effect when the player is in a shop, mobs can attack anyways
-    if(acd<0 && att && !inshop) {
+    if(getAttackCooldown()<0 && isAttackReady() && !inshop) {
       getAttack().ifPresent(attack -> {
         Hit hit = attack(attack);
         if(hit.damage > 0) {
@@ -727,9 +723,10 @@ public class Mob extends Thing{
         if(hit.kill) {
           experience+=hit.leveloftarget*10*(100+getIntelligence())*.01;
         } 
-        acd = (int) (getAttackDelay()*woradelay + randomAttackDelayModifier());
-        if(weapon.continuous) 
-          acd = 0;
+        setAttackCooldown((int) (getAttackDelay()*woradelay + randomAttackDelayModifier()));
+        if(weapon.continuous) {
+          setAttackCooldown(0);
+        }
       });
     }
 	}
@@ -826,7 +823,7 @@ public class Mob extends Thing{
   		int wi = weapon.width;
   		int le = weapon.length;
   		int ra= weapon.range;
-  		if(!att && acd<0) {
+  		if(!isAttackReady() && getAttackCooldown()<0) {
   			if(dir.equals("up")) {
   				attackdirection = Mob.ATTACKUP;
   				attack = new Rectangle(x, y-ra-le/2-h/2, wi, le);
@@ -845,7 +842,7 @@ public class Mob extends Thing{
   				attack = new Rectangle(x+ra+w/2+le/2, y, le, wi);
   //				attack = new Rectangle(x+ra+w/2+le/2, y, le, wi);
   			}
-  			att = true;
+  			setAttackReady(true);
   			setDrawDelay((int) (getAttackDelay()*woradelay/2));
   			if (getDrawDelay()<=0) {
   			  setDrawDelay(1);
@@ -923,7 +920,7 @@ public class Mob extends Thing{
         }
 			}
 		}
-		att = false;
+		setAttackReady(false);
 		return hit;
 	}
 	
@@ -1076,6 +1073,31 @@ public class Mob extends Thing{
   
   private void decremenetDrawDelay() {
     drawDelay--;
+  }
+  
+  private boolean isAttackReady() {
+    return attackReady;
+  }
+  private void setAttackReady(boolean ready) {
+    attackReady = ready;
+  }
+  
+  private void setAttackCooldown(int cooldown) {
+    attackCooldown = cooldown;
+  }
+  private void decrementAttackCooldown() {
+    attackCooldown--;
+  }
+  private int getAttackCooldown() {
+    return attackCooldown;
+  }
+  
+  public int getWhiteLine() {
+    return whiteline;
+  }
+  
+  public void setWhiteLine(int whiteLine) {
+    this.whiteline = whiteLine;
   }
 	/**
 	 * compute this mob's health regeneration stat

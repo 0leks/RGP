@@ -377,11 +377,11 @@ public class World implements Serializable, PlayerLocation {
       if( !mob.isDead() ) {
         g.setColor(new Color(200, 200, 200));
         double f = (double)mob.health/mob.getMaximumHealth();
-        g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, mob.whiteline/10, 8);
-        if(mob.whiteline/10>(f*w))
-          mob.whiteline-=w/30;
-        if(mob.whiteline/10<f*w)
-          mob.whiteline = (int) (f*w*10);
+        g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, mob.getWhiteLine()/10, 8);
+        if(mob.getWhiteLine()/10>(f*w))
+          mob.setWhiteLine(mob.getWhiteLine() - w/30);
+        if(mob.getWhiteLine()/10<f*w)
+          mob.setWhiteLine((int) (f*w*10));
         if(mob.isHostile()) {
           g.setColor(Color.red);
         } else {
@@ -452,12 +452,12 @@ public class World implements Serializable, PlayerLocation {
     g.drawString(player.level+"", drawx-l*5+2, drawy+6);
     
     g.setColor(new Color(200, 200, 200));
-    double asd = (double)player.whiteline/10/player.getMaximumHealth();
+    double asd = (double)player.getWhiteLine()/10/player.getMaximumHealth();
     g.fillRect(drawx-w/2, drawy-h/2-13, (int) (asd*w), 8);
-    if(player.whiteline/10>player.health)
-      player.whiteline--;
-    if(player.whiteline/10<player.health)
-      player.whiteline = player.health*10;
+    if(player.getWhiteLine()/10>player.health)
+      player.setWhiteLine(player.getWhiteLine() - 1);
+    if(player.getWhiteLine()/10<player.health)
+      player.setWhiteLine(player.health*10);
     g.setColor(new Color( 0, 190, 20));
     g.drawRect(drawx-w/2, drawy-h/2-13, w, 8);
     double f = (double)player.health/player.getMaximumHealth();
