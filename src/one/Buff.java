@@ -3,21 +3,25 @@ package one;
 public class Buff {
 	public Attribute stat;
 	public int value;
-	public boolean raw;
-	public Buff(Attribute sstat, int svalue, boolean sraw) {
+	private boolean multiplier;
+	public Buff(Attribute sstat, int svalue, boolean multiplier) {
 		stat = sstat;
 		value = svalue;
-		raw = sraw;
+		this.multiplier = multiplier;
 	}
-	public Buff(Attribute sstat, double svalue, boolean sraw) {
+	public Buff(Attribute sstat, double svalue, boolean multiplier) {
 		stat = sstat;
 		value = (int)(svalue*100);
-		raw = sraw;
+		this.multiplier = multiplier;
 	}
 	public String toString() {
-		if(raw)
+		if(multiplier)
 			return stat+": "+value;
 		else
 			return stat+": "+value+"%";
+	}
+	
+	public boolean isMultiplier() {
+	  return multiplier;
 	}
 }

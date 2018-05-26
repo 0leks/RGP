@@ -7,6 +7,7 @@ import java.util.concurrent.*;
 
 import gui.*;
 import gui.Frame;
+import one.Mob.*;
 import player.*;
 import resources.*;
 import sound.*;
@@ -282,7 +283,7 @@ public class World implements Serializable, PlayerLocation {
         int ny = (attack.y-playerASDF.y)/World.ZOOM+Panel.MIDY;
         int nw = attack.width/World.ZOOM;
         int nh = attack.height/World.ZOOM;
-        if(mob.getAttackDirection() == 1 || mob.getAttackDirection()==3) {
+        if(mob.getAttackDirection() == AttackDirection.RIGHT || mob.getAttackDirection() == AttackDirection.LEFT) {
           nw = attack.height/World.ZOOM;
           nh = attack.width/World.ZOOM;
         }
@@ -295,16 +296,14 @@ public class World implements Serializable, PlayerLocation {
           }
           Graphics2D g2d = (Graphics2D)g;
           g2d.translate(nx, ny);
-          g2d.rotate(Math.toRadians(mob.getAttackDirection()*90));
+          g2d.rotate(Math.toRadians(mob.getAttackDirection().getAngle()));
           if(mob.myworld.drawimage) {
-//            g2d.drawImage(weapon.image, nx, ny, nw, nh, null);
             g2d.drawImage(mob.weapon.image, -nw/2, -nh/2, nw, nh, null);
 
           }
-//          g.draw(new Rectangle(nx, ny, nw, nh));
           g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
           g.setColor(cur);
-          g2d.rotate(Math.toRadians((4-mob.getAttackDirection())*90));
+          g2d.rotate(Math.toRadians(-mob.getAttackDirection().getAngle()));
           g2d.translate(-nx, -ny);
         }
       });
@@ -375,18 +374,18 @@ public class World implements Serializable, PlayerLocation {
         int ny = attack.y-playerASDF.y+Panel.MIDY;
         int nw = attack.width;
         int nh = attack.height;
-        if(player.getAttackDirection() == 1 || player.getAttackDirection()==3) {
+        if(player.getAttackDirection() == AttackDirection.RIGHT || player.getAttackDirection() == AttackDirection.LEFT) {
           nw = attack.height;
           nh = attack.width;
         }
         Graphics2D g2d = (Graphics2D)g;
         g2d.translate(nx, ny);
-        g2d.rotate(Math.toRadians(player.getAttackDirection()*90));
+        g2d.rotate(Math.toRadians(player.getAttackDirection().getAngle()));
         if(drawimage) {
           g2d.drawImage(player.weapon.image, -nw/2, -nh/2, nw, nh, null);
         }
         g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
-        g2d.rotate(Math.toRadians((4-player.getAttackDirection())*90));
+        g2d.rotate(Math.toRadians(-player.getAttackDirection().getAngle()));
         g2d.translate(-nx, -ny);
       });
     }
@@ -599,7 +598,7 @@ public class World implements Serializable, PlayerLocation {
       Mob temp = itmob.next();
 			if(temp != what) {
 				if(Math.abs(temp.x-what.x)<300 && Math.abs(temp.y-what.y)<300) {
-					if(temp.dim().intersects(what.nextdim())) {
+					if(temp.dim().intersects(what.nextPosition())) {
 						if(temp.isDead()) {
 							if(temp==snitch) {
 								//TODO SNITCH
@@ -638,7 +637,7 @@ public class World implements Serializable, PlayerLocation {
 		Iterator<Obstacle> itwall = walls().iterator();
 		while( itwall.hasNext() ) {
 		  Obstacle wall = itwall.next();
-		  if(wall.dim().intersects(what.nextdim())) {
+		  if(wall.dim().intersects(what.nextPosition())) {
         if(wall.blockPlayer()) {
           return World.CANTMOVE; 
         } else {
@@ -649,7 +648,7 @@ public class World implements Serializable, PlayerLocation {
       }
 		}
 		if(what != playerASDF)
-			if(playerASDF.dim().intersects(what.nextdim())) {
+			if(playerASDF.dim().intersects(what.nextPosition())) {
 				return World.CANTMOVE; 
 			}
 		return World.CANMOVE;
@@ -770,7 +769,7 @@ public class World implements Serializable, PlayerLocation {
 			drawStat(g, x2, yy, "Regen", playerASDF.getHealthRegen()*100);
 			drawStat(g, x1, yy+=35, "X", playerASDF.x);
 			drawStat(g, x2, yy, "Y", playerASDF.y);
-			drawStat(g, x2, yy+=35, "Armor", 100-playerASDF.damagetaken);
+			drawStat(g, x2, yy+=35, "Armor", playerASDF.getArmor());
 			drawStat(g, x1, yy+=35, "Level", playerASDF.level);
 			drawStat(g, x2, yy, "Experience", playerASDF.experience);
 			//drawStat(g, x1, yy+=35, "Exptolvlup", p.exptolvlup);

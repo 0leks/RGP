@@ -8,11 +8,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Mob extends Thing {
   
-  private static final int ATTACKUP = 4;
-  private static final int ATTACKRIGHT = 1;
-  private static final int ATTACKDOWN = 2;
-  private static final int ATTACKLEFT = 3;
-  
   public static final Color BASH_COLOR = Color.GRAY;
   
   private static final int STR_HEALTH_MULTIPLIER = 2;
@@ -27,7 +22,7 @@ public class Mob extends Thing {
 	private int yspeed;
 	
 	private Rectangle attack;
-	private int attackdirection;
+	private AttackDirection attackdirection;
 	private int drawDelay; 
 	private boolean attackReady;
 	private int attackCooldown;
@@ -48,29 +43,29 @@ public class Mob extends Thing {
 	
 	protected double basedamage;
 	protected double damagebuff;
-	protected double wordamage;
+	protected double damageMultiplier;
 	
 	protected int level;
 	
 	protected int totalhealthbuff;
-	protected double worhealth;
+	protected double maximumHealthMultiplier;
 	
-	protected double woradelay;
+	protected double attackDelayMultiplier;
 	
 	protected int accel;
-	protected double woraccel;
+	protected double accelerationMultiplier;
 	
 	protected int agilitybuff;
 	protected int actagility;
-	protected double woragility;
+	protected double agilityMultiplier;
 	
 	protected int strengthbuff;
 	protected int actstrength;
-	protected double worstrength;
+	protected double strengthMultiplier;
 	
 	protected int intelligencebuff;
 	protected int actintelligence;
-	protected double worintelligence;
+	protected double intelligenceMultiplier;
 	
 	protected double regen;
 	protected double regenbuff;
@@ -78,8 +73,8 @@ public class Mob extends Thing {
 	
 	protected int basearmor;
 	protected int armorbuff;
-	protected double worarmor;
-	protected double damagetaken;
+	protected double armorMultiplier;
+//	private double damageReduction;
 	
 	private ArrayList<Crit> crits;
 	
@@ -104,7 +99,7 @@ public class Mob extends Thing {
     debuffs[Debuff.POISON] = new Debuff( Debuff.POISON, 0 );
 		race = r;
 		ai = sai;
-		addcrit(new Crit(100, 100));
+		addcrit(new Crit(100, 1));
 		rescale(); // something to do with stats
     lvlup();
 	}
@@ -115,7 +110,7 @@ public class Mob extends Thing {
       subbuff(b);
     }
     for(Crit c : item.crits) {
-      subcrit(c);
+      removeCrit(c);
     }
     inv.remove(item);
     rescale();
@@ -180,7 +175,7 @@ public class Mob extends Thing {
 				subbuff(b);
 			}
 			for(Crit c : weapon.crits) {
-				subcrit(c);
+				removeCrit(c);
 			}
 		}
 		
@@ -195,16 +190,16 @@ public class Mob extends Thing {
 	}
 	public void addcrit(Crit c) {
 		for(int a=0; a<crits.size(); a++) {
-			if(c.damage>=crits.get(a).damage) {
-				crits.add(a, c);
-				return;
-			}
+		  if( c.isBetterThan(crits.get(a)) ) {
+        crits.add(a, c);
+        return;
+		  }
 		}
-		if(crits.size() ==0) {
+		if(crits.size() == 0) {
 			crits.add(c);
 		}
 	}
-	public void subcrit(Crit c) {
+	public void removeCrit(Crit c) {
 		crits.remove(c);
 	}
 	public void clearDebuffs() {
@@ -231,23 +226,22 @@ public class Mob extends Thing {
 	}
 	
 	public void addbuff(Buff b) {
-		if(b.raw){ 
+		if(b.isMultiplier()){ 
 			lvlup(b.stat, b.value);
 		} else {
-			worlvlup(b.stat, b.value*.01);
+			multiplierLvlup(b.stat, b.value*.01);
 		}
 	}
 	public void subbuff(Buff b) {
-		if(b.raw){ 
+		if(b.isMultiplier()){ 
 			lvlup(b.stat, -b.value);
 		} else {
-			worlvlup(b.stat, 1/(double)(b.value*.01));
+			multiplierLvlup(b.stat, 1/(double)(b.value*.01));
 		}
 	}
 	public void rescale() {
 		
 		basedamage = (getStrength())/9;
-		damagetaken = 100-getArmor();
 		regen = getStrength()*.001 + regenbuff;
 		if(accel<0)
 			accel = 0;
@@ -305,164 +299,45 @@ public class Mob extends Thing {
 		}
 		rescale();
 	}
-	public void worlvlup(Attribute attribute, double n) {
+	public void multiplierLvlup(Attribute attribute, double n) {
     if( attribute == Attribute.STRENGTH ) {
-			worstrength*=n;
+			strengthMultiplier*=n;
 		}
     if( attribute == Attribute.AGILITY ) {
-			woragility*=n;
+			agilityMultiplier*=n;
 		}
     if( attribute == Attribute.INTELLIGENCE ) {
-			worintelligence*=n;
+			intelligenceMultiplier*=n;
 		}
     if( attribute == Attribute.HEALTH ) {
-			worhealth*=n;
+			maximumHealthMultiplier*=n;
 		} 
     if( attribute == Attribute.DAMAGE ) {
-			wordamage*=n;
+			damageMultiplier*=n;
 		}
     if( attribute == Attribute.REGEN ) {
 			regenMultiplier*=n;
 		}
     if( attribute == Attribute.ACCELERATION ) {
-			woraccel*=n;
+			accelerationMultiplier*=n;
 		}
     if( attribute == Attribute.ATTACK_DELAY ) {
-			woradelay*=n;
+			attackDelayMultiplier*=n;
 		}
     if( attribute == Attribute.ARMOR ) {
-			worarmor*=n;
+			armorMultiplier*=n;
 		}
 		rescale();
 	}
-	ArrayList<MyPolygon> poly;
-	public static final int TOPLEFT = 1;
-	public static final int TOPRIGHT = 2;
-	public static final int BOTTOMLEFT = 3;
-	public static final int BOTTOMRIGHT = 4;
-//	public void draw(Graphics2D g) {
-		
-//		int drawx = (x-myworld.p.x)/World.ZOOM+470;
-//		int drawy = (y-myworld.p.y)/World.ZOOM+310;
-//		int w = super.w/World.ZOOM;
-//		int h = super.h/World.ZOOM;
-//		//g.fill(dim());
-//		if(attack!=null && adraw>=0) {
-//			int nx = (attack.x-myworld.p.x)/World.ZOOM+470;
-//			int ny = (attack.y-myworld.p.y)/World.ZOOM+310;
-//			int nw = attack.width/World.ZOOM;
-//			int nh = attack.height/World.ZOOM;
-//			if(attackdirection == 1 || attackdirection==3) {
-//				nw = attack.height/World.ZOOM;
-//				nh = attack.width/World.ZOOM;
-//			}
-//			if(nx+nw>-50 && nx-nw<990 && ny+nh>-50 && ny-nh<670) {
-//				Color cur = g.getColor();
-//				if(hostile()) {
-//					g.setColor(Color.red);
-//				} else {
-//					g.setColor(Color.green);
-//				}
-//				Graphics2D g2d = (Graphics2D)g;
-//				g2d.translate(nx, ny);
-//				g2d.rotate(Math.toRadians(attackdirection*90));
-//				// TODO asjkldfhajks
-//				if(myworld.drawimage) {
-////					g2d.drawImage(weapon.image, nx, ny, nw, nh, null);
-//					g2d.drawImage(weapon.image, -nw/2, -nh/2, nw, nh, null);
-//
-//				}
-////				g.draw(new Rectangle(nx, ny, nw, nh));
-//				g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
-//				g.setColor(cur);
-//				g2d.rotate(Math.toRadians((4-attackdirection)*90));
-//				g2d.translate(-nx, -ny);
-//			}
-//		} else {
-//			attackdirection = 0;
-//		}
-//		if(!dead) {
-//			g.setColor(Color.blue);
-//		} else {
-//			g.setColor(Color.black);
-//		}
-//		Color[] col = { g.getColor(), Color.red, new Color(0, 200, 0), Color.magenta, Color.cyan};
-//		super.draw(g, col);
-//		int distx = 0;
-//		int disty = 0;
-//		if(myworld.draw3d) {
-//			distx = (drawx-470)/10/World.ZOOM;
-//			disty = (drawy-310)/10/World.ZOOM;
-//		}
-//		if(drawx>-50 && drawx<990 && drawy>-50 && drawy<670 && World.ZOOM == 1) {
-//			g.setColor(Color.white);
-//			int l = Integer.toString(level).toCharArray().length;
-//			g.drawString(this.level+"", drawx-l*5+2+distx, drawy+g.getFont().getSize()/2-1+disty);
-//			
-//			g.setColor(new Color(200, 200, 200));
-//			double f = (double)health/totalhealth();
-//			g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, whiteline/10, 8);
-//
-////			if( damagefrompoison > 0 ) {
-////        g.setColor(new Color(0, 250, 0));
-////        int green = (int) (damagefrompoison/100 * whiteline / (double)totalhealth());
-////        g.fillRect(drawx-w/2+distx + whiteline/10 - green/10, drawy-h/2-13+disty, green/10, 8);
-////        
-////        damagefrompoison -= 1;
-////        if( damagefrompoison < 0 ) 
-////          damagefrompoison = 0;
-////			}
-//      
-//			if(whiteline/10>(f*w))
-//				whiteline-=w/30;
-//			if(whiteline/10<f*w)
-//				whiteline = (int) (f*w*10);
-//			
-//
-//			
-//			if(hostile()) {
-//				g.setColor(Color.red);
-//			} else {
-//				g.setColor(new Color( 0, 190, 20));
-//			}
-//			g.drawRect(drawx-w/2+distx, drawy-h/2-13+disty, w, 8);
-//			g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, (int) (f*w), 8);
-//			
-//			if(this instanceof Player) {
-//				g.setColor(new Color(150, 150, 0));
-//				g.drawRect(drawx-w/2, drawy-h/2-4, w, 4);
-//				g.setColor(Color.yellow);
-//				g.fillRect(drawx-w/2, drawy-h/2-4, (int) ((double)(this.experience-this.expatstartlvl)/(double)(this.exptolvlup-this.expatstartlvl)*w), 4);
-//			}
-////			g.setColor(cur);
-//		}
-//	}
-//	public void drawpopups(Graphics2D g ) {
-//		int drawx = (x-myworld.p.x)/World.ZOOM+470;
-//		int drawy = (y-myworld.p.y)/World.ZOOM+310;
-//		//int w = super.w/World.ZOOM;
-//		//int h = super.h/World.ZOOM;
-//		boolean draw = false;
-//		if(drawx>-50 && drawx<990 && drawy>-50 && drawy<670) {
-//			draw = true;
-//		}
-//		Iterator<Popup> itpop = popups.iterator();
-//		while( itpop.hasNext() ) {
-//			Popup pop = itpop.next();
-//	    g.setColor(pop.color);
-//			if(draw)
-//				g.drawString(pop.string, drawx+pop.x(), drawy+pop.y());
-//			if(pop.drawn()) {
-//				popups.remove(pop);
-//			}
-//		}
-//	}
+	/**
+	 * @return true if killed, false otherwise
+	 */
 	public boolean damage(int d) {
 		health-=d;
 		updateDeadStatus();
 		return isDead();
 	}
-	public Rectangle nextdim() {
+	public Rectangle nextPosition() {
 		return new Rectangle(x-w/2+getXSpeed(), y-h/2+getYSpeed(), w, h);
 	}
 	
@@ -520,21 +395,21 @@ public class Mob extends Thing {
       useHealingBuffer();
 			
 			boolean nomiss = ai.contains("nomiss");
-			int randomize = 5;
-			if(nomiss) {
-				randomize = 4;
+			double chanceToHit = 0.8;
+			if( nomiss ) {
+			  chanceToHit = 1;
 			}
 			if(ai.contains("leftattack")) {
-        setAttack("left");
+        setAttack(AttackDirection.LEFT);
 			}
       if(ai.contains("rightattack")) {
-        setAttack("right");
+        setAttack(AttackDirection.RIGHT);
       }
       if(ai.contains("upattack")) {
-        setAttack("up");
+        setAttack(AttackDirection.UP);
       }
       if(ai.contains("downattack")) {
-        setAttack("down");
+        setAttack(AttackDirection.DOWN);
       }
 			if(ai.contains("random")) {
 				int a = rand.nextInt(5);
@@ -544,15 +419,8 @@ public class Mob extends Thing {
 					setXSpeed(x*getAccel());
 					setYSpeed(y*getAccel());
 				}
-				a = rand.nextInt(randomize);
-				if(a==0) {
-					setAttack("up");
-				} else if(a==1) {
-					setAttack("down");
-				} else if(a==2) {
-					setAttack("left");
-				} else if(a==3) {
-					setAttack("right");
+				if( Math.random() < chanceToHit ) {
+				  setAttack(AttackDirection.getRandomAttackDirection());
 				}
 			}
 			if(ai.contains("bettermovetowardsyou")) {
@@ -581,16 +449,9 @@ public class Mob extends Thing {
 					}
 					setXSpeed((int) (dx*getAccel()));
 					setYSpeed((int) (dy*getAccel()));
-					int a = rand.nextInt(randomize);
-					if(a==0) {
-						setAttack("up");
-					} else if(a==1) {
-						setAttack("down");
-					} else if(a==2) {
-						setAttack("left");
-					} else if(a==3) {
-						setAttack("right");
-					}
+	        if( Math.random() < chanceToHit ) {
+	          setAttack(AttackDirection.getRandomAttackDirection());
+	        }
 				}
 			if(ai.contains("sway")) {
 				aiCounter+=1;
@@ -600,16 +461,9 @@ public class Mob extends Thing {
 				double y =  (Math.cos(3*toRadians(aiCounter)));
 				setXSpeed((int) (x*getAccel()));
 				setYSpeed((int) (y*getAccel()));
-				int a = rand.nextInt(randomize);
-				if(a==0) {
-					setAttack("up");
-				} else if(a==1) {
-					setAttack("down");
-				} else if(a==2) {
-					setAttack("left");
-				} else if(a==3) {
-					setAttack("right");
-				}
+        if( Math.random() < chanceToHit ) {
+          setAttack(AttackDirection.getRandomAttackDirection());
+        }
 			}
 			if(ai.contains("horizontalpatrol")) {
 				aiCounter+=1;
@@ -620,16 +474,9 @@ public class Mob extends Thing {
 				double y =  -(Math.sin(toRadians(40*aiCounter)));
 				setXSpeed((int) (x*getAccel()));
 				setYSpeed((int) (y*0));//(int) (y*accel()));
-				int a = rand.nextInt(randomize);
-				if(a==0) {
-					setAttack("up");
-				} else if(a==1) {
-					setAttack("down");
-				} else if(a==2) {
-					setAttack("left");
-				} else if(a==3) {
-					setAttack("right");
-				}
+        if( Math.random() < chanceToHit ) {
+          setAttack(AttackDirection.getRandomAttackDirection());
+        }
 				
 			} else if(ai.contains("zigzag")) {
 				aiCounter+=1;
@@ -639,16 +486,9 @@ public class Mob extends Thing {
 				double y =  -(Math.sin(toRadians(3*aiCounter)));
 				setXSpeed((int) (x*getAccel()));
 				setYSpeed((int) (y*getAccel()));
-				int a = rand.nextInt(randomize);
-				if(a==0) {
-					setAttack("up");
-				} else if(a==1) {
-					setAttack("down");
-				} else if(a==2) {
-					setAttack("left");
-				} else if(a==3) {
-					setAttack("right");
-				}
+        if( Math.random() < chanceToHit ) {
+          setAttack(AttackDirection.getRandomAttackDirection());
+        }
 			}
 			if(ai.contains("hunter")) {
 				aiCounter+=1;
@@ -672,16 +512,9 @@ public class Mob extends Thing {
 				}
 				setXSpeed((int) (dx*getAccel()));
 				setXSpeed((int) (dy*getAccel()));
-				int a = rand.nextInt(randomize);
-				if(a==0) {
-					setAttack("up");
-				} else if(a==1) {
-					setAttack("down");
-				} else if(a==2) {
-					setAttack("left");
-				} else if(a==3) {
-					setAttack("right");
-				}
+        if( Math.random() < chanceToHit ) {
+          setAttack(AttackDirection.getRandomAttackDirection());
+        }
 			}
 
       // can only move and attack if not stunned
@@ -727,7 +560,7 @@ public class Mob extends Thing {
         if(hit.kill) {
           experience+=hit.leveloftarget*10*(100+getIntelligence())*.01;
         } 
-        setAttackCooldown((int) (getAttackDelay()*woradelay + randomAttackDelayModifier()));
+        setAttackCooldown((int) (getAttackDelay()*attackDelayMultiplier + randomAttackDelayModifier()));
         if(weapon.continuous) {
           setAttackCooldown(0);
         }
@@ -821,33 +654,43 @@ public class Mob extends Thing {
 	    deadBest = dead.getMostExpensiveItemCost();
 	  }
 	}
+	public enum AttackDirection {
+	  RIGHT(1), DOWN(2), LEFT(3), UP(4) ;
+	  private int value;
+	  private AttackDirection(int value) {
+	    this.value = value;
+	  }
+	  public int getAngle() {
+	    return value*90;
+	  }
+	  public static AttackDirection getRandomAttackDirection() {
+	    return AttackDirection.values()[(int) (AttackDirection.values().length*Math.random())];
+	  }
+	}
 	// TODO setAttack
-	public void setAttack(String dir) {
-		if(weapon != null) { //weapon has not been initialized, so return function
+	public void setAttack(AttackDirection direction) {
+		if(weapon != null) {
   		int wi = weapon.width;
   		int le = weapon.length;
   		int ra= weapon.range;
   		if(!isAttackReady() && getAttackCooldown()<0) {
-  			if(dir.equals("up")) {
-  				attackdirection = Mob.ATTACKUP;
+  		  attackdirection = direction;
+  		  if( direction == AttackDirection.UP) {
   				attack = new Rectangle(x, y-ra-le/2-h/2, wi, le);
   			}
-  			if (dir.equals("left")) {
-  				attackdirection = Mob.ATTACKLEFT;
+        if( direction == AttackDirection.LEFT) {
   				attack = new Rectangle(x-ra-le/2-w/2, y, le, wi);
   //				attack = new Rectangle(x-ra-le/2-w/2, y, le, wi);
   			}
-  			if (dir.equals("down")) {
-  				attackdirection = Mob.ATTACKDOWN;
+        if( direction == AttackDirection.DOWN) {
   				attack = new Rectangle(x, y+ra+h/2+le/2, wi, le);
   			}
-  			if (dir.equals("right")) {
-  				attackdirection = Mob.ATTACKRIGHT;
+        if( direction == AttackDirection.RIGHT) {
   				attack = new Rectangle(x+ra+w/2+le/2, y, le, wi);
   //				attack = new Rectangle(x+ra+w/2+le/2, y, le, wi);
   			}
   			setAttackReady(true);
-  			setDrawDelay((int) (getAttackDelay()*woradelay/2));
+  			setDrawDelay((int) (getAttackDelay()*attackDelayMultiplier/2));
   			if (getDrawDelay()<=0) {
   			  setDrawDelay(1);
   			}
@@ -857,17 +700,14 @@ public class Mob extends Thing {
   		}
 		}
 	}
-	public int getdmgaftercrit(int dmg, Mob target) {
-		int afterdmg = dmg;
-		//System.out.println(this.race.name+" is finding dmg after crit!");
+	public int getDamageAfterCritAndArmor(int dmg, Mob target) {
 		for(int a=0; a<crits.size(); a++) {
 			Crit c = crits.get(a);
-			if(c.boom()) {
-				return (int) (c.getdamage(dmg)*target.damagetaken*.01);
+			if(c.proc()) {
+				return (int) (c.applyMultiplier(dmg)*target.getDamageReduction());
 			}
-			//afterdmg = c.getdamage(dmg);
 		}
-		return (int)(afterdmg*target.damagetaken*.01);
+		return (int)(dmg*target.getDamageReduction());
 		
 	}
 	public Hit attack(Rectangle r) {
@@ -876,9 +716,6 @@ public class Mob extends Thing {
 		Hit hit = new Hit();
 		
 		int dmg = getBaseDamage(); // compute how much damage this mob can do
-//		if(dmg == 0)
-//			dmg = 1;
-		dmg = Math.max(dmg, 0); // this minimum amount of damage possible is 0
 		
 		// Check each mob to see if it intersects with the attack rectangle r
 		Iterator<Mob> itmob = myworld.mobs().iterator();
@@ -886,7 +723,7 @@ public class Mob extends Thing {
 			Mob m = itmob.next();
 			if(m != this && m.dim().intersects(r)) {
 				hit.leveloftarget = m.level;
-				int dmgtodeal = getdmgaftercrit(dmg, m);
+				int dmgtodeal = getDamageAfterCritAndArmor(dmg, m);
 				if(m.isDead()) {
 				  
 				} else if(m.damage(dmgtodeal)) {
@@ -910,7 +747,7 @@ public class Mob extends Thing {
 		}
 		Player m = myworld.playerASDF;
 		if(m != this && m.dim().intersects(r)) {
-			int dmgtodeal = getdmgaftercrit(dmg, m);
+			int dmgtodeal = getDamageAfterCritAndArmor(dmg, m);
 			m.popups.add(new Popup(dmgtodeal+"", Popup.DURATION));
 			if(m.damage(dmgtodeal)) {
 				hit.kill = true;
@@ -949,7 +786,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getBaseDamage() {
-		return (int) ((basedamage+damagebuff)*wordamage);
+		return Math.max(0, (int) ((basedamage+damagebuff)*damageMultiplier));
 	}
 	
 	/**
@@ -957,7 +794,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getAgility() {
-		int agi = (int) ((agilitybuff+actagility)*woragility);
+		int agi = (int) ((agilitybuff+actagility)*agilityMultiplier);
 		if(agi>=0) 
 			return agi;
 		else 
@@ -969,7 +806,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getIntelligence() {
-		int intel = (int) ((intelligencebuff+actintelligence)*worintelligence*5);
+		int intel = (int) ((intelligencebuff+actintelligence)*intelligenceMultiplier*5);
 		if(intel>=1)
 			return intel;
 		else
@@ -981,7 +818,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getArmor() {
-		int arm = (int) ((armorbuff+basearmor)*worarmor);
+		int arm = (int) ((armorbuff+basearmor)*armorMultiplier);
 		if(arm>=100) {
 			arm = 99;
 		}
@@ -993,7 +830,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getStrength() {
-		int str = (int) ((strengthbuff+actstrength)*worstrength);
+		int str = (int) ((strengthbuff+actstrength)*strengthMultiplier);
 		if(str>=0) 
 			return str;
 		else
@@ -1005,7 +842,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getMaximumHealth() {
-		return (int) ((getStrength()*STR_HEALTH_MULTIPLIER+totalhealthbuff)*worhealth);
+		return (int) ((getStrength()*STR_HEALTH_MULTIPLIER+totalhealthbuff)*maximumHealthMultiplier);
 	}
 	
 	/**
@@ -1013,7 +850,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getAccel() {
-		return (int) (accel*woraccel);
+		return (int) (accel*accelerationMultiplier);
 	}
 	
 	
@@ -1030,7 +867,7 @@ public class Mob extends Thing {
 		  
 			int agility = Math.min(getAgility(), 200); // maximum agility for attack delay calculation is 200
 			
-			int attackdelay = (int)( ( 1500/(agility+1) ) * woradelay );//(int)(((150-agi/5))*woradelay);
+			int attackdelay = (int)( ( 1500/(agility+1) ) * attackDelayMultiplier );//(int)(((150-agi/5))*woradelay);
 			
 			attackdelay = Math.min(attackdelay, 200); // the maximum delay is 200
 			return attackdelay;
@@ -1049,7 +886,7 @@ public class Mob extends Thing {
     return Optional.ofNullable(attack);
   }
 	
-  public int getAttackDirection() {
+  public AttackDirection getAttackDirection() {
     return attackdirection;
   }
   
@@ -1116,32 +953,36 @@ public class Mob extends Thing {
     popups.clear();
   }
   
+  public double getDamageReduction() {
+    return (100-getArmor())*0.01;
+  }
+  
   public void initializemob(String weaponString) {
     basedamage = race.startdmg;
     damagebuff = 0;
-    wordamage = 1;
+    damageMultiplier = 1;
     
     level = 1;
     
     totalhealthbuff = race.starthealth;
-    worhealth = 1;
+    maximumHealthMultiplier = 1;
     
-    woradelay = 1;
+    attackDelayMultiplier = 1;
     
     accel = race.startaccel;
-    woraccel = 1;
+    accelerationMultiplier = 1;
     
     agilitybuff = 0;
     actagility = race.startagi;
-    woragility = 1;
+    agilityMultiplier = 1;
     
     strengthbuff = 0;
     actstrength = race.startstr;
-    worstrength = 1;
+    strengthMultiplier = 1;
     
     intelligencebuff = 0;
     actintelligence = race.startint;
-    worintelligence = 1;
+    intelligenceMultiplier = 1;
     
     regenbuff = race.startregen;
     regen = 0;
@@ -1149,7 +990,7 @@ public class Mob extends Thing {
     
     basearmor = race.startarmor;
     armorbuff = 0;
-    worarmor = 1;
+    armorMultiplier = 1;
     
     getWeap(weaponString);
     weapon.puton(this);

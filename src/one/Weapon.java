@@ -99,7 +99,7 @@ public class Weapon extends Item {
 			range = rank*2;
 			addbuff(Attribute.DAMAGE, 4+3*multiplier, true);
 			addbuff(Attribute.STRENGTH, 5+5*multiplier, true);
-			addcrit(5+rank, 100+35*rank);
+			addcrit(5+rank, 1+.35*rank);
       Debuff d = new Debuff( Debuff.STUN, 20 + rank*6, .8);
       debuffs.add(d);
 			cost = 8*multiplier;
@@ -152,7 +152,7 @@ public class Weapon extends Item {
 			range = 5+3*rank;
 			addbuff(Attribute.DAMAGE, 2+multiplier*3, true);
 			addbuff(Attribute.REGEN, 4+5*multiplier, true);
-			addcrit(10+5*rank, 100+10*rank);
+			addcrit(10+5*rank, 1+.10*rank);
 			cost = 7*multiplier;
 		}
 		if (name.contains("deathaura")) {
@@ -188,7 +188,7 @@ public class Weapon extends Item {
 			range = 190;
 			addbuff(Attribute.DAMAGE, 120, false);
 			addbuff(Attribute.DAMAGE, 10, true);
-			addcrit(15, 200);
+			addcrit(15, 2);
 			cost = 25;
 		}
 		if (name.equals("shortbow")) {
@@ -197,7 +197,7 @@ public class Weapon extends Item {
 			range = 125;
 			addbuff(Attribute.DAMAGE, 110, false);
 			addbuff(Attribute.DAMAGE, 5, true);
-			addcrit(15, 160);
+			addcrit(15, 1.6);
 			cost = 15;
 		}
 		if (name.equals("test")) {
@@ -261,7 +261,7 @@ public class Weapon extends Item {
 			range = 5;
 			addbuff(Attribute.DAMAGE, 10, true);
 			addbuff(Attribute.AGILITY, 100, true);
-			addcrit(40, 30);
+			addcrit(40, 0.3);
       Debuff d = new Debuff( Debuff.POISON, 50, .0);
       d.damage = 5;
       debuffs.add(d);

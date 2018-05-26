@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import gui.Frame;
+import one.Mob.*;
 import sound.*;
 
 import javax.swing.ImageIcon;
@@ -252,16 +253,16 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 					}
 					if(!world.playerASDF.isInShop()) {
 						if(k.name().equals("up")) {
-							world.playerASDF.setAttack("up");
+							world.playerASDF.setAttack(AttackDirection.UP);
 						}
 						if(k.name().equals("left")) {
-							world.playerASDF.setAttack("left");
+							world.playerASDF.setAttack(AttackDirection.LEFT);
 						}
 						if(k.name().equals("down")) {
-							world.playerASDF.setAttack("down");
+							world.playerASDF.setAttack(AttackDirection.DOWN);
 						}
 						if(k.name().equals("right")) {
-							world.playerASDF.setAttack("right");
+							world.playerASDF.setAttack(AttackDirection.RIGHT);
 						}
 					}
 					if(world.playerASDF.isInShop()) {
