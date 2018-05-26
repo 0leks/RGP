@@ -270,9 +270,4 @@ public class Weapon extends Item {
 		ImageIcon ii = new ImageIcon("resources\\images\\weapons\\"+name+".png");
 		image = ii.getImage();
 	}
-
-	public void addbuff(Attribute stat, int val, boolean raw) {
-		buffs.add(new Buff(stat, val, raw));
-	}
-
 }

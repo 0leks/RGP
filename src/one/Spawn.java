@@ -44,11 +44,11 @@ public class Spawn extends Thing{
 			}
 		}
 		m.setPos(xp, yp);
-		m.dead = false;
 		m.popups.clear();
 		m.experience+=experience;
 		m.lvlup();
 		m.health = m.getMaximumHealth();
+		m.updateDeadStatus();
 		return toret;
 	}
 	public String tosave() {

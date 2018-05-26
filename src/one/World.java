@@ -178,9 +178,7 @@ public class World implements Serializable, PlayerLocation {
 		m.money = money;
 		m.lvlup();
 		m.health = health;
-		if(m.getCurrentHealth() <= 0) {
-			m.dead = true;
-		}
+    m.updateDeadStatus();
 		mobs.add(m);
 		return m;
 	}
@@ -196,9 +194,7 @@ public class World implements Serializable, PlayerLocation {
 //		p.lvlupto(40);
 		playerASDF.lvlup();
 		playerASDF.health = health;
-		if(playerASDF.getCurrentHealth()<=0) {
-			playerASDF.dead = true;
-		}
+		playerASDF.updateDeadStatus();
 	}
 	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, Race race, int exp) {
 		System.out.println(race);
@@ -211,9 +207,7 @@ public class World implements Serializable, PlayerLocation {
 		playerASDF.experience = exp;
 //  p.lvlupto(40);
 		playerASDF.lvlup();
-		if(playerASDF.getCurrentHealth()<=0) {
-			playerASDF.dead = true;
-		}
+		playerASDF.updateDeadStatus();
 	}
 	public void draw(Graphics2D g) {
 		g.setColor(new Color(220, 220, 220));
@@ -361,7 +355,7 @@ public class World implements Serializable, PlayerLocation {
     } else {
       mob.attackdirection = 0;
     }
-    if(!mob.dead) {
+    if(!mob.isDead()) {
       g.setColor(Color.blue);
     } else {
       g.setColor(Color.black);
@@ -370,7 +364,7 @@ public class World implements Serializable, PlayerLocation {
     if( mob.isStunned() ) {
       col[0] = Mob.BASH_COLOR;
     }
-    if(mob.dead) {
+    if(mob.isDead()) {
       g.setColor(Color.black);
     }
     drawThing(g, mob, col);
@@ -378,7 +372,7 @@ public class World implements Serializable, PlayerLocation {
       g.setColor(Color.white);
       int l = Integer.toString(mob.level).toCharArray().length;
       g.drawString(mob.level+"", drawx-l*5+2+distx, drawy+g.getFont().getSize()/2-4+disty);
-      if( !mob.dead ) {
+      if( !mob.isDead() ) {
         g.setColor(new Color(200, 200, 200));
         double f = (double)mob.health/mob.getMaximumHealth();
         g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, mob.whiteline/10, 8);
@@ -441,7 +435,7 @@ public class World implements Serializable, PlayerLocation {
     if( player.isStunned() ) {
       g.setColor(Mob.BASH_COLOR);
     }
-    else if(!player.dead) {
+    else if(!player.isDead()) {
       g.setColor(Color.blue);
     }
     else {
@@ -648,7 +642,7 @@ public class World implements Serializable, PlayerLocation {
 			if(temp != what) {
 				if(Math.abs(temp.x-what.x)<300 && Math.abs(temp.y-what.y)<300) {
 					if(temp.dim().intersects(what.nextdim())) {
-						if(temp.dead) {
+						if(temp.isDead()) {
 							if(temp==snitch) {
 								//TODO SNITCH
 								int xp = temp.experience*4;
@@ -659,8 +653,8 @@ public class World implements Serializable, PlayerLocation {
 									@Override
 									public boolean damage(int d) {
 										health-=d;
-										dead = (health<=0);
-										return dead;
+										updateDeadStatus();
+										return isDead();
 									}
 								};
 								initializemob(snitch, getNextWeapon(temp.weapon.name));

@@ -14,13 +14,13 @@ public class Player extends Mob{
 	}
 	@Override
 	public boolean damage(int d) {
-		boolean alreadydead = dead;
+		boolean alreadydead = isDead();
 		health-=d;
-		dead = (health<=0);
-		if(dead && !alreadydead) {
+		updateDeadStatus();
+		if(isDead() && !alreadydead) {
 		  myworld.playerDied(this);
 		}
-		return dead;
+		return isDead();
 	}
 	public boolean buyItem(Item i) {
 		boolean buysuccessful = false;

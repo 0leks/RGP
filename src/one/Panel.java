@@ -470,7 +470,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 		if(gamestarted)
 			world.draw(g2d);
 
-    if( world.playerASDF.dead ) {
+    if( world.playerASDF.isDead() ) {
       g.setColor(new Color( 0, 0, 0, (world.deathTransparency++)/4) );
       if( world.deathTransparency > 1020) {
         world.deathTransparency = 1020;

@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 public class Mob extends Thing{
-	protected boolean dead;
+	private boolean dead;
 	protected String ai;
 	Random rand = new Random();
 	protected int xspeed;
@@ -113,6 +113,8 @@ public class Mob extends Thing{
 		rescale(); // something to do with stats
     lvlup();
 	}
+  
+  
 	public void removeItem( Item item ) {
     for( Buff b : item.buffs) {
       subbuff(b);
@@ -654,16 +656,16 @@ public class Mob extends Thing{
 					asdf = 0;
 				int dx;
 				int dy;
-				if(x<myworld.playerASDF.x-accel) {
+				if(x<myworld.playerASDF.x()-accel) {
 					dx = 1;
-				} else if(x>myworld.playerASDF.x+accel) {
+				} else if(x>myworld.playerASDF.x()+accel) {
 					dx = -1;
 				} else {
 					dx= 0;
 				}
-				if(y<myworld.playerASDF.y-accel) {
+				if(y<myworld.playerASDF.y()-accel) {
 					dy = 1;
-				} else if(y>myworld.playerASDF.y+accel) {
+				} else if(y>myworld.playerASDF.y()+accel) {
 					dy = -1;
 				} else {
 					dy= 0;
@@ -705,26 +707,29 @@ public class Mob extends Thing{
     			xspeed /= 2;
     			yspeed /= 2;
 			  }
-  			
-  			// Can only attack if attack box is set, attack cooldown is ready. No idea what att is
-  			// the inshop boolean is only set for the player, so it only has effect when the player is in a shop, mobs can attack anyways
-  			if(attack!=null && acd<0 && att && !inshop) {
-  				Hit hit = attack(attack);
-  				if(hit.damage > 0) {
-  					experience+=(hit.damage*(100+getIntelligence())*.01);
-  				} 
-  				if(hit.kill) {
-  					experience+=hit.leveloftarget*10*(100+getIntelligence())*.01;
-  				} 
-  				acd = (int) (getAttackDelay()*woradelay + randomAttackDelayModifier());
-  				if(weapon.continuous) 
-  					acd = 0;
-  			}
+  			handleAttacking();
 			}
 			// attack cooldown ticks whether or not stunned
       acd--;
 		}
 		adraw--;
+	}
+	
+	public void handleAttacking() {
+	// Can only attack if attack box is set, attack cooldown is ready. No idea what att is
+    // the inshop boolean is only set for the player, so it only has effect when the player is in a shop, mobs can attack anyways
+    if(attack!=null && acd<0 && att && !inshop) {
+      Hit hit = attack(attack);
+      if(hit.damage > 0) {
+        experience+=(hit.damage*(100+getIntelligence())*.01);
+      } 
+      if(hit.kill) {
+        experience+=hit.leveloftarget*10*(100+getIntelligence())*.01;
+      } 
+      acd = (int) (getAttackDelay()*woradelay + randomAttackDelayModifier());
+      if(weapon.continuous) 
+        acd = 0;
+    }
 	}
 	public static double randomAttackDelayModifier() {
 	  return 0.98 + Math.random() * 0.04;
@@ -1027,6 +1032,14 @@ public class Mob extends Thing{
 			return attackdelay;
 		}
 	}
+
+  public void updateDeadStatus() {
+    dead = getCurrentHealth() <= 0;
+  }
+  
+  public boolean isDead() {
+    return dead;
+  }
 	
 	/**
 	 * compute this mob's health regeneration stat
