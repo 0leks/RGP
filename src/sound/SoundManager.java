@@ -14,6 +14,8 @@ public class SoundManager {
   private ArrayList<SoundArea> sounds;
 
   private Sound currentsound;
+  
+  private boolean soundLocked;
 
   public SoundManager() {
     sounds = new ArrayList<>();
@@ -21,7 +23,7 @@ public class SoundManager {
   }
 
   private void changeSound(Sound sound, boolean fadeIn) {
-    if (currentsound != sound) {
+    if (!soundLocked && currentsound != sound) {
       if (currentsound != null) {
         currentsound.fadeOut(.15);
       }
@@ -38,6 +40,13 @@ public class SoundManager {
         System.out.println("currentsound is now " + currentsound.getUrl());
       }
     }
+  }
+  
+  private void lockSound() {
+    soundLocked = true;
+  }
+  public void unlockSound() {
+    soundLocked = false;
   }
 
   public void playMusic() {
@@ -72,6 +81,7 @@ public class SoundManager {
       Sound deathSound = soundFiles.get("death.wav");
       if( deathSound != null ) {
         changeSound(deathSound, false);
+        lockSound();
       }
     }
   }

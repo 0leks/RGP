@@ -390,6 +390,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
             }
           }
         }
+        soundManager.unlockSound();
         world.newgame(race);
         if(!gamestarted) {
           gamestarted = true;
@@ -405,34 +406,6 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
         }
       }
     }
-//    if(activemenu == initmenu) {
-//      if(b.is("newgame")) {
-//        String race = "";
-//        String weap = "";
-//        for(MenuButton m : activemenu.buts) {
-//          if(m instanceof MenuButtonGroup) {
-//            MenuButtonGroup mbg = (MenuButtonGroup)m;
-//            if(mbg.is("Race")) {
-//              race = mbg.getSelected().name();
-//            }
-//            if(mbg.is("Weapon")) {
-//              weap = mbg.getSelected().name();
-//            }
-//          }
-//        }
-//        world.newgame(race, weap);
-//        if(!gamestarted) {
-//          gamestarted = true;
-//        }
-//        activemenu.setsel(1);
-//        if(World.playmusic ) {
-//          if( menu!=null) {
-//            menu.fadeOut(.1);
-//          }
-//          world.changeSound(world.grass);
-//        }
-//      }
-//    }
     if(b.getmenu() != null) {
       activemenu = b.getmenu();
       activemenu.setactive(true);
@@ -442,14 +415,6 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 	public void log(String msg) {
 		System.out.print(msg);
 	}
-//	public void setactive(boolean a) {
-//		active = !active;
-//		if(active) {
-//			timer.start();
-//		} else {
-//			timer.stop();
-//		}
-//	}
 	public void paint(Graphics g) {
 	
 		super.paint(g);
