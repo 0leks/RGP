@@ -74,7 +74,7 @@ public class Mob extends Thing {
 	
 	protected double regen;
 	protected double regenbuff;
-	protected double worregen;
+	protected double regenMultiplier;
 	
 	protected int basearmor;
 	protected int armorbuff;
@@ -322,7 +322,7 @@ public class Mob extends Thing {
 			wordamage*=n;
 		}
     if( attribute == Attribute.REGEN ) {
-			worregen*=n;
+			regenMultiplier*=n;
 		}
     if( attribute == Attribute.ACCELERATION ) {
 			woraccel*=n;
@@ -1115,12 +1115,57 @@ public class Mob extends Thing {
   public void clearPopups() {
     popups.clear();
   }
+  
+  public void initializemob(String weaponString) {
+    basedamage = race.startdmg;
+    damagebuff = 0;
+    wordamage = 1;
+    
+    level = 1;
+    
+    totalhealthbuff = race.starthealth;
+    worhealth = 1;
+    
+    woradelay = 1;
+    
+    accel = race.startaccel;
+    woraccel = 1;
+    
+    agilitybuff = 0;
+    actagility = race.startagi;
+    woragility = 1;
+    
+    strengthbuff = 0;
+    actstrength = race.startstr;
+    worstrength = 1;
+    
+    intelligencebuff = 0;
+    actintelligence = race.startint;
+    worintelligence = 1;
+    
+    regenbuff = race.startregen;
+    regen = 0;
+    regenMultiplier = 1;
+    
+    basearmor = race.startarmor;
+    armorbuff = 0;
+    worarmor = 1;
+    
+    getWeap(weaponString);
+    weapon.puton(this);
+    health = getMaximumHealth();
+    
+    experience = 0;
+    exptolvlup += (int) (Math.pow(level, 2)*10/getIntelligence())+10;
+    rescale();
+  }
+  
 	/**
 	 * compute this mob's health regeneration stat
 	 * @return
 	 */
 	public double getHealthRegen() {
-		return regen*worregen;
+		return regen*regenMultiplier;
 	}
 	
 	/**

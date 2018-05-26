@@ -109,53 +109,6 @@ public class World implements Serializable, PlayerLocation {
 //		initPlayer(1300, -1500, weapon, 15, new ArrayList<Item>(), race, 0);
 //    initPlayer(850, -1350, weapon, 15, new ArrayList<Item>(), race, 0);
 	}
-	public void initializemob(Mob m, String weapon) {
-		Race r = m.race;
-		
-		m.basedamage = r.startdmg;
-		m.damagebuff = 0;
-		m.wordamage = 1;
-		
-		m.level = 1;
-		
-		m.totalhealthbuff = r.starthealth;
-		m.worhealth = 1;
-		
-		m.woradelay = 1;
-		
-		m.accel = r.startaccel;
-		m.woraccel = 1;
-		
-		m.agilitybuff = 0;
-		m.actagility = r.startagi;
-		m.woragility = 1;
-		
-		m.strengthbuff = 0;
-		m.actstrength = r.startstr;
-		m.worstrength = 1;
-		
-		m.intelligencebuff = 0;
-		m.actintelligence = r.startint;
-		m.worintelligence = 1;
-		
-		m.regenbuff = r.startregen;
-		m.regen = 0;
-		m.worregen = 1;
-		
-		m.basearmor = r.startarmor;
-		m.armorbuff = 0;
-		m.worarmor = 1;
-		
-		m.getWeap(weapon);
-		m.weapon.puton(m);
-		m.health = m.getMaximumHealth();
-		
-		m.race = r;
-		
-		m.experience = 0;
-		m.exptolvlup += (int) (Math.pow(m.level, 2)*10/m.getIntelligence())+10;
-		m.rescale();
-	}
 	public void initWall(int xx, int yy, int ww, int hh, int re, int gr, int bl, boolean blockplayer) {
 		Obstacle w = new Obstacle(xx, yy, ww, hh, this, ColorUtil.getColor(re, gr, bl), blockplayer);
 		walls.add(w);
@@ -173,7 +126,7 @@ public class World implements Serializable, PlayerLocation {
   }
 	public Mob initMob(Race race, int exp, int money, int xx, int yy, int health, String weap, String ai) {
 		Mob m = new Mob(xx, yy, ai, this, race);
-		this.initializemob(m, weap);
+		m.initializemob(weap);
 		m.experience = exp;
 		m.money = money;
 		m.lvlup();
@@ -185,7 +138,7 @@ public class World implements Serializable, PlayerLocation {
 	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, Race race, int exp, int health) {
 		System.out.println(race);
 		playerASDF = new Player(xx, yy, this, race);
-		this.initializemob(playerASDF, weap);
+		playerASDF.initializemob(weap);
 		playerASDF.money = smoney;
 		for(Item i : items) {
 			playerASDF.addItem(i);
@@ -199,7 +152,7 @@ public class World implements Serializable, PlayerLocation {
 	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, Race race, int exp) {
 		System.out.println(race);
 		playerASDF = new Player(xx, yy, this, race);
-		this.initializemob(playerASDF, weap);
+		playerASDF.initializemob(weap);
 		playerASDF.money = smoney;
 		for(Item i : items) {
 			playerASDF.addItem(i);
@@ -662,7 +615,7 @@ public class World implements Serializable, PlayerLocation {
 										return isDead();
 									}
 								};
-								initializemob(snitch, getNextWeapon(temp.weapon.name));
+								snitch.initializemob(getNextWeapon(temp.weapon.name));
 								snitch.experience = xp;
 								mobs.add(snitch);
 							} else {
@@ -1092,14 +1045,14 @@ public class World implements Serializable, PlayerLocation {
 		
 		Mob newmob = new Mob(300, 300, "bettermovetowardsyou hostile", this, Race.DWARF);
 		mobs.add(newmob);
-		initializemob(newmob, "wooden spear");
+		newmob.initializemob("wooden spear");
 		
 		newmob = new Mob(400, 300, "sway hostile", this, Race.ELF);
 		mobs.add(newmob);
-		initializemob(newmob, "wooden dagger");
+		newmob.initializemob("wooden dagger");
 		newmob = new Mob(300, 400, "zigzag hostile", this, Race.ELF);
 		mobs.add(newmob);
-		initializemob(newmob, "wooden sword");
+		newmob.initializemob("wooden sword");
 		
 		
 		//TODO GHOST AREA
@@ -1123,23 +1076,23 @@ public class World implements Serializable, PlayerLocation {
     newmob = new Mob(440, -3750, "leftattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
-    initializemob(newmob, "ghost beam");
+    newmob.initializemob("ghost beam");
     newmob = new Mob(-1345, -3550, "rightattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
-    initializemob(newmob, "ghost beam");
+    newmob.initializemob("ghost beam");
     newmob = new Mob(-1345, -3750, "rightattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
-    initializemob(newmob, "ghost beam");
+    newmob.initializemob("ghost beam");
     newmob = new Mob(-1345, -3950, "rightattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
-    initializemob(newmob, "ghost beam");
+    newmob.initializemob("ghost beam");
     newmob = new Mob(-275, -4050, "downattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
-    initializemob(newmob, "ghost beam");
+    newmob.initializemob("ghost beam");
     
     Shop shoptoadd = new Shop(240, -4000, 150, 150, this, "Greater Rings");
     shops.add(shoptoadd);
@@ -1152,7 +1105,7 @@ public class World implements Serializable, PlayerLocation {
     
 		newmob = new Mob(-1200, -2850, "random hostile nomiss", this, Race.BIGBOSS);
 		mobs.add(newmob);
-		initializemob(newmob, "ghost bomb");
+		newmob.initializemob("ghost bomb");
 		newmob.lvlupto(60);
 		shoptoadd = new Shop(-1200, -2850, 120, 120, this, "Dragon");
 		shops.add(shoptoadd);
@@ -1206,7 +1159,7 @@ public class World implements Serializable, PlayerLocation {
 		Mob toadd;
 		for(int y = -1900; y <= -1300; y += 100) {
 			toadd = new Mob(2600, y, "horizontalpatrol hostile nomiss", this, Race.PATROL);
-			initializemob(toadd, "rune deathaura");
+			toadd.initializemob("rune deathaura");
 			toadd.lvlupto(20);
 			mobs.add(toadd);
 		}
@@ -1220,7 +1173,7 @@ public class World implements Serializable, PlayerLocation {
 			}
 		});
 		toadd = new Mob(2800, -3000, "random nomiss hostile", this, Race.SUPER_NINJA);
-		initializemob(toadd, "rune sword");
+		toadd.initializemob("rune sword");
 		spawns.get(spawns.size()-1).addmob(toadd);
 		mobs.add(toadd);
 		
@@ -1244,7 +1197,7 @@ public class World implements Serializable, PlayerLocation {
 				w = "rune sword";
 				toadd = new Mob(xp, yp, "zigzag hostile", this, Race.WARRIOR);
 				mobs.add(toadd);
-				initializemob(toadd, w);
+				toadd.initializemob(w);
 				toadd.lvlupto(15+rand.nextInt(10));
 			}
 		}
@@ -1258,7 +1211,7 @@ public class World implements Serializable, PlayerLocation {
 		newmob = new Mob(400, -3100, "random hostile", this, Race.BIGBOSS);
 		mobs.add(newmob);
 		
-		initializemob(newmob, "dragon bomb");
+		newmob.initializemob("dragon bomb");
 		newmob.lvlupto(40);
 		
 //		walls.add(new Obstacle(850, -950, 110, 110, this, Color.orange, false));
@@ -1440,7 +1393,7 @@ public class World implements Serializable, PlayerLocation {
 		
 		newmob = new Mob(900, -900, "random hostile", this, Race.BIGBOSS);
 		mobs.add(newmob);
-		initializemob(newmob, "rune bomb");
+		newmob.initializemob("rune bomb");
 		newmob.lvlupto(15);
 		
 		
@@ -1481,18 +1434,18 @@ public class World implements Serializable, PlayerLocation {
 		walls.add(new Obstacle(1200, 940, 400, 150, this, Color.black, false));
 		spawns.add(new Spawn(1550, 500, 300, 800, this, 10));
 		toadd = new Mob(1500, 400, "random hostile", this, Race.FATDUMMY);
-		initializemob(toadd, "iron deathaura");
+		toadd.initializemob("iron deathaura");
 		spawns.get(spawns.size()-1).addmob(toadd);
 		mobs.add(toadd);
 		
 		toadd = new Mob(1600, 400, "random hostile", this, Race.SMALLDUMMY);
-		initializemob(toadd, "iron dagger");
+		toadd.initializemob("iron dagger");
 		spawns.get(spawns.size()-1).addmob(toadd);
 		mobs.add(toadd);
 
 		//TODO SNITCH
 		snitch = new Mob(-1100, -900, "random hostile", this, Race.SNITCH);
-		initializemob(snitch, "wooden mace");
+		snitch.initializemob("wooden mace");
 		snitch.experience = 10000;
 		mobs.add(snitch);
 		
@@ -1586,7 +1539,7 @@ public class World implements Serializable, PlayerLocation {
             }
           }
           mobs.add(newmob);
-          initializemob(newmob, w);
+          newmob.initializemob(w);
 				}
 			}
 		}
@@ -1626,7 +1579,7 @@ public class World implements Serializable, PlayerLocation {
 
     newmob = new Mob(-2050, 1500, "random hostile nomiss", this, Race.BIGBOSS);
     mobs.add(newmob);
-    initializemob(newmob, "frost bomb");
+    newmob.initializemob("frost bomb");
     newmob.lvlupto(80);
     
     ProjectileRegion region = new ProjectileRegion(-2500, -2550, 900, 3850, this, 200) {
@@ -1699,7 +1652,7 @@ public class World implements Serializable, PlayerLocation {
 				di = new Rectangle(xp-r.startwidth, yp-r.startheight, r.startwidth, r.startheight);
 			}
 			toadd = new Mob(xp, yp, "random hostile", this, r);
-			initializemob(toadd, "steel sword");
+			toadd.initializemob("steel sword");
 			spawns.get(spawns.size()-1).addmob(toadd);
 			mobs.add(toadd);
 		}
