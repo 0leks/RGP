@@ -8,6 +8,7 @@ import java.util.concurrent.*;
 import gui.*;
 import gui.Frame;
 import player.*;
+import resources.*;
 import sound.*;
 
 public class World implements Serializable, PlayerLocation {
@@ -36,7 +37,6 @@ public class World implements Serializable, PlayerLocation {
 	private ArrayList<Spawn> spawns;
 	private ArrayList<Message> messages;
 	private Queue<Sign> signs;
-	private ArrayList<Race> races;
 	private ArrayList<SoundArea> sounds;
 	
 	public Player playerASDF;
@@ -61,7 +61,6 @@ public class World implements Serializable, PlayerLocation {
 		spawns = new ArrayList<Spawn>();
 		messages = new ArrayList<Message>();
 		signs = new ConcurrentLinkedQueue<Sign>();
-		races = new ArrayList<Race>();
 		sounds = new ArrayList<SoundArea>();
 		rand = new Random();
 
@@ -97,29 +96,10 @@ public class World implements Serializable, PlayerLocation {
     soundManager.addSoundArea("empty.wav", -4000, -100, -2700, -1400);
 	}
 	
-	public static Color darken(Color c, int mag) {
-	  int randomModifier = 2 - (int)(Math.random()*5);
-		int r = c.getRed() - mag + randomModifier;
-		int g = c.getGreen() - mag + randomModifier;
-		int b = c.getBlue() - mag + randomModifier;
-		if(r<0)
-			r=0;
-		if(g<0)
-			g=0;
-		if(b<0)
-			b=0;
-		if(r>250)
-			r=250;
-		if(g>250)
-			g=250;
-		if(b>250)
-			b=250;
-		return new Color(r, g, b);
-	}
 	public void addMessage(String s, int time) {
 		messages.add(new Message(s, time));
 	}
-	public void newgame(String race) {
+	public void newgame(Race race) {
 	  String weapon = "fist";
 //	  weapon = "diamond laser";
 		initPlayer(400, 400, weapon, 15, new ArrayList<Item>(), race, 0);
@@ -177,36 +157,22 @@ public class World implements Serializable, PlayerLocation {
 		m.rescale();
 	}
 	public void initWall(int xx, int yy, int ww, int hh, int re, int gr, int bl, boolean blockplayer) {
-		Obstacle w = new Obstacle(xx, yy, ww, hh, this, getColor(re, gr, bl), blockplayer);
+		Obstacle w = new Obstacle(xx, yy, ww, hh, this, ColorUtil.getColor(re, gr, bl), blockplayer);
 		walls.add(w);
 	}
 	public void initSign(int xx, int yy, int ww, int hh, String imageloc, String message) {
 		Sign w = new Sign(xx, yy, ww, hh, this, imageloc, message);
 		signs.add(w);
 	}
-	public Color getColor(int r, int g, int b) {
-		if(r<0)
-			r=0;
-		if(g<0)
-			g=0;
-		if(b<0)
-			b=0;
-		if(r>255)
-			r=255;
-		if(g>255)
-			g=255;
-		if(b>255)
-			b=255;
-		return new Color(r, g, b);
-	}
+	
 	public void addProjectile(Projectile p ) {
 	  projectiles.add(p);
 	}
   public void removeProjectile(Projectile p ) {
     projectiles.remove(p);
   }
-	public Mob initMob(String race, int exp, int money, int xx, int yy, int health, String weap, String ai) {
-		Mob m = new Mob(xx, yy, ai, this, getrace(race));
+	public Mob initMob(Race race, int exp, int money, int xx, int yy, int health, String weap, String ai) {
+		Mob m = new Mob(xx, yy, ai, this, race);
 		this.initializemob(m, weap);
 		m.experience = exp;
 		m.money = money;
@@ -218,9 +184,9 @@ public class World implements Serializable, PlayerLocation {
 		mobs.add(m);
 		return m;
 	}
-	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, String race, int exp, int health) {
+	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, Race race, int exp, int health) {
 		System.out.println(race);
-		playerASDF = new Player(xx, yy, this, getrace(race));
+		playerASDF = new Player(xx, yy, this, race);
 		this.initializemob(playerASDF, weap);
 		playerASDF.money = smoney;
 		for(Item i : items) {
@@ -234,9 +200,9 @@ public class World implements Serializable, PlayerLocation {
 			playerASDF.dead = true;
 		}
 	}
-	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, String race, int exp) {
+	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, Race race, int exp) {
 		System.out.println(race);
-		playerASDF = new Player(xx, yy, this, getrace(race));
+		playerASDF = new Player(xx, yy, this, race);
 		this.initializemob(playerASDF, weap);
 		playerASDF.money = smoney;
 		for(Item i : items) {
@@ -343,10 +309,10 @@ public class World implements Serializable, PlayerLocation {
     Color[] colors = new Color[6];
     colors[0] = projectile.getColor();
     for(int a=1; a<colors.length && a<3; a++) {
-      colors[a] = World.darken(colors[0], -90);
+      colors[a] = ColorUtil.darken(colors[0], -90);
     }
     for(int a=3; a<colors.length; a++) {
-      colors[a] = World.darken(colors[0], 90);
+      colors[a] = ColorUtil.darken(colors[0], 90);
     }
     drawThing(g, projectile, colors, World.THREE_D_RATIO*8);
   }
@@ -510,16 +476,16 @@ public class World implements Serializable, PlayerLocation {
       if( obst instanceof Sign ) {
         colors[0] = obst.color;
         for(int a=1; a<colors.length; a++) {
-          colors[a] = World.darken(obst.color, ((a+1)/2)*50);
+          colors[a] = ColorUtil.darken(obst.color, ((a+1)/2)*50);
         }
       }
       else {
         colors[0] = obst.color;
         for(int a=1; a<colors.length && a<3; a++) {
-          colors[a] = World.darken(obst.color, -90);
+          colors[a] = ColorUtil.darken(obst.color, -90);
         }
         for(int a=3; a<colors.length; a++) {
-          colors[a] = World.darken(obst.color, 90);
+          colors[a] = ColorUtil.darken(obst.color, 90);
         }
       }
       drawThing(g, obst, colors);
@@ -689,7 +655,7 @@ public class World implements Serializable, PlayerLocation {
 								mobs().remove(temp);
 								int newx = (int)(Math.random()*1000);
 								int newy = (int)(Math.random()*1700 -700);
-								snitch = new Mob(newx, newy, "random hostile", this, getrace("Snitch")) {
+								snitch = new Mob(newx, newy, "random hostile", this, Race.SNITCH) {
 									@Override
 									public boolean damage(int d) {
 										health-=d;
@@ -999,14 +965,15 @@ public class World implements Serializable, PlayerLocation {
 				if(name.equals("Player")) {
 					int xx = 0, yy = 0, money = 0, /*agi = 0, str = 0, intel = 0, , accel = 0, */health = 0;
 					int exp = 0;
-					String race = "", weap = "";
+					String raceString = "", weap = "";
 					ArrayList<Item> its = new ArrayList<Item>();
 					String[] temp = line.split("[,]");
 					String stats = temp[0];
 					String inv = temp[1];
 					st = new StringTokenizer(stats);
 					st.nextToken();
-					race = st.nextToken();
+					raceString = st.nextToken();
+					Race race = Race.parse(raceString);
 					exp = Integer.parseInt(st.nextToken());
 					money = Integer.parseInt(st.nextToken());
 					xx = Integer.parseInt(st.nextToken());
@@ -1104,10 +1071,11 @@ public class World implements Serializable, PlayerLocation {
 	public Mob loadMob(StringTokenizer st) {
 		int xx = 0, yy = 0, /*agi = 0, str = 0, intel = 0, accel = 0, */money = 0, health = 0;
 		int exp = 0;
-		String race = "", weap = "", ai = "";
+		String raceString = "", weap = "", ai = "";
 //  Need to skip a token for some reason
 		st.nextToken();
-		race = st.nextToken();
+		raceString = st.nextToken();
+		Race race = Race.parse(raceString);
 		exp = Integer.parseInt(st.nextToken());
 		money = Integer.parseInt(st.nextToken());
 		xx = Integer.parseInt(st.nextToken());
@@ -1118,20 +1086,19 @@ public class World implements Serializable, PlayerLocation {
 		return initMob(race, exp, money, xx, yy, health, weap, ai);
 	}
 	public void initializeworld() {
-		loadraces(); // TODO continue debug output from here 
 
 		//THIS IS ONLY HERE TO PREVENT NULL POINTER EXCEPTIONS
-		initPlayer(-1150, -950, "dagger", 0, new ArrayList<Item>(), "Human", 0);
+		initPlayer(-1150, -950, "dagger", 0, new ArrayList<Item>(), Race.HUMAN, 0);
 //    initPlayer(0, 0, "dagger", 0, new ArrayList<Item>(), "Human", 0);
 		
-		Mob newmob = new Mob(300, 300, "bettermovetowardsyou hostile", this, getrace("Dwarf"));
+		Mob newmob = new Mob(300, 300, "bettermovetowardsyou hostile", this, Race.DWARF);
 		mobs.add(newmob);
 		initializemob(newmob, "wooden spear");
 		
-		newmob = new Mob(400, 300, "sway hostile", this, getrace("Elf"));
+		newmob = new Mob(400, 300, "sway hostile", this, Race.ELF);
 		mobs.add(newmob);
 		initializemob(newmob, "wooden dagger");
-		newmob = new Mob(300, 400, "zigzag hostile", this, getrace("Elf"));
+		newmob = new Mob(300, 400, "zigzag hostile", this, Race.ELF);
 		mobs.add(newmob);
 		initializemob(newmob, "wooden sword");
 		
@@ -1154,23 +1121,23 @@ public class World implements Serializable, PlayerLocation {
     // boss obstruction
     walls.add(new Obstacle(-825, -3200, 200, 200, this, Color.darkGray, true));
 
-    newmob = new Mob(440, -3750, "leftattack", this, getrace("Lich"));
+    newmob = new Mob(440, -3750, "leftattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
     initializemob(newmob, "ghost beam");
-    newmob = new Mob(-1345, -3550, "rightattack", this, getrace("Lich"));
+    newmob = new Mob(-1345, -3550, "rightattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
     initializemob(newmob, "ghost beam");
-    newmob = new Mob(-1345, -3750, "rightattack", this, getrace("Lich"));
+    newmob = new Mob(-1345, -3750, "rightattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
     initializemob(newmob, "ghost beam");
-    newmob = new Mob(-1345, -3950, "rightattack", this, getrace("Lich"));
+    newmob = new Mob(-1345, -3950, "rightattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
     initializemob(newmob, "ghost beam");
-    newmob = new Mob(-275, -4050, "downattack", this, getrace("Lich"));
+    newmob = new Mob(-275, -4050, "downattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
     initializemob(newmob, "ghost beam");
@@ -1184,7 +1151,7 @@ public class World implements Serializable, PlayerLocation {
     shoptoadd.onsale.add(new Item("greaterstatring", 99, this));
     shoptoadd.onsale.add(new Item("greatercritring", 99, this));
     
-		newmob = new Mob(-1200, -2850, "random hostile nomiss", this, getrace("bigboss"));
+		newmob = new Mob(-1200, -2850, "random hostile nomiss", this, Race.BIGBOSS);
 		mobs.add(newmob);
 		initializemob(newmob, "ghost bomb");
 		newmob.lvlupto(60);
@@ -1239,7 +1206,7 @@ public class World implements Serializable, PlayerLocation {
 		}
 		Mob toadd;
 		for(int y = -1900; y <= -1300; y += 100) {
-			toadd = new Mob(2600, y, "horizontalpatrol hostile nomiss", this, getrace("Patrol"));
+			toadd = new Mob(2600, y, "horizontalpatrol hostile nomiss", this, Race.PATROL);
 			initializemob(toadd, "rune deathaura");
 			toadd.lvlupto(20);
 			mobs.add(toadd);
@@ -1253,7 +1220,7 @@ public class World implements Serializable, PlayerLocation {
 				return super.remove(m);
 			}
 		});
-		toadd = new Mob(2800, -3000, "random nomiss hostile", this, getrace("Super_Ninja"));
+		toadd = new Mob(2800, -3000, "random nomiss hostile", this, Race.SUPER_NINJA);
 		initializemob(toadd, "rune sword");
 		spawns.get(spawns.size()-1).addmob(toadd);
 		mobs.add(toadd);
@@ -1276,7 +1243,7 @@ public class World implements Serializable, PlayerLocation {
 					w+="dagger";
 				}
 				w = "rune sword";
-				toadd = new Mob(xp, yp, "zigzag hostile", this, getrace("Warrior"));
+				toadd = new Mob(xp, yp, "zigzag hostile", this, Race.WARRIOR);
 				mobs.add(toadd);
 				initializemob(toadd, w);
 				toadd.lvlupto(15+rand.nextInt(10));
@@ -1289,7 +1256,7 @@ public class World implements Serializable, PlayerLocation {
 		walls.add(new Obstacle(2300, -700, 2000, 200, this, Color.red, true));
 		walls.add(new Obstacle(3300, -2000, 400, 3000, this, Color.red, true));
 		walls.add(new Obstacle(2300, -3300, 3600, 200, this, Color.red, true));
-		newmob = new Mob(400, -3100, "random hostile", this, getrace("bigboss"));
+		newmob = new Mob(400, -3100, "random hostile", this, Race.BIGBOSS);
 		mobs.add(newmob);
 		
 		initializemob(newmob, "dragon bomb");
@@ -1472,7 +1439,7 @@ public class World implements Serializable, PlayerLocation {
 		shoptoadd.onsale.add(new Item("statring", 9, this));
 		shoptoadd.onsale.add(new Item("wooden squareshield", 9, this));
 		
-		newmob = new Mob(900, -900, "random hostile", this, getrace("bigboss"));
+		newmob = new Mob(900, -900, "random hostile", this, Race.BIGBOSS);
 		mobs.add(newmob);
 		initializemob(newmob, "rune bomb");
 		newmob.lvlupto(15);
@@ -1514,18 +1481,18 @@ public class World implements Serializable, PlayerLocation {
 
 		walls.add(new Obstacle(1200, 940, 400, 150, this, Color.black, false));
 		spawns.add(new Spawn(1550, 500, 300, 800, this, 10));
-		toadd = new Mob(1500, 400, "random hostile", this, getrace("fatdummy"));
+		toadd = new Mob(1500, 400, "random hostile", this, Race.FATDUMMY);
 		initializemob(toadd, "iron deathaura");
 		spawns.get(spawns.size()-1).addmob(toadd);
 		mobs.add(toadd);
 		
-		toadd = new Mob(1600, 400, "random hostile", this, getrace("smalldummy"));
+		toadd = new Mob(1600, 400, "random hostile", this, Race.SMALLDUMMY);
 		initializemob(toadd, "iron dagger");
 		spawns.get(spawns.size()-1).addmob(toadd);
 		mobs.add(toadd);
 
 		//TODO SNITCH
-		snitch = new Mob(-1100, -900, "random hostile", this, getrace("Snitch"));
+		snitch = new Mob(-1100, -900, "random hostile", this, Race.SNITCH);
 		initializemob(snitch, "wooden mace");
 		snitch.experience = 10000;
 		mobs.add(snitch);
@@ -1539,7 +1506,13 @@ public class World implements Serializable, PlayerLocation {
 			for(int b=2; b<=9; b++) {
 				int yp = a*85+200;
 				int xp= -b*100+rand.nextInt(200)-100;
-				Race r = races.get(rand.nextInt(2));
+				Race r;
+				if( rand.nextBoolean() ) {
+				  r = Race.HUMAN;
+				}
+				else {
+				  r = Race.ELF;
+				}
 				Rectangle  di = new Rectangle(xp-r.startwidth/2, yp-r.startheight/2, r.startwidth, r.startheight);
 				if(!collides(di)) {
 					String w = "";
@@ -1652,7 +1625,7 @@ public class World implements Serializable, PlayerLocation {
     walls.add(new Obstacle(-1500, -2100, 200, 800, this, Color.yellow, false));
     walls.add(new Obstacle(-2600, -400, 200, 4200, this, Color.lightGray, true));
 
-    newmob = new Mob(-2050, 1500, "random hostile nomiss", this, getrace("bigboss"));
+    newmob = new Mob(-2050, 1500, "random hostile nomiss", this, Race.BIGBOSS);
     mobs.add(newmob);
     initializemob(newmob, "frost bomb");
     newmob.lvlupto(80);
@@ -1719,7 +1692,7 @@ public class World implements Serializable, PlayerLocation {
 		for(int a=0; a<5; a++) {
 			int yp = -rand.nextInt(750)-150;
 			int xp = -rand.nextInt(750)-150;
-			Race r = getrace("Goat");
+			Race r = Race.GOAT;
 			Rectangle di = new Rectangle(xp-r.startwidth, yp-r.startheight, r.startwidth, r.startheight);
 			while(collides(di)) {
 				yp = -rand.nextInt(750)-150;
@@ -1732,97 +1705,7 @@ public class World implements Serializable, PlayerLocation {
 			mobs.add(toadd);
 		}
 	}
-	public void loadraces() {
-		Frame.print("Loading Races: ");
-		races = new ArrayList<Race>();
-		// name, agility increase, strength increase, damage increase
-		// agility, strength, intelligence, damage
-		// health, speed, regen
-		// width, height, armor
-		races.add(new Race("Elf", 4, 7, .1, 
-				25, 30, 12, 6, 
-				20, 8, .01, 
-				36, 36, 3));
-		
-		races.add(new Race("Human", 3, 9, .2, 
-				20, 40, 11, 7, 
-				25, 6, .05, 
-				38, 38, 4));
-		
-		races.add(new Race("Dwarf", 2, 11, .3, 
-				15, 50, 10, 9, 
-				30, 5, .1, 
-				40, 40, 5));
-		
-		races.add(new Race("Warrior", 3, 9, .5, 
-				25, 50, 9, 10, 
-				30, 6, .09, 
-				39, 39, 10));
-		
-		races.add(new Race("Patrol", 3, 9, .5, 
-				25, 50, 9, 10, 
-				30, 15, .09, 
-				39, 39, 10));
-		
-		races.add(new Race("Scholar", 3, 8, .1,
-				18, 38, 30, 6, 
-				24, 6, .04, 
-				37, 37, 5));
-		
-		races.add(new Race("Assassin", 1, 5, 1.5, 
-				30, 30, 10, 10, 
-				20, 8, .09, 
-				35, 35, 2));
-			
-		races.add(new Race("Super_Ninja", 12, 18, 3,
-				10, 30, 25, 5,
-				20, 10, .05,
-				38, 38, 4));
-		
-		races.add(new Race("Goat", 2, 3, 1, 
-		    100, 10, 1, 15, 
-		    10, 10, 1, 
-		    25, 25, 3));
-		races.add(new Race("Snitch", 1, 1, 1, 
-		    1, 1, 1, 10, 
-		    1, 25, 0, 
-		    1, 10, 3));
-    races.add(new Race("Lich", 10, 10, 10, 
-        50, 50, 10, 10, 
-        100, 0, 0.3, 
-        60, 60, 40));
-		races.add(new Race("bigboss", 5, 13, 2, 
-		    50, 100, 16, 10, 
-		    100, 0, .5, 
-		    180, 180, 25));
-		races.add(new Race("fatdummy", 0, 11, 0, 
-		    1, 150, 1, 1, 
-		    150, 4, 1, 
-		    60, 60, 10));
-		races.add(new Race("smalldummy", 0, 21, 0, 
-		    100, 15, 1, 1, 
-		    1, 8, 0, 
-		    40, 40, 1));
-		races.add(new Race("Baal", 0, 0, 0, 
-		    999999, 999999, 0, 999999, 
-		    999999, 50, 999999, 
-		    50, 50, 99));
-		for(Race race : races) {
-			Frame.print(race.name + ", ");
-		}
-		Frame.println();
-	}
-	public Race getrace(String ra) {
-		for(Race r : races) {
-			if(r.name.equals(ra)) {
-				return r;
-			}
-		}
-		return null;
-	}
-//	public String converttosave(String s) {
-//		
-//	}
+	
 
   @Override
   public int getPlayerX() {

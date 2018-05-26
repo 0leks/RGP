@@ -4,6 +4,7 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import game.*;
 import gui.*;
 import one.*;
 import resources.*;
@@ -36,7 +37,8 @@ public class GameController implements GameControllerInterface {
     if( obj instanceof String ) {
       clas = (String)obj;
     }
-    panel = new Panel(clas, soundManager);
+    Race race = Race.parse(clas);
+    panel = new Panel(race, soundManager);
     if( obj instanceof SaveInstance ) {
       panel.loadSave(((SaveInstance)obj).getFileNameNoExtension());
     }

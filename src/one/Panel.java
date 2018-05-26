@@ -53,7 +53,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 	
 	private SoundManager soundManager;
 
-	public Panel(String classType, SoundManager soundManager) {
+	public Panel(Race classType, SoundManager soundManager) {
 		Frame.println("Initializing Panel");
 		this.soundManager = soundManager;
 		mouse = new Point(0, 0);
@@ -377,13 +377,13 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
         world.load("slot5");
     } else if(activemenu == newgamemenu) {
       if(b.is("newgame")) {
-        String race = "";
+        Race race = null;
         String weap = "";
         for(MenuButton m : activemenu.buts) {
           if(m instanceof MenuButtonGroup) {
             MenuButtonGroup mbg = (MenuButtonGroup)m;
             if(mbg.is("Race")) {
-              race = mbg.getSelected().name();
+              race = Race.parse(mbg.getSelected().name());
             }
             if(mbg.is("Weapon")) {
               weap = mbg.getSelected().name();
@@ -398,7 +398,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
       }
       if(b.is("back")) {
         if(!gamestarted) {
-          world.newgame("human");
+          world.newgame(Race.HUMAN);
           gamestarted = true;
         } else {
           activemenu.setsel(0);
