@@ -2,18 +2,21 @@ package one;
 
 import java.awt.Color;
 import java.awt.Point;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public abstract class ProjectileRegion extends Thing{
 
   private List<Projectile> projectiles;
   private int maxNumProjectiles;
+  private int damage;
+  private ArrayList<Debuff> debuffs;
   
-  public ProjectileRegion(int sx, int sy, int sw, int sh, World smyworld, int maxNumProjectiles ) {
+  public ProjectileRegion(int sx, int sy, int sw, int sh, World smyworld, int maxNumProjectiles, int damage, ArrayList<Debuff> debuffs) {
     super(sx, sy, sw, sh, smyworld);
     projectiles = new LinkedList<Projectile>();
     this.maxNumProjectiles = maxNumProjectiles;
+    this.damage = damage;
+    this.debuffs = debuffs;
   }
   
   public final void move() {
@@ -36,7 +39,7 @@ public abstract class ProjectileRegion extends Thing{
         else
           co= new Color(195 + (int) (Math.random()*20), 195 + (int) (Math.random()*20), 220 + (int) (Math.random()*20));
         
-        Projectile p = new Projectile(loc.x, loc.y, 10, 10, myworld, this, target, getSpeed());
+        Projectile p = new Projectile(loc.x, loc.y, 10, 10, myworld, this, target, getSpeed(), damage, debuffs);
         p.setColor(co);
         projectiles.add(p);
         myworld.addProjectile(p);

@@ -131,7 +131,7 @@ public class World implements Serializable, PlayerLocation {
 		m.experience = exp;
 		m.money = money;
 		m.lvlup();
-		m.health = health;
+		m.setCurrentHealth(health);
     m.updateDeadStatus();
 		mobs.add(m);
 		return m;
@@ -147,7 +147,7 @@ public class World implements Serializable, PlayerLocation {
 		playerASDF.experience = exp;
 //		p.lvlupto(40);
 		playerASDF.lvlup();
-		playerASDF.health = health;
+		playerASDF.setCurrentHealth(health);
 		playerASDF.updateDeadStatus();
 	}
 	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, Race race, int exp) {
@@ -328,7 +328,7 @@ public class World implements Serializable, PlayerLocation {
       g.drawString(mob.level+"", drawx-l*5+2+distx, drawy+g.getFont().getSize()/2-4+disty);
       if( !mob.isDead() ) {
         g.setColor(new Color(200, 200, 200));
-        double f = (double)mob.health/mob.getMaximumHealth();
+        double f = (double)mob.getCurrentHealth()/mob.getMaximumHealth();
         g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, mob.getWhiteLine()/10, 8);
         if(mob.getWhiteLine()/10>(f*w))
           mob.setWhiteLine(mob.getWhiteLine() - w/30);
@@ -406,13 +406,13 @@ public class World implements Serializable, PlayerLocation {
     g.setColor(new Color(200, 200, 200));
     double asd = (double)player.getWhiteLine()/10/player.getMaximumHealth();
     g.fillRect(drawx-w/2, drawy-h/2-13, (int) (asd*w), 8);
-    if(player.getWhiteLine()/10>player.health)
+    if(player.getWhiteLine()/10>player.getCurrentHealth())
       player.setWhiteLine(player.getWhiteLine() - 1);
-    if(player.getWhiteLine()/10<player.health)
-      player.setWhiteLine(player.health*10);
+    if(player.getWhiteLine()/10<player.getCurrentHealth())
+      player.setWhiteLine(player.getCurrentHealth()*10);
     g.setColor(new Color( 0, 190, 20));
     g.drawRect(drawx-w/2, drawy-h/2-13, w, 8);
-    double f = (double)player.health/player.getMaximumHealth();
+    double f = (double)player.getCurrentHealth()/player.getMaximumHealth();
     g.fillRect(drawx-w/2, drawy-h/2-13, (int) (f*w), 8);
     
     g.setColor(new Color(150, 150, 0));
@@ -606,14 +606,7 @@ public class World implements Serializable, PlayerLocation {
 								mobs().remove(temp);
 								int newx = (int)(Math.random()*1000);
 								int newy = (int)(Math.random()*1700 -700);
-								snitch = new Mob(newx, newy, "random hostile", this, Race.SNITCH) {
-									@Override
-									public boolean damage(int d) {
-										health-=d;
-										updateDeadStatus();
-										return isDead();
-									}
-								};
+								snitch = new Mob(newx, newy, "random hostile", this, Race.SNITCH);
 								snitch.initializemob(getNextWeapon(temp.weapon.name));
 								snitch.experience = xp;
 								mobs.add(snitch);
@@ -695,13 +688,13 @@ public class World implements Serializable, PlayerLocation {
 			}
 		return false;
 	}
-	public boolean collides(Rectangle asdf) {
+	public Optional<Thing> collides(Rectangle asdf) {
     Iterator<Mob> itmob = mobs.iterator();
     while( itmob.hasNext() ) {
       Mob temp = itmob.next();
 			if(Math.abs(temp.x-asdf.x)<300 && Math.abs(temp.y-asdf.y)<300) {
 				if(temp.dim().intersects(asdf)) {
-					return true; 
+					return Optional.of(temp); 
 				}
 			}
 		}
@@ -711,13 +704,13 @@ public class World implements Serializable, PlayerLocation {
 //		for(int a=0; a<walls.size(); a++) {
 //			Obstacle temp = walls.get(a);
 			if(wall.dim().intersects(asdf)) {
-				return true; 
+				return Optional.of(wall); 
 			}
 		}
 		if(playerASDF.dim().intersects(asdf)) {
-			return true; 
+			return Optional.of(playerASDF); 
 		}
-		return false;
+		return Optional.empty();
 	}
 	public Queue<Mob> mobs() {
 		return mobs;
@@ -1465,7 +1458,7 @@ public class World implements Serializable, PlayerLocation {
 				  r = Race.ELF;
 				}
 				Rectangle  di = new Rectangle(xp-r.startwidth/2, yp-r.startheight/2, r.startwidth, r.startheight);
-				if(!collides(di)) {
+				if(!collides(di).isPresent()) {
 					String w = "";
 					int bl = rand.nextInt(4);
 					int al = rand.nextInt(7);
@@ -1581,7 +1574,9 @@ public class World implements Serializable, PlayerLocation {
     newmob.initializemob("frost bomb");
     newmob.lvlupto(80);
     
-    ProjectileRegion region = new ProjectileRegion(-2500, -2550, 900, 3850, this, 200) {
+    ArrayList<Debuff> debuffs = new ArrayList<>();
+    debuffs.add(new Debuff(Debuff.STUN, 5, 0.6));
+    ProjectileRegion region = new ProjectileRegion(-2500, -2550, 900, 3850, this, 200, 100, debuffs) {
       @Override
       public Point getNewSpawnLocation() {
         double tx = (int)(w*Math.random()*2/3);
@@ -1645,7 +1640,7 @@ public class World implements Serializable, PlayerLocation {
 			int xp = -rand.nextInt(750)-150;
 			Race r = Race.GOAT;
 			Rectangle di = new Rectangle(xp-r.startwidth, yp-r.startheight, r.startwidth, r.startheight);
-			while(collides(di)) {
+			while(collides(di).isPresent()) {
 				yp = -rand.nextInt(750)-150;
 				xp = -rand.nextInt(750)-150;
 				di = new Rectangle(xp-r.startwidth, yp-r.startheight, r.startwidth, r.startheight);

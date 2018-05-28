@@ -39,7 +39,7 @@ public class Spawn extends Thing{
 			xp = (int)(Math.random()*w)+x-w/2;
 //			xp = rand.nextInt(w)+x-w/2;
 			Rectangle  di = new Rectangle(xp-wp/2, yp-hp/2, wp, hp);
-			if(!myworld.collides(di)) {
+			if(!myworld.collides(di).isPresent()) {
 				good = true;
 			}
 		}
@@ -47,7 +47,7 @@ public class Spawn extends Thing{
 		m.clearPopups();
 		m.experience+=experience;
 		m.lvlup();
-		m.health = m.getMaximumHealth();
+		m.setHealthToMaximum();
 		m.updateDeadStatus();
 		return toret;
 	}

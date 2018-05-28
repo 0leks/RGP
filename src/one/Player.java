@@ -15,8 +15,7 @@ public class Player extends Mob{
 	@Override
 	public boolean damage(int d) {
 		boolean alreadydead = isDead();
-		health-=d;
-		updateDeadStatus();
+		super.damage(d);
 		if(isDead() && !alreadydead) {
 		  myworld.playerDied(this);
 		}
@@ -108,7 +107,7 @@ public class Player extends Mob{
 	}
 	public String tosave() {
 		String s = "Player "+race.name+" "+experience+" "+money+" "+x+" "+y;
-		s+=" "+health+" "+weapon.name+" , "+itemsininv();
+		s+=" "+getCurrentHealth()+" "+weapon.name+" , "+itemsininv();
 		System.out.println("Saving player");
 		for(int a=0; a<inv.size(); a++) {
 			Item i = inv.get(a);

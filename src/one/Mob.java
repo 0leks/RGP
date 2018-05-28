@@ -8,6 +8,20 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Mob extends Thing {
   
+  public enum AttackDirection {
+    UP(0), RIGHT(90), DOWN(180), LEFT(270);
+    private int value;
+    private AttackDirection(int value) {
+      this.value = value;
+    }
+    public int getAngle() {
+      return value;
+    }
+    public static AttackDirection getRandomAttackDirection() {
+      return AttackDirection.values()[(int) (AttackDirection.values().length*Math.random())];
+    }
+  }
+  
   public static final Color BASH_COLOR = Color.GRAY;
   
   private static final int STR_HEALTH_MULTIPLIER = 2;
@@ -23,13 +37,13 @@ public class Mob extends Thing {
 	
 	private Rectangle attack;
 	private AttackDirection attackdirection;
-	private int drawDelay; 
+	private int drawDelay;
 	private boolean attackReady;
 	private int attackCooldown;
 	/**
 	 * Current health
 	 */
-	protected int health;
+	private int currentHealth;
 	private int whiteline;
 	private double healingBuffer;
 	protected int money;
@@ -264,11 +278,11 @@ public class Mob extends Thing {
 	public void lvlup(Attribute attribute, int n) {
 	  if( attribute == Attribute.STRENGTH ) {
 			strengthbuff+=n;
-			health+=STR_HEALTH_MULTIPLIER*n;
+			setCurrentHealth(getCurrentHealth() + STR_HEALTH_MULTIPLIER*n);
 		} 
 	  if( attribute == Attribute.ACTUAL_STRENGTH ) {
 			actstrength+=n;
-      health+=STR_HEALTH_MULTIPLIER*n;
+			setCurrentHealth(getCurrentHealth() + STR_HEALTH_MULTIPLIER*n);
 		} 
     if( attribute == Attribute.AGILITY ) {
 			agilitybuff+=n;
@@ -333,7 +347,7 @@ public class Mob extends Thing {
 	 * @return true if killed, false otherwise
 	 */
 	public boolean damage(int d) {
-		health-=d;
+	  setCurrentHealth(getCurrentHealth() - d);
 		updateDeadStatus();
 		return isDead();
 	}
@@ -370,16 +384,16 @@ public class Mob extends Thing {
 	public void fillHealingBuffer() {
     double maximumHealth = getMaximumHealth(); // get the maximum health of this mob
     
-    if(health+getHealthRegen()<=maximumHealth) { // health is an integer.
+    if(getCurrentHealth()+getHealthRegen()<=maximumHealth) { // health is an integer.
       healingBuffer+=getHealthRegen();              // hpup is used as a buffer to store up and decimal additions to heal
     } else {
-      if(health<maximumHealth)
-        healingBuffer+=maximumHealth-health;
+      if(getCurrentHealth()<maximumHealth)
+        healingBuffer+=maximumHealth-getCurrentHealth();
     }
 	}
 	public void useHealingBuffer() {
 	  if(healingBuffer>=1) {                 // transfer from the double hpup buffer to the actual health of the mob.
-      health+=(int)healingBuffer;         
+	    setCurrentHealth(getCurrentHealth() + (int)healingBuffer);
       healingBuffer = healingBuffer-(int)healingBuffer;
     }
     healingBuffer = Math.max(0, healingBuffer);    // make sure hpup is non negative ( just in case )
@@ -654,19 +668,6 @@ public class Mob extends Thing {
 	    deadBest = dead.getMostExpensiveItemCost();
 	  }
 	}
-	public enum AttackDirection {
-	  RIGHT(1), DOWN(2), LEFT(3), UP(4) ;
-	  private int value;
-	  private AttackDirection(int value) {
-	    this.value = value;
-	  }
-	  public int getAngle() {
-	    return value*90;
-	  }
-	  public static AttackDirection getRandomAttackDirection() {
-	    return AttackDirection.values()[(int) (AttackDirection.values().length*Math.random())];
-	  }
-	}
 	// TODO setAttack
 	public void setAttack(AttackDirection direction) {
 		if(weapon != null) {
@@ -770,7 +771,7 @@ public class Mob extends Thing {
 	 * @return the current amount of health this mob has
 	 */
 	public int getCurrentHealth() {
-		return health;
+		return currentHealth;
 	}
 	
 	/**
@@ -957,6 +958,13 @@ public class Mob extends Thing {
     return (100-getArmor())*0.01;
   }
   
+  public void setHealthToMaximum() {
+    currentHealth = getMaximumHealth();
+  }
+  public void setCurrentHealth(int amount) {
+    currentHealth = amount;
+  }
+  
   public void initializemob(String weaponString) {
     basedamage = race.startdmg;
     damagebuff = 0;
@@ -994,7 +1002,7 @@ public class Mob extends Thing {
     
     getWeap(weaponString);
     weapon.puton(this);
-    health = getMaximumHealth();
+    setHealthToMaximum();
     
     experience = 0;
     exptolvlup += (int) (Math.pow(level, 2)*10/getIntelligence())+10;
@@ -1015,7 +1023,7 @@ public class Mob extends Thing {
 	 */
 	public String tosave() {
 		String s = "Mob "+race.name+" "+experience+" "+money+" "+x+" "+y;
-		s+=" "+health+" "+weapon.name.replace(' ', '_') + " " + ai.replace(' ', '_');
+		s+=" "+getCurrentHealth()+" "+weapon.name.replace(' ', '_') + " " + ai.replace(' ', '_');
 		return s;
 	}
 	
