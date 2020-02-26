@@ -1,14 +1,10 @@
 package one;
 
-import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Thing implements Serializable{
+public class Thing {
 	World myworld;
 	protected int x;
 	protected int y;

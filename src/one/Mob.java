@@ -91,12 +91,10 @@ public class Mob extends Thing {
 	protected int basearmor;
 	protected int armorbuff;
 	protected double armorMultiplier;
-//	private double damageReduction;
 	
 	private ArrayList<Crit> crits;
 	
 	public ArrayList<Buff> buffs;
-//	public Debuff[] debuffs;
 	public HashMap<DebuffType, Debuff> debuffs;
 	
 	protected Queue<Popup> popups;
@@ -108,7 +106,6 @@ public class Mob extends Thing {
 	public Mob(int sx, int sy, String sai, World smyworld, Race r) {
 		super(sx, sy, r.startwidth, r.startheight, smyworld);
     inv = new ArrayList<Item>();
-		poly = new ArrayList<MyPolygon>();
 		buffs = new ArrayList<Buff>();
 		crits = new ArrayList<Crit>();
 		popups = new ConcurrentLinkedQueue<Popup>();
@@ -119,7 +116,7 @@ public class Mob extends Thing {
 		race = r;
 		ai = sai;
 		addcrit(new Crit(100, 1));
-		rescale(); // something to do with stats
+		rescale();
     checkForLevelUp();
 	}
   
