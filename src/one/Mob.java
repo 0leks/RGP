@@ -57,39 +57,25 @@ public class Mob extends Thing {
 	protected Race race;
 	private int aiCounter;
 	private boolean inshop;
+
+  public HashMap<Attribute, Double> attributes;
 	
 	protected double basedamage;
-	protected double damagebuff;
 	protected double damageMultiplier;
 	
 	protected int level;
 	
-	protected int totalhealthbuff;
 	protected double maximumHealthMultiplier;
-	
 	protected double attackDelayMultiplier;
-	
-	protected int accel;
 	protected double accelerationMultiplier;
-	
-	protected int agilitybuff;
-	protected int actagility;
 	protected double agilityMultiplier;
-	
-	protected int strengthbuff;
-	protected int actstrength;
 	protected double strengthMultiplier;
-	
-	protected int intelligencebuff;
-	protected int actintelligence;
 	protected double intelligenceMultiplier;
 	
 	protected double regen;
-	protected double regenbuff;
 	protected double regenMultiplier;
 	
 	protected int basearmor;
-	protected int armorbuff;
 	protected double armorMultiplier;
 	
 	private ArrayList<Crit> crits;
@@ -105,6 +91,12 @@ public class Mob extends Thing {
 	
 	public Mob(int sx, int sy, String sai, World smyworld, Race r) {
 		super(sx, sy, r.startwidth, r.startheight, smyworld);
+		attributes = new HashMap<>();
+		for(Attribute attribute : Attribute.values()) {
+		  if(attribute == Attribute.ATTACK_DELAY)
+		    continue;
+      attributes.put(attribute, 1.0);
+		}
     inv = new ArrayList<Item>();
 		buffs = new ArrayList<Buff>();
 		crits = new ArrayList<Crit>();
@@ -260,9 +252,9 @@ public class Mob extends Thing {
 	}
 	public void rescale() {
 		basedamage = (getStrength())/9;
-		regen = getStrength()*.001 + regenbuff;
-		if(accel<0)
-			accel = 0;
+		regen = getStrength()*.001 + attributes.get(Attribute.REGEN);
+		if(attributes.get(Attribute.ACCELERATION)<0)
+		  attributes.put(Attribute.ACCELERATION, 0.0);
 	}
 	/**
 	 *  Checks if you have enough experience to level up, and levels up in that case.
@@ -273,46 +265,29 @@ public class Mob extends Thing {
 			exptolvlup += (int) (Math.pow(level, 2)*5)+30;
 			levelUpAttribute(Attribute.ACTUAL_STRENGTH, race.strinc);
 			levelUpAttribute(Attribute.ACTUAL_AGILITY, race.agiinc);
-			damagebuff+=race.dmginc;
+      attributes.put(Attribute.DAMAGE, attributes.get(Attribute.DAMAGE) + race.dmginc);
 			level++;
 		}
 		rescale();
 	}
 	public void levelUpAttribute(Attribute attribute, int n) {
-	  if( attribute == Attribute.STRENGTH ) {
-			strengthbuff+=n;
+	  if( attribute == Attribute.STRENGTH ||
+	      attribute == Attribute.ACTUAL_STRENGTH) {
+	    attributes.put(attribute, attributes.get(attribute) + n);
 			setCurrentHealth(getCurrentHealth() + STR_HEALTH_MULTIPLIER*n);
-		} 
-	  if( attribute == Attribute.ACTUAL_STRENGTH ) {
-			actstrength+=n;
-			setCurrentHealth(getCurrentHealth() + STR_HEALTH_MULTIPLIER*n);
-		} 
-    if( attribute == Attribute.AGILITY ) {
-			agilitybuff+=n;
-		} 
-    if( attribute == Attribute.ACTUAL_AGILITY ) {
-			actagility+=n;
-		} 
-    if( attribute == Attribute.INTELLIGENCE ) {
-			intelligencebuff+=n;
-		} 
-    if( attribute == Attribute.ACTUAL_INTELLIGENCE ) {
-			actintelligence+=n;
-		} 
-    if( attribute == Attribute.HEALTH ) {
-			totalhealthbuff+=n;
-		} 
-    if( attribute == Attribute.DAMAGE ) {
-			damagebuff+=n;
+		}
+    if( attribute == Attribute.AGILITY ||
+        attribute == Attribute.ACTUAL_AGILITY ||
+        attribute == Attribute.INTELLIGENCE ||
+        attribute == Attribute.ACTUAL_INTELLIGENCE ||
+        attribute == Attribute.HEALTH ||
+        attribute == Attribute.DAMAGE ||
+        attribute == Attribute.ACCELERATION ||
+        attribute == Attribute.ARMOR) {
+      attributes.put(attribute, attributes.get(attribute) + n);
 		}
     if( attribute == Attribute.REGEN ) {
-			regenbuff+=n*.01;
-		}
-    if( attribute == Attribute.ACCELERATION ) {
-			accel+=n;
-		}
-    if( attribute == Attribute.ARMOR ) {
-			armorbuff+=n;
+      attributes.put(attribute, attributes.get(attribute) + n*0.01);
 		}
 		rescale();
 	}
@@ -454,19 +429,19 @@ public class Mob extends Thing {
 						aiCounter = 0;
 					int dx;
 					int dy;
-					if(x<myworld.getPlayer().x-accel) {
+					if(x<myworld.getPlayer().x - attributes.get(Attribute.ACCELERATION)) {
 						dx = rand.nextInt(3);
 						dx = (int)((dx+1)/2);
-					} else if(x>myworld.getPlayer().x+accel) {
+					} else if(x>myworld.getPlayer().x + attributes.get(Attribute.ACCELERATION)) {
 						dx = rand.nextInt(3);
 						dx = -(int)((dx+1)/2);
 					} else {
 						dx= rand.nextInt(3)-1;
 					}
-					if(y<myworld.getPlayer().y-accel) {
+					if(y<myworld.getPlayer().y - attributes.get(Attribute.ACCELERATION)) {
 						dy = rand.nextInt(2);
 						dy = (int)((dy+1)/2);
-					} else if(y>myworld.getPlayer().y+accel) {
+					} else if(y>myworld.getPlayer().y + attributes.get(Attribute.ACCELERATION)) {
 						dy = rand.nextInt(2);
 						dy = -(int)((dy+1)/2);
 					} else {
@@ -521,16 +496,16 @@ public class Mob extends Thing {
 					aiCounter = 0;
 				int dx;
 				int dy;
-				if(x<myworld.getPlayer().x()-accel) {
+				if(x<myworld.getPlayer().x() - attributes.get(Attribute.ACCELERATION)) {
 					dx = 1;
-				} else if(x>myworld.getPlayer().x()+accel) {
+				} else if(x>myworld.getPlayer().x() + attributes.get(Attribute.ACCELERATION)) {
 					dx = -1;
 				} else {
 					dx= 0;
 				}
-				if(y<myworld.getPlayer().y()-accel) {
+				if(y<myworld.getPlayer().y() - attributes.get(Attribute.ACCELERATION)) {
 					dy = 1;
-				} else if(y>myworld.getPlayer().y()+accel) {
+				} else if(y>myworld.getPlayer().y() + attributes.get(Attribute.ACCELERATION)) {
 					dy = -1;
 				} else {
 					dy= 0;
@@ -795,7 +770,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getBaseDamage() {
-		return Math.max(0, (int) ((basedamage+damagebuff)*damageMultiplier));
+		return Math.max(0, (int) ((basedamage+attributes.get(Attribute.DAMAGE))*damageMultiplier));
 	}
 	
 	/**
@@ -803,7 +778,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getAgility() {
-		int agi = (int) ((agilitybuff+actagility)*agilityMultiplier);
+		int agi = (int) ((attributes.get(Attribute.AGILITY)+attributes.get(Attribute.ACTUAL_AGILITY))*agilityMultiplier);
 		if(agi>=0) 
 			return agi;
 		else 
@@ -815,7 +790,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getIntelligence() {
-		int intel = (int) ((intelligencebuff+actintelligence)*intelligenceMultiplier*5);
+		int intel = (int) ((attributes.get(Attribute.INTELLIGENCE)+attributes.get(Attribute.ACTUAL_INTELLIGENCE))*intelligenceMultiplier*5);
 		if(intel>=1)
 			return intel;
 		else
@@ -827,7 +802,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getArmor() {
-		int arm = (int) ((armorbuff+basearmor)*armorMultiplier);
+		int arm = (int) ((attributes.get(Attribute.ARMOR)+basearmor)*armorMultiplier);
 		if(arm>=100) {
 			arm = 99;
 		}
@@ -839,7 +814,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getStrength() {
-		int str = (int) ((strengthbuff+actstrength)*strengthMultiplier);
+		int str = (int) ((attributes.get(Attribute.STRENGTH)+attributes.get(Attribute.ACTUAL_STRENGTH))*strengthMultiplier);
 		if(str>=0) 
 			return str;
 		else
@@ -851,7 +826,7 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getMaximumHealth() {
-		return (int) ((getStrength()*STR_HEALTH_MULTIPLIER+totalhealthbuff)*maximumHealthMultiplier);
+		return (int) ((getStrength()*STR_HEALTH_MULTIPLIER+attributes.get(Attribute.HEALTH))*maximumHealthMultiplier);
 	}
 	
 	/**
@@ -863,7 +838,7 @@ public class Mob extends Thing {
 	  if( isSlowed() ) {
 	    slowMultiplier = 0.5;
 	  }
-		return (int) (accel*accelerationMultiplier*slowMultiplier);
+		return (int) (attributes.get(Attribute.ACCELERATION)*accelerationMultiplier*slowMultiplier);
 	}
 	
 	
@@ -979,37 +954,37 @@ public class Mob extends Thing {
   
   public void initializemob(String weaponString) {
     basedamage = race.startdmg;
-    damagebuff = 0;
+    attributes.put(Attribute.DAMAGE, 0.0);
     damageMultiplier = 1;
     
     level = 1;
-    
-    totalhealthbuff = race.starthealth;
+
+    attributes.put(Attribute.HEALTH, (double)race.starthealth);
     maximumHealthMultiplier = 1;
     
     attackDelayMultiplier = 1;
     
-    accel = race.startaccel;
+    attributes.put(Attribute.ACCELERATION, (double)race.startaccel);
     accelerationMultiplier = 1;
     
-    agilitybuff = 0;
-    actagility = race.startagi;
+    attributes.put(Attribute.AGILITY, 0.0);
+    attributes.put(Attribute.ACTUAL_AGILITY, (double)race.startagi);
     agilityMultiplier = 1;
     
-    strengthbuff = 0;
-    actstrength = race.startstr;
+    attributes.put(Attribute.STRENGTH, 0.0);
+    attributes.put(Attribute.ACTUAL_STRENGTH, (double)race.startstr);
     strengthMultiplier = 1;
     
-    intelligencebuff = 0;
-    actintelligence = race.startint;
+    attributes.put(Attribute.INTELLIGENCE, 0.0);
+    attributes.put(Attribute.ACTUAL_INTELLIGENCE, (double)race.startint);
     intelligenceMultiplier = 1;
     
-    regenbuff = race.startregen;
+    attributes.put(Attribute.REGEN, (double)race.startregen);
     regen = 0;
     regenMultiplier = 1;
     
     basearmor = race.startarmor;
-    armorbuff = 0;
+    attributes.put(Attribute.ARMOR, 0.0);
     armorMultiplier = 1;
     
     getWeap(weaponString);

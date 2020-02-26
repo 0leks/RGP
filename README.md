@@ -1,6 +1,6 @@
-# RGP2
+# RGP
 Java Adventure Game
 
 ## TODO:
-* Use class loader to load image and audio resources
-* Bundle everything into an exe
+* Make icon
+* put attribute multipliers into hashmap in Mob

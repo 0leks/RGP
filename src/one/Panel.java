@@ -482,10 +482,9 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 				
 			}
 			if(key == KeyEvent.VK_U) {
-			  gameController.getPlayer().agilitybuff += 1000;
-			  gameController.getPlayer().strengthbuff += 1000;
-			  gameController.getPlayer().regenbuff += 1;
-			  gameController.getPlayer().checkForLevelUp();
+			  gameController.getPlayer().levelUpAttribute(Attribute.AGILITY, 1000);
+        gameController.getPlayer().levelUpAttribute(Attribute.STRENGTH, 1000);
+        gameController.getPlayer().levelUpAttribute(Attribute.REGEN, 1);
 			}
       if(key == KeyEvent.VK_P) {
         World.NO_COLLISION = !World.NO_COLLISION;
@@ -498,12 +497,10 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
         World.ZOOM = (World.ZOOM==8)?1:8;
       }
 			if(key == KeyEvent.VK_O) {
-			  gameController.getPlayer().agilitybuff += 100;
-			  gameController.getPlayer().checkForLevelUp();
+        gameController.getPlayer().levelUpAttribute(Attribute.AGILITY, 100);
 			}
 			if(key == KeyEvent.VK_I) {
-			  gameController.getPlayer().accel++;
-			  gameController.getPlayer().checkForLevelUp();
+        gameController.getPlayer().levelUpAttribute(Attribute.ACCELERATION, 1);
 			}
 			if(key == KeyEvent.VK_C) {
 			  gameController.getPlayer().money +=100;
