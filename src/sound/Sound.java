@@ -100,7 +100,7 @@ public class Sound implements Runnable {
 //		fadepersecond = 0;
 		try {
 			clip = AudioSystem.getClip();
-			AudioInputStream inputStream = AudioSystem.getAudioInputStream(new File("resources/sounds/" + url).getAbsoluteFile());
+			AudioInputStream inputStream = AudioSystem.getAudioInputStream(Sound.class.getClassLoader().getResource("resources/sounds/" + url));
 			clip.open(inputStream);
 			volumecontrol = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
 			clip.setLoopPoints(0, -1);
