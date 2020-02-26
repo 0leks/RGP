@@ -850,7 +850,11 @@ public class World implements Serializable, PlayerLocation {
 		messages.add(new Message("saving", 50));
 		try {
 			// Create file
-			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("saves\\"+slot+".sav")));
+		  File saveDirectory = new File("saves/");
+		  if(!saveDirectory.isDirectory()) {
+		    saveDirectory.mkdir();
+		  }
+			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("saves/"+slot+".sav")));
 			ArrayList<String> towrite = new ArrayList<String>();
 			towrite.add(playerASDF.tosave());
 			ArrayList<Mob> inaspawn = new ArrayList<Mob>();
