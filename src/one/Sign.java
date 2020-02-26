@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.io.Serializable;
+import java.net.*;
 
 import javax.swing.ImageIcon;
 
@@ -25,8 +26,11 @@ public class Sign extends Obstacle {
 			sy=h/8;
 		}
 		skinloc = skin;
-		ImageIcon ii = new ImageIcon("resources\\images\\signs\\"+skin+".png");
-		this.skin = ii.getImage();
+    URL imageResource = Weapon.class.getClassLoader().getResource("resources/images/signs/" + skin + ".png");
+    if(imageResource != null) {
+      ImageIcon ii = new ImageIcon(imageResource);
+      this.skin = ii.getImage();
+    }
 		message = mess;
 		if(skin.contains("up") || skin.contains("down")) {
 			font = new Font("Helvetica", Font.BOLD, h*9/16);

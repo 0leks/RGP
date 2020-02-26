@@ -13,6 +13,7 @@ org.eclipse.jdt.core.prefs
 *.jar
 *.war
 *.ear
+*.exe
 
 # Unneeded Resource Files #
 *.wav

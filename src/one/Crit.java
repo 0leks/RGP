@@ -1,28 +1,27 @@
 package one;
 
-import java.util.Random;
-
 public class Crit {
-	public int chance;
-	public int damage;
-	public Crit(int schance, int sdmg) {
-		chance = schance;
-		damage = sdmg;
+	private double chance;
+	private double damageMultiplier;
+	public Crit(double chance, double damageMultiplier) {
+		this.chance = chance;
+		this.damageMultiplier = damageMultiplier;
 	}
-	public boolean boom() {
-		if((Math.random()*100+1)<=chance) {
+	public boolean proc() {
+		if( Math.random()*100 < chance ) {
 			return true;
 		} else {
 			return false;
 		}
 	}
-	public int getdamage(int dmg) {
-		//if(boom()) {
-			return (int)(dmg*damage*.01);
-		//}
-		//return dmg;
+	public int applyMultiplier(int dmg) {
+			return (int)(dmg*damageMultiplier);
 	}
 	public String toString() {
-		return chance+"% chance of "+damage+"% dmg";
+		return chance+"% chance of "+(damageMultiplier*100)+"% dmg";
+	}
+	
+	public boolean isBetterThan(Crit other) {
+	  return this.damageMultiplier > other.damageMultiplier;
 	}
 }

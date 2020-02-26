@@ -4,9 +4,11 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import game.*;
 import gui.*;
 import one.*;
 import resources.*;
+import sound.*;
 
 public class GameController implements GameControllerInterface {
 
@@ -21,9 +23,12 @@ public class GameController implements GameControllerInterface {
   private Thread gameThread;
   private Thread repaintThread;
   
+  private SoundManager soundManager;
+  
   public GameController() {
-    frame = new Frame(this);
-    
+    soundManager = new SoundManager();
+    soundManager.loadResources();
+    frame = new Frame(this, soundManager);
   }
   
   @Override
@@ -32,7 +37,8 @@ public class GameController implements GameControllerInterface {
     if( obj instanceof String ) {
       clas = (String)obj;
     }
-    panel = new Panel(clas);
+    Race race = Race.parse(clas);
+    panel = new Panel(race, soundManager);
     if( obj instanceof SaveInstance ) {
       panel.loadSave(((SaveInstance)obj).getFileNameNoExtension());
     }
@@ -43,15 +49,16 @@ public class GameController implements GameControllerInterface {
       @Override
       public void run() {
         try {
+          long timeBuffer = 0;
           while(true) {
             long startTime = System.currentTimeMillis();
             panel.gameTic();
             long deltaTime = System.currentTimeMillis() - startTime;
-            if( deltaTime > 4 ) {
-              System.err.println("Took " + deltaTime + " milliseconds to compute game tic");
-            }
-            if( deltaTime < TIMER_DELAY ) {
-              Thread.sleep(TIMER_DELAY - deltaTime);
+            timeBuffer -= deltaTime;
+            timeBuffer += TIMER_DELAY;
+            if( timeBuffer > 0 ) {
+              Thread.sleep(timeBuffer);
+              timeBuffer = 0;
             }
           }
         } catch (InterruptedException e) {
@@ -65,15 +72,8 @@ public class GameController implements GameControllerInterface {
       public void run() {
         try {
           while(true) {
-            long startTime = System.currentTimeMillis();
             panel.repaint();
-            long deltaTime = System.currentTimeMillis() - startTime;
-            if( deltaTime > 4 ) {
-              System.err.println("Took " + deltaTime + " milliseconds to compute repaint");
-            }
-            if( deltaTime < REPAINT_DELAY ) {
-              Thread.sleep(REPAINT_DELAY - deltaTime);
-            }
+            Thread.sleep(REPAINT_DELAY);
           }
         } catch (InterruptedException e) {
           e.printStackTrace();

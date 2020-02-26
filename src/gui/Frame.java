@@ -8,10 +8,9 @@ import java.util.Observer;
 import javax.swing.*;
 
 import controller.*;
-import one.Panel;
-import one.Sound;
-import one.World;
+import one.*;
 import resources.*;
+import sound.*;
 
 public class Frame extends JFrame implements MenuListener {
 
@@ -22,11 +21,10 @@ public class Frame extends JFrame implements MenuListener {
   private NewGameMenuPanel newGameMenu;
   private ContinueGameMenuPanel loadGameMenu;
   private JPanel currentPanel;
-  private Sound menu;
   
   private GameControllerInterface gameController;
 
-  public Frame(GameControllerInterface gameController) {
+  public Frame(GameControllerInterface gameController, SoundManager soundManager) {
     Frame.println("Initializing Frame");
     this.gameController = gameController;
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -44,9 +42,7 @@ public class Frame extends JFrame implements MenuListener {
     switchTo(mainMenu);
     setVisible(true);
 
-    menu = World.initSound("mainmenu.wav", -10, true);
-    if(World.playmusic)
-      menu.play(-5);
+    soundManager.playMenuMusic();
   }
   private void removeCurrent() {
     if( currentPanel != null ) {
@@ -75,11 +71,6 @@ public class Frame extends JFrame implements MenuListener {
       break;
     case MenuListener.START:
       gamePanel.addGamePanel(gameController.startGame(obj));
-      if(World.playmusic ) {
-        if( menu!=null) {
-          menu.fadeOut(.1);
-        }
-      }
       switchTo(gamePanel);
       gamePanel.requestFocusInWindow();
       break;

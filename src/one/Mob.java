@@ -1,97 +1,108 @@
 package one;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.awt.geom.AffineTransform;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import one.Debuff.*;
 
-public class Mob extends Thing{
-	protected boolean dead;
-	protected String ai;
-	Random rand = new Random();
-	protected int xspeed;
-	protected int yspeed;
-	protected Rectangle attack;
-	protected int attackdirection;
-	protected static final int ATTACKUP = 4;
-	protected static final int ATTACKRIGHT = 1;
-	protected static final int ATTACKDOWN = 2;
-	protected static final int ATTACKLEFT = 3;
-	public static final Color BASH_COLOR = Color.GRAY;
+
+public class Mob extends Thing {
+  
+  public enum AttackDirection {
+    UP(0), RIGHT(90), DOWN(180), LEFT(270);
+    private int value;
+    private AttackDirection(int value) {
+      this.value = value;
+    }
+    public int getAngle() {
+      return value;
+    }
+    public static AttackDirection getRandomAttackDirection() {
+      return AttackDirection.values()[(int) (AttackDirection.values().length*Math.random())];
+    }
+  }
+  
+  public static final Color BASH_COLOR = Color.GRAY;
+  public static final Color SLOW_COLOR = new Color(20, 20, 150);
+  
+  private static final int STR_HEALTH_MULTIPLIER = 2;
+
+  public static final int INVENTORY_SIZE = 5;
+
+  private Random rand = new Random();
+  
+	private boolean dead;
+	private String ai;
+	private int xspeed;
+	private int yspeed;
 	
-	public static final int STR_HEALTH_MULTIPLIER = 2;
-	
-	protected int adraw;
-	protected boolean att;
-	protected int acd;
+	private Rectangle attack;
+	private AttackDirection attackdirection;
+	private int drawDelay;
+	private boolean attackReady;
+	private int attackCooldown;
 	/**
 	 * Current health
 	 */
-	protected int health;
-	protected int whiteline;
-	protected double hpup;
+	private int currentHealth;
+	private int whiteline;
+	private double healingBuffer;
 	protected int money;
 	protected int experience;
 	protected int exptolvlup;
 	protected int expatstartlvl;
 	protected Weapon weapon;
 	protected Race race;
-	protected int asdf;
-	protected boolean inshop;
+	private int aiCounter;
+	private boolean inshop;
 	
 	protected double basedamage;
 	protected double damagebuff;
-	protected double wordamage;
+	protected double damageMultiplier;
 	
 	protected int level;
 	
 	protected int totalhealthbuff;
-	protected double worhealth;
+	protected double maximumHealthMultiplier;
 	
-	protected double woradelay;
+	protected double attackDelayMultiplier;
 	
 	protected int accel;
-	protected double woraccel;
+	protected double accelerationMultiplier;
 	
 	protected int agilitybuff;
 	protected int actagility;
-	protected double woragility;
+	protected double agilityMultiplier;
 	
 	protected int strengthbuff;
 	protected int actstrength;
-	protected double worstrength;
+	protected double strengthMultiplier;
 	
 	protected int intelligencebuff;
 	protected int actintelligence;
-	protected double worintelligence;
+	protected double intelligenceMultiplier;
 	
 	protected double regen;
 	protected double regenbuff;
-	protected double worregen;
+	protected double regenMultiplier;
 	
 	protected int basearmor;
 	protected int armorbuff;
-	protected double worarmor;
-	protected double damagetaken;
+	protected double armorMultiplier;
+//	private double damageReduction;
 	
-	protected ArrayList<Crit> crits;
+	private ArrayList<Crit> crits;
 	
 	public ArrayList<Buff> buffs;
-	public Debuff[] debuffs;
+//	public Debuff[] debuffs;
+	public HashMap<DebuffType, Debuff> debuffs;
 	
 	protected Queue<Popup> popups;
-	protected Popup poisonpopup;
-  protected int damagefrompoison;
+	private Popup poisonpopup;
+  private int damagefrompoison;
 
-  public static final int INV_SIZE = 5;
   public ArrayList<Item> inv;
 	
 	public Mob(int sx, int sy, String sai, World smyworld, Race r) {
@@ -101,39 +112,39 @@ public class Mob extends Thing{
 		buffs = new ArrayList<Buff>();
 		crits = new ArrayList<Crit>();
 		popups = new ConcurrentLinkedQueue<Popup>();
-		debuffs = new Debuff[Debuff.TOTAL];
-		debuffs[Debuff.STUN] = new Debuff( Debuff.STUN, 0 );
-    debuffs[Debuff.POISON] = new Debuff( Debuff.POISON, 0 );
+		debuffs = new HashMap<>();
+		for( DebuffType type : DebuffType.values() ) {
+	    debuffs.put(type, new Debuff( type, 0 ));
+		}
 		race = r;
 		ai = sai;
-		dead = false;
-		hpup = 0;
-		asdf = 0;
-		addcrit(new Crit(100, 100));
+		addcrit(new Crit(100, 1));
 		rescale(); // something to do with stats
     lvlup();
 	}
+  
+  
 	public void removeItem( Item item ) {
     for( Buff b : item.buffs) {
       subbuff(b);
     }
     for(Crit c : item.crits) {
-      subcrit(c);
+      removeCrit(c);
     }
     inv.remove(item);
-    lvlup("", 0);
+    rescale();
 	}
   public void addItem(String s, int amount) {
     Item i = new Item(s, amount, myworld);
     inv.add(i);
-    lvlup("", 0);
+    rescale();
     for(Buff b : i.buffs) {
       addbuff(b);
     }
-    if(inv.size()>INV_SIZE) {
+    if(inv.size()>INVENTORY_SIZE) {
       removeItem(inv.get(0));
     }
-    lvlup("", 0);
+    rescale();
   }
   public int itemsininv() {
     int a = 0;
@@ -152,10 +163,10 @@ public class Mob extends Thing{
     for(Crit c : i.crits) {
       addcrit(c);
     }
-    if(inv.size()>INV_SIZE) {
+    if(inv.size()>INVENTORY_SIZE) {
       removeItem(inv.get(0));
     }
-    lvlup("", 0);
+    rescale();
   }
 	public void lvlupto(int lvl) {
 		while(level < lvl) {
@@ -183,7 +194,7 @@ public class Mob extends Thing{
 				subbuff(b);
 			}
 			for(Crit c : weapon.crits) {
-				subcrit(c);
+				removeCrit(c);
 			}
 		}
 		
@@ -198,59 +209,61 @@ public class Mob extends Thing{
 	}
 	public void addcrit(Crit c) {
 		for(int a=0; a<crits.size(); a++) {
-			if(c.damage>=crits.get(a).damage) {
-				crits.add(a, c);
-				return;
-			}
+		  if( c.isBetterThan(crits.get(a)) ) {
+        crits.add(a, c);
+        return;
+		  }
 		}
-		if(crits.size() ==0) {
+		if(crits.size() == 0) {
 			crits.add(c);
 		}
 	}
-	public void subcrit(Crit c) {
+	public void removeCrit(Crit c) {
 		crits.remove(c);
 	}
 	public void clearDebuffs() {
-	  for( int a = 0; a < debuffs.length; a++ ) {
-	    debuffs[a].duration = 0;
+	  for( Debuff debuff : debuffs.values() ) {
+	    debuff.duration = 0;
 	  }
 	}
 	public void applyDebuff( Debuff d ) {
-	  
-	  Debuff existing = debuffs[d.type];
+	  Debuff existing = debuffs.get(d.type);
 	  if( d.duration > existing.duration ) {
-//	    System.out.println("Updated " + debuffs[d.type]);
-	    debuffs[d.type] = new Debuff(d);
-//	    System.out.println(" to " + debuffs[d.type]);
+	    debuffs.put(d.type, new Debuff(d));
 	  }
-	  
 	}
 	
 	public boolean isStunned( ) {
-	  if( debuffs[Debuff.STUN].duration > 0 ) {
+	  if( debuffs.get(DebuffType.STUN).duration > 0 ) {
 	    return true;
 	  }
 	  return false;
 	}
+
+  public boolean isSlowed( ) {
+    if( debuffs.get(DebuffType.SLOW).duration > 0 ) {
+      return true;
+    }
+    return false;
+  }
 	
 	public void addbuff(Buff b) {
-		if(b.raw){ 
+		if(b.isMultiplier()){ 
 			lvlup(b.stat, b.value);
 		} else {
-			worlvlup(b.stat, b.value*.01);
+			multiplierLvlup(b.stat, b.value*.01);
 		}
 	}
 	public void subbuff(Buff b) {
-		if(b.raw){ 
+		if(b.isMultiplier()){ 
 			lvlup(b.stat, -b.value);
 		} else {
-			worlvlup(b.stat, 1/(double)(b.value*.01));
+			multiplierLvlup(b.stat, 1/(double)(b.value*.01));
 		}
 	}
 	public void rescale() {
 		
 		basedamage = (getStrength())/9;
-		damagetaken = 100-getArmor();
 		regen = getStrength()*.001 + regenbuff;
 		if(accel<0)
 			accel = 0;
@@ -262,301 +275,188 @@ public class Mob extends Thing{
 		if(experience>=exptolvlup) {
 			expatstartlvl = exptolvlup;
 			exptolvlup += (int) (Math.pow(level, 2)*5)+30;
-			lvlup("actstr", race.strinc);
-			lvlup("actagi", race.agiinc);
+			lvlup(Attribute.ACTUAL_STRENGTH, race.strinc);
+			lvlup(Attribute.ACTUAL_AGILITY, race.agiinc);
 			damagebuff+=race.dmginc;
 			level++;
 			lvlup();
 		}
 		rescale();
 	}
-	public void lvlup(String s, int n) {
-		if(s.equals("str")) {
+	public void lvlup(Attribute attribute, int n) {
+	  if( attribute == Attribute.STRENGTH ) {
 			strengthbuff+=n;
-			health+=STR_HEALTH_MULTIPLIER*n;
+			setCurrentHealth(getCurrentHealth() + STR_HEALTH_MULTIPLIER*n);
 		} 
-		if(s.equals("actstr")) {
+	  if( attribute == Attribute.ACTUAL_STRENGTH ) {
 			actstrength+=n;
-      health+=STR_HEALTH_MULTIPLIER*n;
+			setCurrentHealth(getCurrentHealth() + STR_HEALTH_MULTIPLIER*n);
 		} 
-		if(s.equals("agi")) {
+    if( attribute == Attribute.AGILITY ) {
 			agilitybuff+=n;
 		} 
-		if(s.equals("actagi")) {
+    if( attribute == Attribute.ACTUAL_AGILITY ) {
 			actagility+=n;
 		} 
-		if(s.equals("int")) {
+    if( attribute == Attribute.INTELLIGENCE ) {
 			intelligencebuff+=n;
 		} 
-		if(s.equals("actint")) {
+    if( attribute == Attribute.ACTUAL_INTELLIGENCE ) {
 			actintelligence+=n;
 		} 
-		if(s.equals("hp")) {
+    if( attribute == Attribute.HEALTH ) {
 			totalhealthbuff+=n;
 		} 
-		if(s.equals("dmg")) {
+    if( attribute == Attribute.DAMAGE ) {
 			damagebuff+=n;
 		}
-		if(s.equals("reg")) {
+    if( attribute == Attribute.REGEN ) {
 			regenbuff+=n*.01;
 		}
-		if(s.equals("accel")) {
+    if( attribute == Attribute.ACCELERATION ) {
 			accel+=n;
 		}
-		if(s.equals("Armor")) {
+    if( attribute == Attribute.ARMOR ) {
 			armorbuff+=n;
 		}
 		rescale();
 	}
-	public void worlvlup(String s, double n) {
-		if(s.equals("str")) {
-			worstrength*=n;
+	public void multiplierLvlup(Attribute attribute, double n) {
+    if( attribute == Attribute.STRENGTH ) {
+			strengthMultiplier*=n;
 		}
-		if(s.equals("agi")) {
-			woragility*=n;
+    if( attribute == Attribute.AGILITY ) {
+			agilityMultiplier*=n;
 		}
-		if(s.equals("int")) {
-			worintelligence*=n;
+    if( attribute == Attribute.INTELLIGENCE ) {
+			intelligenceMultiplier*=n;
 		}
-		if(s.equals("hp")) {
-			worhealth*=n;
+    if( attribute == Attribute.HEALTH ) {
+			maximumHealthMultiplier*=n;
 		} 
-		if(s.equals("dmg")) {
-			wordamage*=n;
+    if( attribute == Attribute.DAMAGE ) {
+			damageMultiplier*=n;
 		}
-		if(s.equals("reg")) {
-			worregen*=n;
+    if( attribute == Attribute.REGEN ) {
+			regenMultiplier*=n;
 		}
-		if(s.equals("accel")) {
-			woraccel*=n;
+    if( attribute == Attribute.ACCELERATION ) {
+			accelerationMultiplier*=n;
 		}
-		if(s.equals("adelay")) {
-			woradelay*=n;
+    if( attribute == Attribute.ATTACK_DELAY ) {
+			attackDelayMultiplier*=n;
 		}
-		if(s.equals("Armor")) {
-			worarmor*=n;
+    if( attribute == Attribute.ARMOR ) {
+			armorMultiplier*=n;
 		}
 		rescale();
 	}
-	ArrayList<MyPolygon> poly;
-	public static final int TOPLEFT = 1;
-	public static final int TOPRIGHT = 2;
-	public static final int BOTTOMLEFT = 3;
-	public static final int BOTTOMRIGHT = 4;
-//	public void draw(Graphics2D g) {
-		
-//		int drawx = (x-myworld.p.x)/World.ZOOM+470;
-//		int drawy = (y-myworld.p.y)/World.ZOOM+310;
-//		int w = super.w/World.ZOOM;
-//		int h = super.h/World.ZOOM;
-//		//g.fill(dim());
-//		if(attack!=null && adraw>=0) {
-//			int nx = (attack.x-myworld.p.x)/World.ZOOM+470;
-//			int ny = (attack.y-myworld.p.y)/World.ZOOM+310;
-//			int nw = attack.width/World.ZOOM;
-//			int nh = attack.height/World.ZOOM;
-//			if(attackdirection == 1 || attackdirection==3) {
-//				nw = attack.height/World.ZOOM;
-//				nh = attack.width/World.ZOOM;
-//			}
-//			if(nx+nw>-50 && nx-nw<990 && ny+nh>-50 && ny-nh<670) {
-//				Color cur = g.getColor();
-//				if(hostile()) {
-//					g.setColor(Color.red);
-//				} else {
-//					g.setColor(Color.green);
-//				}
-//				Graphics2D g2d = (Graphics2D)g;
-//				g2d.translate(nx, ny);
-//				g2d.rotate(Math.toRadians(attackdirection*90));
-//				// TODO asjkldfhajks
-//				if(myworld.drawimage) {
-////					g2d.drawImage(weapon.image, nx, ny, nw, nh, null);
-//					g2d.drawImage(weapon.image, -nw/2, -nh/2, nw, nh, null);
-//
-//				}
-////				g.draw(new Rectangle(nx, ny, nw, nh));
-//				g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
-//				g.setColor(cur);
-//				g2d.rotate(Math.toRadians((4-attackdirection)*90));
-//				g2d.translate(-nx, -ny);
-//			}
-//		} else {
-//			attackdirection = 0;
-//		}
-//		if(!dead) {
-//			g.setColor(Color.blue);
-//		} else {
-//			g.setColor(Color.black);
-//		}
-//		Color[] col = { g.getColor(), Color.red, new Color(0, 200, 0), Color.magenta, Color.cyan};
-//		super.draw(g, col);
-//		int distx = 0;
-//		int disty = 0;
-//		if(myworld.draw3d) {
-//			distx = (drawx-470)/10/World.ZOOM;
-//			disty = (drawy-310)/10/World.ZOOM;
-//		}
-//		if(drawx>-50 && drawx<990 && drawy>-50 && drawy<670 && World.ZOOM == 1) {
-//			g.setColor(Color.white);
-//			int l = Integer.toString(level).toCharArray().length;
-//			g.drawString(this.level+"", drawx-l*5+2+distx, drawy+g.getFont().getSize()/2-1+disty);
-//			
-//			g.setColor(new Color(200, 200, 200));
-//			double f = (double)health/totalhealth();
-//			g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, whiteline/10, 8);
-//
-////			if( damagefrompoison > 0 ) {
-////        g.setColor(new Color(0, 250, 0));
-////        int green = (int) (damagefrompoison/100 * whiteline / (double)totalhealth());
-////        g.fillRect(drawx-w/2+distx + whiteline/10 - green/10, drawy-h/2-13+disty, green/10, 8);
-////        
-////        damagefrompoison -= 1;
-////        if( damagefrompoison < 0 ) 
-////          damagefrompoison = 0;
-////			}
-//      
-//			if(whiteline/10>(f*w))
-//				whiteline-=w/30;
-//			if(whiteline/10<f*w)
-//				whiteline = (int) (f*w*10);
-//			
-//
-//			
-//			if(hostile()) {
-//				g.setColor(Color.red);
-//			} else {
-//				g.setColor(new Color( 0, 190, 20));
-//			}
-//			g.drawRect(drawx-w/2+distx, drawy-h/2-13+disty, w, 8);
-//			g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, (int) (f*w), 8);
-//			
-//			if(this instanceof Player) {
-//				g.setColor(new Color(150, 150, 0));
-//				g.drawRect(drawx-w/2, drawy-h/2-4, w, 4);
-//				g.setColor(Color.yellow);
-//				g.fillRect(drawx-w/2, drawy-h/2-4, (int) ((double)(this.experience-this.expatstartlvl)/(double)(this.exptolvlup-this.expatstartlvl)*w), 4);
-//			}
-////			g.setColor(cur);
-//		}
-//	}
-//	public void drawpopups(Graphics2D g ) {
-//		int drawx = (x-myworld.p.x)/World.ZOOM+470;
-//		int drawy = (y-myworld.p.y)/World.ZOOM+310;
-//		//int w = super.w/World.ZOOM;
-//		//int h = super.h/World.ZOOM;
-//		boolean draw = false;
-//		if(drawx>-50 && drawx<990 && drawy>-50 && drawy<670) {
-//			draw = true;
-//		}
-//		Iterator<Popup> itpop = popups.iterator();
-//		while( itpop.hasNext() ) {
-//			Popup pop = itpop.next();
-//	    g.setColor(pop.color);
-//			if(draw)
-//				g.drawString(pop.string, drawx+pop.x(), drawy+pop.y());
-//			if(pop.drawn()) {
-//				popups.remove(pop);
-//			}
-//		}
-//	}
+	/**
+	 * @return true if killed, false otherwise
+	 */
 	public boolean damage(int d) {
-		health-=d;
-		dead = (health<=0);
-		return dead;
+	  setCurrentHealth(getCurrentHealth() - d);
+		updateDeadStatus();
+		return isDead();
 	}
-	public Rectangle nextdim() {
-		return new Rectangle(x-w/2+xspeed, y-h/2+yspeed, w, h);
+	public Rectangle nextPosition() {
+		return new Rectangle(x-w/2+getXSpeed(), y-h/2+getYSpeed(), w, h);
+	}
+	
+	private void decrementDebuffs() {
+	  for( Debuff debuff : debuffs.values() ) {
+	    if( debuff.duration > 0 ) {
+	      debuff.duration--;
+	    }
+	  }
 	}
 	
 	public void handlePoison() {
-	  if( debuffs[Debuff.POISON].duration > 0 ) { // If its poisoned
-      debuffs[Debuff.POISON].duration--; // reduce the duration of the poison
-      
+	  Debuff poisonDebuff = debuffs.get(DebuffType.POISON);
+	  if( poisonDebuff.duration > 0 ) { // If its poisoned
       // If die from the poison
-      if( this.damage(debuffs[Debuff.POISON].damage) ) {
+      if( this.damage(poisonDebuff.damage) ) {
         clearDebuffs(); // clear debuffs so that it isn't still poisoned on respawn.
         poisonpopup = null; // delete the green poison damage popup
       } else {
         if( poisonpopup == null || poisonpopup.done()) { // if it does not currently have a poison popup
-          damagefrompoison = debuffs[Debuff.POISON].damage;
+          damagefrompoison = poisonDebuff.damage;
           
-          int durationOfPopup = (debuffs[Debuff.POISON].duration<100)?300:debuffs[Debuff.POISON].duration; // duration of popup is 100 or more
+          int durationOfPopup = (poisonDebuff.duration<100)?300:poisonDebuff.duration; // duration of popup is 100 or more
           
-          poisonpopup = new Popup(debuffs[Debuff.POISON].damage+"", durationOfPopup, Color.green);
+          poisonpopup = new Popup(poisonDebuff.damage+"", durationOfPopup, Color.green);
           
           this.popups.add(poisonpopup);
         }
         else {
-          damagefrompoison += debuffs[Debuff.POISON].damage;
+          damagefrompoison += poisonDebuff.damage;
           poisonpopup.string = damagefrompoison + "";
         }
       }
     }
 	}
 	
+	public void fillHealingBuffer() {
+    double maximumHealth = getMaximumHealth(); // get the maximum health of this mob
+    
+    if(getCurrentHealth()+getHealthRegen()<=maximumHealth) { // health is an integer.
+      healingBuffer+=getHealthRegen();              // hpup is used as a buffer to store up and decimal additions to heal
+    } else {
+      if(getCurrentHealth()<maximumHealth)
+        healingBuffer+=maximumHealth-getCurrentHealth();
+    }
+	}
+	public void useHealingBuffer() {
+	  if(healingBuffer>=1) {                 // transfer from the double hpup buffer to the actual health of the mob.
+	    setCurrentHealth(getCurrentHealth() + (int)healingBuffer);
+      healingBuffer = healingBuffer-(int)healingBuffer;
+    }
+    healingBuffer = Math.max(0, healingBuffer);    // make sure hpup is non negative ( just in case )
+	}
+	
 	public void move() {
-		if(!dead) {
+		if(!isDead()) {
 			rescale(); // something to do with stats
 			lvlup(); // check if it got a level up
-			double thealth = getMaximumHealth(); // get the maximum health of this mob
-			
-			handlePoison();
-			
-			if(health+getHealthRegen()<=thealth) { // health is an integer.
-				hpup+=getHealthRegen();              // hpup is used as a buffer to store up and decimal additions to heal
-			} else {
-				if(health<thealth)
-					hpup+=thealth-health;
-			}
-			
-			if(hpup>=1) {                 // transfer from the double hpup buffer to the actual health of the mob.
-				health+=(int)hpup;         
-				hpup = hpup-(int)hpup;
-			}
-			hpup = Math.max(0, hpup);    // make sure hpup is non negative ( just in case )
-			
+			decrementDebuffs();
+      handlePoison();
+      
+      fillHealingBuffer();
+      useHealingBuffer();
 			
 			boolean nomiss = ai.contains("nomiss");
-			int randomize = 5;
-			if(nomiss) {
-				randomize = 4;
+			double chanceToHit = 0.8;
+			if( nomiss ) {
+			  chanceToHit = 1;
 			}
 			if(ai.contains("leftattack")) {
-        setAttack("left");
+        setAttack(AttackDirection.LEFT);
 			}
       if(ai.contains("rightattack")) {
-        setAttack("right");
+        setAttack(AttackDirection.RIGHT);
       }
       if(ai.contains("upattack")) {
-        setAttack("up");
+        setAttack(AttackDirection.UP);
       }
       if(ai.contains("downattack")) {
-        setAttack("down");
+        setAttack(AttackDirection.DOWN);
       }
 			if(ai.contains("random")) {
 				int a = rand.nextInt(5);
 				if(a==0) {
 					int x = rand.nextInt(3)-1;
 					int y = rand.nextInt(3)-1;
-					xspeed = x*getAccel();
-					yspeed = y*getAccel();
+					setXSpeed(x*getAccel());
+					setYSpeed(y*getAccel());
 				}
-				a = rand.nextInt(randomize);
-				if(a==0) {
-					setAttack("up");
-				} else if(a==1) {
-					setAttack("down");
-				} else if(a==2) {
-					setAttack("left");
-				} else if(a==3) {
-					setAttack("right");
+				if( Math.random() < chanceToHit ) {
+				  setAttack(AttackDirection.getRandomAttackDirection());
 				}
 			}
 			if(ai.contains("bettermovetowardsyou")) {
-					asdf+=1;
-					if(asdf>=3600)
-						asdf = 0;
+					aiCounter+=1;
+					if(aiCounter>=3600)
+						aiCounter = 0;
 					int dx;
 					int dy;
 					if(x<myworld.playerASDF.x-accel) {
@@ -577,122 +477,84 @@ public class Mob extends Thing{
 					} else {
 						dy= rand.nextInt(3)-1;
 					}
-					xspeed = (int) (dx*getAccel());
-					yspeed = (int) (dy*getAccel());
-					int a = rand.nextInt(randomize);
-					if(a==0) {
-						setAttack("up");
-					} else if(a==1) {
-						setAttack("down");
-					} else if(a==2) {
-						setAttack("left");
-					} else if(a==3) {
-						setAttack("right");
-					}
+					setXSpeed((int) (dx*getAccel()));
+					setYSpeed((int) (dy*getAccel()));
+	        if( Math.random() < chanceToHit ) {
+	          setAttack(AttackDirection.getRandomAttackDirection());
+	        }
 				}
 			if(ai.contains("sway")) {
-				asdf+=1;
-				if(asdf>=360)
-					asdf = 0;
-				double x =  (Math.sin(2*toRadians(asdf)));
-				double y =  (Math.cos(3*toRadians(asdf)));
-				xspeed = (int) (x*getAccel());
-				yspeed = (int) (y*getAccel());
-				int a = rand.nextInt(randomize);
-				if(a==0) {
-					setAttack("up");
-				} else if(a==1) {
-					setAttack("down");
-				} else if(a==2) {
-					setAttack("left");
-				} else if(a==3) {
-					setAttack("right");
-				}
+				aiCounter+=1;
+				if(aiCounter>=360)
+					aiCounter = 0;
+				double x =  (Math.sin(2*toRadians(aiCounter)));
+				double y =  (Math.cos(3*toRadians(aiCounter)));
+				setXSpeed((int) (x*getAccel()));
+				setYSpeed((int) (y*getAccel()));
+        if( Math.random() < chanceToHit ) {
+          setAttack(AttackDirection.getRandomAttackDirection());
+        }
 			}
 			if(ai.contains("horizontalpatrol")) {
-				asdf+=1;
-				if(asdf>=3600)
-					asdf = 0;
+				aiCounter+=1;
+				if(aiCounter>=3600)
+					aiCounter = 0;
 				int lengthofzigzag = 50;
-				double x =  Math.pow(-1, asdf/lengthofzigzag-(int)(asdf/(lengthofzigzag*2))*2);
-				double y =  -(Math.sin(toRadians(40*asdf)));
-				xspeed = (int) (x*getAccel());
-				yspeed = (int) (y*0);//(int) (y*accel());
-				int a = rand.nextInt(randomize);
-				if(a==0) {
-					setAttack("up");
-				} else if(a==1) {
-					setAttack("down");
-				} else if(a==2) {
-					setAttack("left");
-				} else if(a==3) {
-					setAttack("right");
-				}
+				double x =  Math.pow(-1, aiCounter/lengthofzigzag-(int)(aiCounter/(lengthofzigzag*2))*2);
+				double y =  -(Math.sin(toRadians(40*aiCounter)));
+				setXSpeed((int) (x*getAccel()));
+				setYSpeed((int) (y*0));//(int) (y*accel()));
+        if( Math.random() < chanceToHit ) {
+          setAttack(AttackDirection.getRandomAttackDirection());
+        }
 				
 			} else if(ai.contains("zigzag")) {
-				asdf+=1;
-				if(asdf>=3600)
-					asdf = 0;
-				double x =  Math.pow(-1, asdf/20-(int)(asdf/40)*2);
-				double y =  -(Math.sin(toRadians(3*asdf)));
-				xspeed = (int) (x*getAccel());
-				yspeed = (int) (y*getAccel());
-				int a = rand.nextInt(randomize);
-				if(a==0) {
-					setAttack("up");
-				} else if(a==1) {
-					setAttack("down");
-				} else if(a==2) {
-					setAttack("left");
-				} else if(a==3) {
-					setAttack("right");
-				}
+				aiCounter+=1;
+				if(aiCounter>=3600)
+					aiCounter = 0;
+				double x =  Math.pow(-1, aiCounter/20-(int)(aiCounter/40)*2);
+				double y =  -(Math.sin(toRadians(3*aiCounter)));
+				setXSpeed((int) (x*getAccel()));
+				setYSpeed((int) (y*getAccel()));
+        if( Math.random() < chanceToHit ) {
+          setAttack(AttackDirection.getRandomAttackDirection());
+        }
 			}
 			if(ai.contains("hunter")) {
-				asdf+=1;
-				if(asdf>=3600)
-					asdf = 0;
+				aiCounter+=1;
+				if(aiCounter>=3600)
+					aiCounter = 0;
 				int dx;
 				int dy;
-				if(x<myworld.playerASDF.x-accel) {
+				if(x<myworld.playerASDF.x()-accel) {
 					dx = 1;
-				} else if(x>myworld.playerASDF.x+accel) {
+				} else if(x>myworld.playerASDF.x()+accel) {
 					dx = -1;
 				} else {
 					dx= 0;
 				}
-				if(y<myworld.playerASDF.y-accel) {
+				if(y<myworld.playerASDF.y()-accel) {
 					dy = 1;
-				} else if(y>myworld.playerASDF.y+accel) {
+				} else if(y>myworld.playerASDF.y()+accel) {
 					dy = -1;
 				} else {
 					dy= 0;
 				}
-				xspeed = (int) (dx*getAccel());
-				yspeed = (int) (dy*getAccel());
-				int a = rand.nextInt(randomize);
-				if(a==0) {
-					setAttack("up");
-				} else if(a==1) {
-					setAttack("down");
-				} else if(a==2) {
-					setAttack("left");
-				} else if(a==3) {
-					setAttack("right");
-				}
+				setXSpeed((int) (dx*getAccel()));
+				setXSpeed((int) (dy*getAccel()));
+        if( Math.random() < chanceToHit ) {
+          setAttack(AttackDirection.getRandomAttackDirection());
+        }
 			}
 
       // can only move and attack if not stunned
-			if( debuffs[Debuff.STUN].duration > 0 ) {
-			  debuffs[Debuff.STUN].duration --;
-			}
-			else {
+			if( !isStunned() ) {
 			  // Attempt to move 5 times, each time a smaller distance 
 			  for( int a = 0; a < 5; a++ ) {
     			int col = myworld.collides(this);
     			if(col != World.CANTMOVE) {
-    				x += xspeed;
-    				y += yspeed;
+    				x += getXSpeed();
+    				y += getYSpeed();
     				if(col>0) {
     					experience+=col;
               if(this.level>col)
@@ -702,29 +564,35 @@ public class Mob extends Thing{
     				}
     				break;
     			}
-    			xspeed /= 2;
-    			yspeed /= 2;
+    			setXSpeed(getXSpeed()/2);
+          setYSpeed(getYSpeed()/2);
 			  }
-  			
-  			// Can only attack if attack box is set, attack cooldown is ready. No idea what att is
-  			// the inshop boolean is only set for the player, so it only has effect when the player is in a shop, mobs can attack anyways
-  			if(attack!=null && acd<0 && att && !inshop) {
-  				Hit hit = attack(attack);
-  				if(hit.damage > 0) {
-  					experience+=(hit.damage*(100+getIntelligence())*.01);
-  				} 
-  				if(hit.kill) {
-  					experience+=hit.leveloftarget*10*(100+getIntelligence())*.01;
-  				} 
-  				acd = (int) (getAttackDelay()*woradelay + randomAttackDelayModifier());
-  				if(weapon.continuous) 
-  					acd = 0;
-  			}
+  			handleAttacking();
 			}
 			// attack cooldown ticks whether or not stunned
-      acd--;
+			decrementAttackCooldown();
 		}
-		adraw--;
+		decremenetDrawDelay();
+	}
+	
+	public void handleAttacking() {
+	// Can only attack if attack box is set, attack cooldown is ready. No idea what att is
+    // the inshop boolean is only set for the player, so it only has effect when the player is in a shop, mobs can attack anyways
+    if(getAttackCooldown()<0 && isAttackReady() && !isInShop()) {
+      getAttack().ifPresent(attack -> {
+        Hit hit = attack(attack);
+        if(hit.damage > 0) {
+          experience+=(hit.damage*(100+getIntelligence())*.01);
+        } 
+        if(hit.kill) {
+          experience+=hit.leveloftarget*10*(100+getIntelligence())*.01;
+        } 
+        setAttackCooldown((int) (getAttackDelay()*attackDelayMultiplier + randomAttackDelayModifier()));
+        if(weapon.continuous) {
+          setAttackCooldown(0);
+        }
+      });
+    }
 	}
 	public static double randomAttackDelayModifier() {
 	  return 0.98 + Math.random() * 0.04;
@@ -814,51 +682,46 @@ public class Mob extends Thing{
 	  }
 	}
 	// TODO setAttack
-	public void setAttack(String dir) {
-		if(weapon != null) { //weapon has not been initialized, so return function
+	public void setAttack(AttackDirection direction) {
+		if(weapon != null) {
   		int wi = weapon.width;
   		int le = weapon.length;
   		int ra= weapon.range;
-  		if(!att && acd<0) {
-  			if(dir.equals("up")) {
-  				attackdirection = Mob.ATTACKUP;
+  		if(!isAttackReady() && getAttackCooldown()<0) {
+  		  attackdirection = direction;
+  		  if( direction == AttackDirection.UP) {
   				attack = new Rectangle(x, y-ra-le/2-h/2, wi, le);
   			}
-  			if (dir.equals("left")) {
-  				attackdirection = Mob.ATTACKLEFT;
+        if( direction == AttackDirection.LEFT) {
   				attack = new Rectangle(x-ra-le/2-w/2, y, le, wi);
   //				attack = new Rectangle(x-ra-le/2-w/2, y, le, wi);
   			}
-  			if (dir.equals("down")) {
-  				attackdirection = Mob.ATTACKDOWN;
+        if( direction == AttackDirection.DOWN) {
   				attack = new Rectangle(x, y+ra+h/2+le/2, wi, le);
   			}
-  			if (dir.equals("right")) {
-  				attackdirection = Mob.ATTACKRIGHT;
+        if( direction == AttackDirection.RIGHT) {
   				attack = new Rectangle(x+ra+w/2+le/2, y, le, wi);
   //				attack = new Rectangle(x+ra+w/2+le/2, y, le, wi);
   			}
-  			att = true;
-  			adraw = (int) (getAttackDelay()*woradelay/2);
-  			if (adraw<=0)
-  				adraw = 1;
+  			setAttackReady(true);
+  			setDrawDelay((int) (getAttackDelay()*attackDelayMultiplier/2));
+  			if (getDrawDelay()<=0) {
+  			  setDrawDelay(1);
+  			}
   			if(weapon.continuous) {
-  				adraw = 1;
+          setDrawDelay(1);
   			}
   		}
 		}
 	}
-	public int getdmgaftercrit(int dmg, Mob target) {
-		int afterdmg = dmg;
-		//System.out.println(this.race.name+" is finding dmg after crit!");
+	public int getDamageAfterCritAndArmor(int dmg, Mob target) {
 		for(int a=0; a<crits.size(); a++) {
 			Crit c = crits.get(a);
-			if(c.boom()) {
-				return (int) (c.getdamage(dmg)*target.damagetaken*.01);
+			if(c.proc()) {
+				return (int) (c.applyMultiplier(dmg)*target.getDamageReduction());
 			}
-			//afterdmg = c.getdamage(dmg);
 		}
-		return (int)(afterdmg*target.damagetaken*.01);
+		return (int)(dmg*target.getDamageReduction());
 		
 	}
 	public Hit attack(Rectangle r) {
@@ -867,9 +730,6 @@ public class Mob extends Thing{
 		Hit hit = new Hit();
 		
 		int dmg = getBaseDamage(); // compute how much damage this mob can do
-//		if(dmg == 0)
-//			dmg = 1;
-		dmg = Math.max(dmg, 0); // this minimum amount of damage possible is 0
 		
 		// Check each mob to see if it intersects with the attack rectangle r
 		Iterator<Mob> itmob = myworld.mobs().iterator();
@@ -877,8 +737,8 @@ public class Mob extends Thing{
 			Mob m = itmob.next();
 			if(m != this && m.dim().intersects(r)) {
 				hit.leveloftarget = m.level;
-				int dmgtodeal = getdmgaftercrit(dmg, m);
-				if(m.dead) {
+				int dmgtodeal = getDamageAfterCritAndArmor(dmg, m);
+				if(m.isDead()) {
 				  
 				} else if(m.damage(dmgtodeal)) {
 					if(m.race.name.equals("bigboss")) {
@@ -901,7 +761,7 @@ public class Mob extends Thing{
 		}
 		Player m = myworld.playerASDF;
 		if(m != this && m.dim().intersects(r)) {
-			int dmgtodeal = getdmgaftercrit(dmg, m);
+			int dmgtodeal = getDamageAfterCritAndArmor(dmg, m);
 			m.popups.add(new Popup(dmgtodeal+"", Popup.DURATION));
 			if(m.damage(dmgtodeal)) {
 				hit.kill = true;
@@ -915,7 +775,7 @@ public class Mob extends Thing{
         }
 			}
 		}
-		att = false;
+		setAttackReady(false);
 		return hit;
 	}
 	
@@ -924,7 +784,7 @@ public class Mob extends Thing{
 	 * @return the current amount of health this mob has
 	 */
 	public int getCurrentHealth() {
-		return health;
+		return currentHealth;
 	}
 	
 	/**
@@ -940,7 +800,7 @@ public class Mob extends Thing{
 	 * @return
 	 */
 	public int getBaseDamage() {
-		return (int) ((basedamage+damagebuff)*wordamage);
+		return Math.max(0, (int) ((basedamage+damagebuff)*damageMultiplier));
 	}
 	
 	/**
@@ -948,7 +808,7 @@ public class Mob extends Thing{
 	 * @return
 	 */
 	public int getAgility() {
-		int agi = (int) ((agilitybuff+actagility)*woragility);
+		int agi = (int) ((agilitybuff+actagility)*agilityMultiplier);
 		if(agi>=0) 
 			return agi;
 		else 
@@ -960,7 +820,7 @@ public class Mob extends Thing{
 	 * @return
 	 */
 	public int getIntelligence() {
-		int intel = (int) ((intelligencebuff+actintelligence)*worintelligence*5);
+		int intel = (int) ((intelligencebuff+actintelligence)*intelligenceMultiplier*5);
 		if(intel>=1)
 			return intel;
 		else
@@ -972,7 +832,7 @@ public class Mob extends Thing{
 	 * @return
 	 */
 	public int getArmor() {
-		int arm = (int) ((armorbuff+basearmor)*worarmor);
+		int arm = (int) ((armorbuff+basearmor)*armorMultiplier);
 		if(arm>=100) {
 			arm = 99;
 		}
@@ -984,7 +844,7 @@ public class Mob extends Thing{
 	 * @return
 	 */
 	public int getStrength() {
-		int str = (int) ((strengthbuff+actstrength)*worstrength);
+		int str = (int) ((strengthbuff+actstrength)*strengthMultiplier);
 		if(str>=0) 
 			return str;
 		else
@@ -996,7 +856,7 @@ public class Mob extends Thing{
 	 * @return
 	 */
 	public int getMaximumHealth() {
-		return (int) ((getStrength()*STR_HEALTH_MULTIPLIER+totalhealthbuff)*worhealth);
+		return (int) ((getStrength()*STR_HEALTH_MULTIPLIER+totalhealthbuff)*maximumHealthMultiplier);
 	}
 	
 	/**
@@ -1004,7 +864,11 @@ public class Mob extends Thing{
 	 * @return
 	 */
 	public int getAccel() {
-		return (int) (accel*woraccel);
+	  double slowMultiplier = 1.0;
+	  if( isSlowed() ) {
+	    slowMultiplier = 0.5;
+	  }
+		return (int) (accel*accelerationMultiplier*slowMultiplier);
 	}
 	
 	
@@ -1021,19 +885,153 @@ public class Mob extends Thing{
 		  
 			int agility = Math.min(getAgility(), 200); // maximum agility for attack delay calculation is 200
 			
-			int attackdelay = (int)( ( 1500/(agility+1) ) * woradelay );//(int)(((150-agi/5))*woradelay);
+			int attackdelay = (int)( ( 1500/(agility+1) ) * attackDelayMultiplier );//(int)(((150-agi/5))*woradelay);
 			
 			attackdelay = Math.min(attackdelay, 200); // the maximum delay is 200
 			return attackdelay;
 		}
 	}
+
+  public void updateDeadStatus() {
+    dead = getCurrentHealth() <= 0;
+  }
+  
+  public boolean isDead() {
+    return dead;
+  }
+  
+  public Optional<Rectangle> getAttack() {
+    return Optional.ofNullable(attack);
+  }
 	
+  public AttackDirection getAttackDirection() {
+    return attackdirection;
+  }
+  
+  public int getXSpeed() {
+    return xspeed;
+  }
+  public int getYSpeed() {
+    return yspeed;
+  }
+  
+  public void setXSpeed(int xspeed) {
+    this.xspeed = xspeed;
+  }
+  public void setYSpeed(int yspeed) {
+    this.yspeed = yspeed;
+  }
+  
+  public int getDrawDelay() {
+    return drawDelay;
+  }
+  
+  private void setDrawDelay(int delay) {
+    drawDelay = delay;
+  }
+  
+  private void decremenetDrawDelay() {
+    drawDelay--;
+  }
+  
+  private boolean isAttackReady() {
+    return attackReady;
+  }
+  private void setAttackReady(boolean ready) {
+    attackReady = ready;
+  }
+  
+  private void setAttackCooldown(int cooldown) {
+    attackCooldown = cooldown;
+  }
+  private void decrementAttackCooldown() {
+    attackCooldown--;
+  }
+  private int getAttackCooldown() {
+    return attackCooldown;
+  }
+  
+  public int getWhiteLine() {
+    return whiteline;
+  }
+  
+  public void setWhiteLine(int whiteLine) {
+    this.whiteline = whiteLine;
+  }
+  
+  public boolean isInShop() {
+    return inshop;
+  }
+  
+  public void setInShop(boolean inshop) {
+    this.inshop = inshop;
+  }
+  
+  public void clearPopups() {
+    popups.clear();
+  }
+  
+  public double getDamageReduction() {
+    return (100-getArmor())*0.01;
+  }
+  
+  public void setHealthToMaximum() {
+    currentHealth = getMaximumHealth();
+  }
+  public void setCurrentHealth(int amount) {
+    currentHealth = amount;
+  }
+  
+  public void initializemob(String weaponString) {
+    basedamage = race.startdmg;
+    damagebuff = 0;
+    damageMultiplier = 1;
+    
+    level = 1;
+    
+    totalhealthbuff = race.starthealth;
+    maximumHealthMultiplier = 1;
+    
+    attackDelayMultiplier = 1;
+    
+    accel = race.startaccel;
+    accelerationMultiplier = 1;
+    
+    agilitybuff = 0;
+    actagility = race.startagi;
+    agilityMultiplier = 1;
+    
+    strengthbuff = 0;
+    actstrength = race.startstr;
+    strengthMultiplier = 1;
+    
+    intelligencebuff = 0;
+    actintelligence = race.startint;
+    intelligenceMultiplier = 1;
+    
+    regenbuff = race.startregen;
+    regen = 0;
+    regenMultiplier = 1;
+    
+    basearmor = race.startarmor;
+    armorbuff = 0;
+    armorMultiplier = 1;
+    
+    getWeap(weaponString);
+    weapon.puton(this);
+    setHealthToMaximum();
+    
+    experience = 0;
+    exptolvlup += (int) (Math.pow(level, 2)*10/getIntelligence())+10;
+    rescale();
+  }
+  
 	/**
 	 * compute this mob's health regeneration stat
 	 * @return
 	 */
 	public double getHealthRegen() {
-		return regen*worregen;
+		return regen*regenMultiplier;
 	}
 	
 	/**
@@ -1042,7 +1040,7 @@ public class Mob extends Thing{
 	 */
 	public String tosave() {
 		String s = "Mob "+race.name+" "+experience+" "+money+" "+x+" "+y;
-		s+=" "+health+" "+weapon.name.replace(' ', '_') + " " + ai.replace(' ', '_');
+		s+=" "+getCurrentHealth()+" "+weapon.name.replace(' ', '_') + " " + ai.replace(' ', '_');
 		return s;
 	}
 	

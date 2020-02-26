@@ -1,28 +1,19 @@
 package one;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.awt.*;
+import java.io.*;
+import java.util.*;
 import java.util.Queue;
-import java.util.Random;
-import java.util.StringTokenizer;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 
-import gui.Constants;
+import gui.*;
 import gui.Frame;
+import one.Debuff.*;
+import one.Mob.*;
+import player.*;
+import resources.*;
+import sound.*;
 
-public class World implements Serializable {
+public class World implements Serializable, PlayerLocation {
   
   // SETTINGS
 	public static final int THREE_D_RATIO = 8;
@@ -34,7 +25,7 @@ public class World implements Serializable {
 	// default settings
   public boolean drawimage = true;
   public boolean draw3d = true;
-  public static boolean playmusic = false;
+  public static boolean playmusic = true;
   
 
   public static final int CANTMOVE = -1;
@@ -48,7 +39,6 @@ public class World implements Serializable {
 	private ArrayList<Spawn> spawns;
 	private ArrayList<Message> messages;
 	private Queue<Sign> signs;
-	private ArrayList<Race> races;
 	private ArrayList<SoundArea> sounds;
 	
 	public Player playerASDF;
@@ -59,20 +49,11 @@ public class World implements Serializable {
 	private Point mouse;
 	public int selected = 0;
 	
-	Sound grass;
-	Sound arena;
-	Sound training;
-	Sound death;
-	Sound mountain;
-	Sound boss1;
-	Sound barrack;
-	Sound lava;
-  Sound necro;
-  Sound empty;
-	Sound currentsound;
+	private SoundManager soundManager;
 	
-	public World() {
+	public World(SoundManager soundManager) {
 		Frame.println("Initializing World");
+		this.soundManager = soundManager;
 		mouse = new Point(0, 0);
 		mobs = new ConcurrentLinkedQueue<Mob>();
 		projectiles = new ConcurrentLinkedQueue<Projectile>();
@@ -82,174 +63,45 @@ public class World implements Serializable {
 		spawns = new ArrayList<Spawn>();
 		messages = new ArrayList<Message>();
 		signs = new ConcurrentLinkedQueue<Sign>();
-		races = new ArrayList<Race>();
 		sounds = new ArrayList<SoundArea>();
 		rand = new Random();
 
-		initializeSounds();
+		initializeSoundAreas();
 		initializeworld();
-		//changeSound(null);
 	}
 	
-	public void initializeSounds() {
-		Frame.print("Loading World Music: ");
-		death = initSound("death.wav", -2, false);
-		grass = initSound("grass.wav", -15, true);
-		sounds.add(new SoundArea(grass) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>-50 && x<1150 && y>-250 && y<1000) {
-					return true;
-				}
-				return false;
-			}
-		});
-		arena = initSound("combat1.wav", -15, true);
-		sounds.add(new SoundArea(arena) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>-1200 && x<-70 && y>100 && y<1000) {
-					return true;
-				}
-				return false;
-			}
-		});
-		training = initSound("training.wav", -7, false);
-		sounds.add(new SoundArea(training) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>1400 && x<1750 && y>90 && y<1000) {
-					return true;
-				}
-				return false;
-			}
-		});
-		mountain = initSound("stronghold.wav", -16, true);
-		sounds.add(new SoundArea(mountain) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>-1100 && x<-50 && y>-1000 && y<100) {
-					return true;
-				}
-				return false;
-			}
-		});
-		boss1 = initSound("combat4.wav", -5, false);
-		sounds.add(new SoundArea(boss1) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>350 && x<1000 && y>-1100 && y<-450) {
-					return true;
-				}
-				return false;
-			}
-		});
-		barrack = initSound("combat3.wav", -5, true);
-		sounds.add(new SoundArea(barrack) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>250 && x<1350 && y<-1400 && y>-2000) {
-					return true;
-				}
-				return false;
-			}
-		});
-		lava = initSound("lava.wav", -5, true);
-		sounds.add(new SoundArea(lava) {
-			@Override
-			public boolean in(int x, int y) {
-				if(x>1350 && x<3100 && y<-900 && y>-3200) {
-					return true;
-				}
-				if( x>450 && x < 1350 && y > -3200 && y < -2100 ) { 
-				  return true;
-				}
-				return false;
-			}
-		});
-    necro = initSound("necro.wav", -3, true);
-    sounds.add(new SoundArea(necro) {
-      @Override
-      public boolean in(int x, int y) {
-        if(x>-1400 && x<450 && y>-4100 && y<-3000) {
-          return true;
-        }
-        return false;
-      }
-    });
-    empty = initSound("empty.wav", -5, true);
-    sounds.add(new SoundArea(empty) {
-      @Override
-      public boolean in(int x, int y) {
-        if(x>-4000 && x<-100 && y>-2700 && y<-1400) {
-          return true;
-        }
-        return false;
-      }
-    });
-		Frame.println();
+	public void playerDied(Player player) {
+	  soundManager.playDeathMusic();
+    deathTransparency = 0;
 	}
-	public void changeSound(Sound sound) {
-		if(currentsound!=sound) {
-			if(currentsound!=null) {
-				currentsound.fadeOut(.15);
-			}
-			if(sound!=null) {
-				sound.fadeIn(.05);
-			}
-			currentsound = sound;
-			if(currentsound!=null)
-				System.out.println("currentsound is now " + currentsound.getUrl());
-		} else {
-			
-		}
-	}
-	public void stopMusic() {
-	  playmusic = false;
-	  if( currentsound != null ) {
-	    currentsound.fadeOut(10);
-	    currentsound.stopplaying();
-	    currentsound = null;
+	
+	public void toggleMusic() {
+	  playmusic = !playmusic;
+	  if( playmusic ) {
+	    soundManager.playMusic();
+	  }
+	  else {
+      soundManager.stopMusic();
 	  }
 	}
-	public void startMusic() {
-	  playmusic = true;
-	  for(SoundArea s : sounds) {
-      if(s.in(playerASDF.x(), playerASDF.y())) {
-        changeSound(s.getSound());
-      }
-    }
-	}
-	public static Sound initSound(final String url, float volume, boolean loop) {
-		Frame.print(url +", ");
-		Sound bob = new Sound(url, volume, loop);
-		bob.start();
-		return bob;
+	
+	public void initializeSoundAreas() {
+		soundManager.addSoundArea("grass.wav", -50, 1150, -250, 1000);
+    soundManager.addSoundArea("combat1.wav", -1200, -70, 100, 1000);
+    soundManager.addSoundArea("training.wav", 1400, 1750, 90, 1000);
+    soundManager.addSoundArea("stronghold.wav", -1100, -50, -1000, 100);
+    soundManager.addSoundArea("combat4.wav", 350, 1000, -1100, -450);
+    soundManager.addSoundArea("combat3.wav", 250, 1350, -2000, -1400);
+    soundManager.addSoundArea("lava.wav", 1350, 3100, -3200, -900);
+    soundManager.addSoundArea("lava.wav", 450, 1350, -3200, -2100);
+    soundManager.addSoundArea("necro.wav", -1400, 450, -4100, -3000);
+    soundManager.addSoundArea("empty.wav", -4000, -100, -2700, -1400);
 	}
 	
-	public static Color darken(Color c, int mag) {
-	  int randomModifier = 2 - (int)(Math.random()*5);
-		int r = c.getRed() - mag + randomModifier;
-		int g = c.getGreen() - mag + randomModifier;
-		int b = c.getBlue() - mag + randomModifier;
-		if(r<0)
-			r=0;
-		if(g<0)
-			g=0;
-		if(b<0)
-			b=0;
-		if(r>250)
-			r=250;
-		if(g>250)
-			g=250;
-		if(b>250)
-			b=250;
-		return new Color(r, g, b);
-	}
 	public void addMessage(String s, int time) {
 		messages.add(new Message(s, time));
 	}
-	public void newgame(String race) {
+	public void newgame(Race race) {
 	  String weapon = "fist";
 //	  weapon = "diamond laser";
 		initPlayer(400, 400, weapon, 15, new ArrayList<Item>(), race, 0);
@@ -259,99 +111,36 @@ public class World implements Serializable {
 //		initPlayer(1300, -1500, weapon, 15, new ArrayList<Item>(), race, 0);
 //    initPlayer(850, -1350, weapon, 15, new ArrayList<Item>(), race, 0);
 	}
-	public void initializemob(Mob m, String weapon) {
-		Race r = m.race;
-		
-		m.basedamage = r.startdmg;
-		m.damagebuff = 0;
-		m.wordamage = 1;
-		
-		m.level = 1;
-		
-		m.totalhealthbuff = r.starthealth;
-		m.worhealth = 1;
-		
-		m.woradelay = 1;
-		
-		m.accel = r.startaccel;
-		m.woraccel = 1;
-		
-		m.agilitybuff = 0;
-		m.actagility = r.startagi;
-		m.woragility = 1;
-		
-		m.strengthbuff = 0;
-		m.actstrength = r.startstr;
-		m.worstrength = 1;
-		
-		m.intelligencebuff = 0;
-		m.actintelligence = r.startint;
-		m.worintelligence = 1;
-		
-		m.regenbuff = r.startregen;
-		m.regen = 0;
-		m.worregen = 1;
-		
-		m.basearmor = r.startarmor;
-		m.armorbuff = 0;
-		m.worarmor = 1;
-		
-		m.getWeap(weapon);
-		m.weapon.puton(m);
-		m.health = m.getMaximumHealth();
-		
-		m.race = r;
-		
-		m.experience = 0;
-		m.exptolvlup += (int) (Math.pow(m.level, 2)*10/m.getIntelligence())+10;
-		m.rescale();
-	}
 	public void initWall(int xx, int yy, int ww, int hh, int re, int gr, int bl, boolean blockplayer) {
-		Obstacle w = new Obstacle(xx, yy, ww, hh, this, getColor(re, gr, bl), blockplayer);
+		Obstacle w = new Obstacle(xx, yy, ww, hh, this, ColorUtil.getColor(re, gr, bl), blockplayer);
 		walls.add(w);
 	}
 	public void initSign(int xx, int yy, int ww, int hh, String imageloc, String message) {
 		Sign w = new Sign(xx, yy, ww, hh, this, imageloc, message);
 		signs.add(w);
 	}
-	public Color getColor(int r, int g, int b) {
-		if(r<0)
-			r=0;
-		if(g<0)
-			g=0;
-		if(b<0)
-			b=0;
-		if(r>255)
-			r=255;
-		if(g>255)
-			g=255;
-		if(b>255)
-			b=255;
-		return new Color(r, g, b);
-	}
+	
 	public void addProjectile(Projectile p ) {
 	  projectiles.add(p);
 	}
   public void removeProjectile(Projectile p ) {
     projectiles.remove(p);
   }
-	public Mob initMob(String race, int exp, int money, int xx, int yy, int health, String weap, String ai) {
-		Mob m = new Mob(xx, yy, ai, this, getrace(race));
-		this.initializemob(m, weap);
+	public Mob initMob(Race race, int exp, int money, int xx, int yy, int health, String weap, String ai) {
+		Mob m = new Mob(xx, yy, ai, this, race);
+		m.initializemob(weap);
 		m.experience = exp;
 		m.money = money;
 		m.lvlup();
-		m.health = health;
-		if(m.getCurrentHealth() <= 0) {
-			m.dead = true;
-		}
+		m.setCurrentHealth(health);
+    m.updateDeadStatus();
 		mobs.add(m);
 		return m;
 	}
-	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, String race, int exp, int health) {
+	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, Race race, int exp, int health) {
 		System.out.println(race);
-		playerASDF = new Player(xx, yy, this, getrace(race));
-		this.initializemob(playerASDF, weap);
+		playerASDF = new Player(xx, yy, this, race);
+		playerASDF.initializemob(weap);
 		playerASDF.money = smoney;
 		for(Item i : items) {
 			playerASDF.addItem(i);
@@ -359,15 +148,13 @@ public class World implements Serializable {
 		playerASDF.experience = exp;
 //		p.lvlupto(40);
 		playerASDF.lvlup();
-		playerASDF.health = health;
-		if(playerASDF.getCurrentHealth()<=0) {
-			playerASDF.dead = true;
-		}
+		playerASDF.setCurrentHealth(health);
+		playerASDF.updateDeadStatus();
 	}
-	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, String race, int exp) {
+	public void initPlayer(int xx, int yy, String weap, int smoney, ArrayList<Item> items, Race race, int exp) {
 		System.out.println(race);
-		playerASDF = new Player(xx, yy, this, getrace(race));
-		this.initializemob(playerASDF, weap);
+		playerASDF = new Player(xx, yy, this, race);
+		playerASDF.initializemob(weap);
 		playerASDF.money = smoney;
 		for(Item i : items) {
 			playerASDF.addItem(i);
@@ -375,9 +162,7 @@ public class World implements Serializable {
 		playerASDF.experience = exp;
 //  p.lvlupto(40);
 		playerASDF.lvlup();
-		if(playerASDF.getCurrentHealth()<=0) {
-			playerASDF.dead = true;
-		}
+		playerASDF.updateDeadStatus();
 	}
 	public void draw(Graphics2D g) {
 		g.setColor(new Color(220, 220, 220));
@@ -473,12 +258,12 @@ public class World implements Serializable {
     Color[] colors = new Color[6];
     colors[0] = projectile.getColor();
     for(int a=1; a<colors.length && a<3; a++) {
-      colors[a] = World.darken(colors[0], -90);
+      colors[a] = ColorUtil.darken(colors[0], -90);
     }
     for(int a=3; a<colors.length; a++) {
-      colors[a] = World.darken(colors[0], 90);
+      colors[a] = ColorUtil.darken(colors[0], 90);
     }
-    drawThing(g, projectile, colors, 0);
+    drawThing(g, projectile, colors, World.THREE_D_RATIO*8);
   }
 	public void drawMob( Graphics2D g, Mob mob) {
 	  int drawx = (mob.x-playerASDF.x)/World.ZOOM+Panel.MIDX;
@@ -492,49 +277,52 @@ public class World implements Serializable {
       disty = (drawy-Panel.MIDY)/THREE_D_RATIO/World.ZOOM;
     }
     //g.fill(dim());
-    if(mob.attack!=null && mob.adraw>=0) {
-      int nx = (mob.attack.x-playerASDF.x)/World.ZOOM+Panel.MIDX;
-      int ny = (mob.attack.y-playerASDF.y)/World.ZOOM+Panel.MIDY;
-      int nw = mob.attack.width/World.ZOOM;
-      int nh = mob.attack.height/World.ZOOM;
-      if(mob.attackdirection == 1 || mob.attackdirection==3) {
-        nw = mob.attack.height/World.ZOOM;
-        nh = mob.attack.width/World.ZOOM;
-      }
-      if(nx+nw>MINDRAWX && nx-nw<MAXDRAWX && ny+nh>MINDRAWY && ny-nh<MAXDRAWY) {
-        Color cur = g.getColor();
-        if(mob.isHostile()) {
-          g.setColor(Color.red);
-        } else {
-          g.setColor(Color.green);
+    if(mob.getDrawDelay()>=0) {
+      Optional<Rectangle> attackOpt = mob.getAttack();
+      attackOpt.ifPresent(attack -> {
+        int nx = (attack.x-playerASDF.x)/World.ZOOM+Panel.MIDX;
+        int ny = (attack.y-playerASDF.y)/World.ZOOM+Panel.MIDY;
+        int nw = attack.width/World.ZOOM;
+        int nh = attack.height/World.ZOOM;
+        if(mob.getAttackDirection() == AttackDirection.RIGHT || mob.getAttackDirection() == AttackDirection.LEFT) {
+          nw = attack.height/World.ZOOM;
+          nh = attack.width/World.ZOOM;
         }
-        Graphics2D g2d = (Graphics2D)g;
-        g2d.translate(nx, ny);
-        g2d.rotate(Math.toRadians(mob.attackdirection*90));
-        if(mob.myworld.drawimage) {
-//          g2d.drawImage(weapon.image, nx, ny, nw, nh, null);
-          g2d.drawImage(mob.weapon.image, -nw/2, -nh/2, nw, nh, null);
+        if(nx+nw>MINDRAWX && nx-nw<MAXDRAWX && ny+nh>MINDRAWY && ny-nh<MAXDRAWY) {
+          Color cur = g.getColor();
+          if(mob.isHostile()) {
+            g.setColor(Color.red);
+          } else {
+            g.setColor(Color.green);
+          }
+          Graphics2D g2d = (Graphics2D)g;
+          g2d.translate(nx, ny);
+          g2d.rotate(Math.toRadians(mob.getAttackDirection().getAngle()));
+          if(mob.myworld.drawimage) {
+            g2d.drawImage(mob.weapon.image, -nw/2, -nh/2, nw, nh, null);
 
+          }
+          g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
+          g.setColor(cur);
+          g2d.rotate(Math.toRadians(-mob.getAttackDirection().getAngle()));
+          g2d.translate(-nx, -ny);
         }
-//        g.draw(new Rectangle(nx, ny, nw, nh));
-        g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
-        g.setColor(cur);
-        g2d.rotate(Math.toRadians((4-mob.attackdirection)*90));
-        g2d.translate(-nx, -ny);
-      }
-    } else {
-      mob.attackdirection = 0;
+      });
     }
-    if(!mob.dead) {
+    
+    if(!mob.isDead()) {
       g.setColor(Color.blue);
     } else {
       g.setColor(Color.black);
     }
     Color[] col = { g.getColor(), Color.red, new Color(0, 200, 0), Color.magenta, Color.cyan};
+    if( mob.isSlowed() ) {
+      col[0] = Mob.SLOW_COLOR;
+    }
     if( mob.isStunned() ) {
       col[0] = Mob.BASH_COLOR;
     }
-    if(mob.dead) {
+    if(mob.isDead()) {
       g.setColor(Color.black);
     }
     drawThing(g, mob, col);
@@ -542,14 +330,14 @@ public class World implements Serializable {
       g.setColor(Color.white);
       int l = Integer.toString(mob.level).toCharArray().length;
       g.drawString(mob.level+"", drawx-l*5+2+distx, drawy+g.getFont().getSize()/2-4+disty);
-      if( !mob.dead ) {
+      if( !mob.isDead() ) {
         g.setColor(new Color(200, 200, 200));
-        double f = (double)mob.health/mob.getMaximumHealth();
-        g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, mob.whiteline/10, 8);
-        if(mob.whiteline/10>(f*w))
-          mob.whiteline-=w/30;
-        if(mob.whiteline/10<f*w)
-          mob.whiteline = (int) (f*w*10);
+        double f = (double)mob.getCurrentHealth()/mob.getMaximumHealth();
+        g.fillRect(drawx-w/2+distx, drawy-h/2-13+disty, mob.getWhiteLine()/10, 8);
+        if(mob.getWhiteLine()/10>(f*w))
+          mob.setWhiteLine(mob.getWhiteLine() - w/30);
+        if(mob.getWhiteLine()/10<f*w)
+          mob.setWhiteLine((int) (f*w*10));
         if(mob.isHostile()) {
           g.setColor(Color.red);
         } else {
@@ -583,32 +371,36 @@ public class World implements Serializable {
     int h = player.h/World.ZOOM;
     
     g.setColor(Color.green);
-    if(player.attack!=null && player.adraw>=0) {
-      int nx = player.attack.x-playerASDF.x+Panel.MIDX;
-      int ny = player.attack.y-playerASDF.y+Panel.MIDY;
-      int nw = player.attack.width;
-      int nh = player.attack.height;
-      if(player.attackdirection == 1 || player.attackdirection==3) {
-        nw = player.attack.height;
-        nh = player.attack.width;
-      }
-      Graphics2D g2d = (Graphics2D)g;
-      g2d.translate(nx, ny);
-      g2d.rotate(Math.toRadians(player.attackdirection*90));
-      if(drawimage) {
-        g2d.drawImage(player.weapon.image, -nw/2, -nh/2, nw, nh, null);
-      }
-      g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
-      g2d.rotate(Math.toRadians((4-player.attackdirection)*90));
-      g2d.translate(-nx, -ny);
+    if(player.getDrawDelay()>=0) {
+      Optional<Rectangle> attackOpt = player.getAttack();
+      attackOpt.ifPresent(attack -> {
+        int nx = attack.x-playerASDF.x+Panel.MIDX;
+        int ny = attack.y-playerASDF.y+Panel.MIDY;
+        int nw = attack.width;
+        int nh = attack.height;
+        if(player.getAttackDirection() == AttackDirection.RIGHT || player.getAttackDirection() == AttackDirection.LEFT) {
+          nw = attack.height;
+          nh = attack.width;
+        }
+        Graphics2D g2d = (Graphics2D)g;
+        g2d.translate(nx, ny);
+        g2d.rotate(Math.toRadians(player.getAttackDirection().getAngle()));
+        if(drawimage) {
+          g2d.drawImage(player.weapon.image, -nw/2, -nh/2, nw, nh, null);
+        }
+        g.draw(new Rectangle(-nw/2, -nh/2, nw, nh));
+        g2d.rotate(Math.toRadians(-player.getAttackDirection().getAngle()));
+        g2d.translate(-nx, -ny);
+      });
+    }
+    g.setColor(Color.blue);
+    if( player.isSlowed() ) {
+      g.setColor(Mob.SLOW_COLOR);
     }
     if( player.isStunned() ) {
       g.setColor(Mob.BASH_COLOR);
     }
-    else if(!player.dead) {
-      g.setColor(Color.blue);
-    }
-    else {
+    if(player.isDead()) {
       g.setColor(Color.black);
     }
     g.fill(new Rectangle(drawx-w/2, drawy-h/2, w, h));
@@ -617,15 +409,15 @@ public class World implements Serializable {
     g.drawString(player.level+"", drawx-l*5+2, drawy+6);
     
     g.setColor(new Color(200, 200, 200));
-    double asd = (double)player.whiteline/10/player.getMaximumHealth();
+    double asd = (double)player.getWhiteLine()/10/player.getMaximumHealth();
     g.fillRect(drawx-w/2, drawy-h/2-13, (int) (asd*w), 8);
-    if(player.whiteline/10>player.health)
-      player.whiteline--;
-    if(player.whiteline/10<player.health)
-      player.whiteline = player.health*10;
+    if(player.getWhiteLine()/10>player.getCurrentHealth())
+      player.setWhiteLine(player.getWhiteLine() - 1);
+    if(player.getWhiteLine()/10<player.getCurrentHealth())
+      player.setWhiteLine(player.getCurrentHealth()*10);
     g.setColor(new Color( 0, 190, 20));
     g.drawRect(drawx-w/2, drawy-h/2-13, w, 8);
-    double f = (double)player.health/player.getMaximumHealth();
+    double f = (double)player.getCurrentHealth()/player.getMaximumHealth();
     g.fillRect(drawx-w/2, drawy-h/2-13, (int) (f*w), 8);
     
     g.setColor(new Color(150, 150, 0));
@@ -640,16 +432,16 @@ public class World implements Serializable {
       if( obst instanceof Sign ) {
         colors[0] = obst.color;
         for(int a=1; a<colors.length; a++) {
-          colors[a] = World.darken(obst.color, ((a+1)/2)*50);
+          colors[a] = ColorUtil.darken(obst.color, ((a+1)/2)*50);
         }
       }
       else {
         colors[0] = obst.color;
         for(int a=1; a<colors.length && a<3; a++) {
-          colors[a] = World.darken(obst.color, -90);
+          colors[a] = ColorUtil.darken(obst.color, -90);
         }
         for(int a=3; a<colors.length; a++) {
-          colors[a] = World.darken(obst.color, 90);
+          colors[a] = ColorUtil.darken(obst.color, 90);
         }
       }
       drawThing(g, obst, colors);
@@ -796,15 +588,7 @@ public class World implements Serializable {
       ProjectileRegion region = itprojregion.next();
       region.move();
     }
-    
-		for(SoundArea s : sounds) {
-			if(s.in(playerASDF.x(), playerASDF.y())) {
-			  // only switch to new sound if music option set
-			  if( playmusic ) {
-			    changeSound(s.getSound());
-			  }
-			}
-		}
+    soundManager.playMusic();
 	}
 	/** 
 	 * @return World.CANTMOVE or World.CANMOVE or a positive number which is the level of the dead collision.
@@ -819,23 +603,16 @@ public class World implements Serializable {
       Mob temp = itmob.next();
 			if(temp != what) {
 				if(Math.abs(temp.x-what.x)<300 && Math.abs(temp.y-what.y)<300) {
-					if(temp.dim().intersects(what.nextdim())) {
-						if(temp.dead) {
+					if(temp.dim().intersects(what.nextPosition())) {
+						if(temp.isDead()) {
 							if(temp==snitch) {
 								//TODO SNITCH
 								int xp = temp.experience*4;
 								mobs().remove(temp);
 								int newx = (int)(Math.random()*1000);
 								int newy = (int)(Math.random()*1700 -700);
-								snitch = new Mob(newx, newy, "random hostile", this, getrace("Snitch")) {
-									@Override
-									public boolean damage(int d) {
-										health-=d;
-										dead = (health<=0);
-										return dead;
-									}
-								};
-								initializemob(snitch, getNextWeapon(temp.weapon.name));
+								snitch = new Mob(newx, newy, "random hostile", this, Race.SNITCH);
+								snitch.initializemob(getNextWeapon(temp.weapon.name));
 								snitch.experience = xp;
 								mobs.add(snitch);
 							} else {
@@ -858,7 +635,7 @@ public class World implements Serializable {
 		Iterator<Obstacle> itwall = walls().iterator();
 		while( itwall.hasNext() ) {
 		  Obstacle wall = itwall.next();
-		  if(wall.dim().intersects(what.nextdim())) {
+		  if(wall.dim().intersects(what.nextPosition())) {
         if(wall.blockPlayer()) {
           return World.CANTMOVE; 
         } else {
@@ -869,7 +646,7 @@ public class World implements Serializable {
       }
 		}
 		if(what != playerASDF)
-			if(playerASDF.dim().intersects(what.nextdim())) {
+			if(playerASDF.dim().intersects(what.nextPosition())) {
 				return World.CANTMOVE; 
 			}
 		return World.CANMOVE;
@@ -916,13 +693,13 @@ public class World implements Serializable {
 			}
 		return false;
 	}
-	public boolean collides(Rectangle asdf) {
+	public Optional<Thing> collides(Rectangle asdf) {
     Iterator<Mob> itmob = mobs.iterator();
     while( itmob.hasNext() ) {
       Mob temp = itmob.next();
 			if(Math.abs(temp.x-asdf.x)<300 && Math.abs(temp.y-asdf.y)<300) {
 				if(temp.dim().intersects(asdf)) {
-					return true; 
+					return Optional.of(temp); 
 				}
 			}
 		}
@@ -932,13 +709,13 @@ public class World implements Serializable {
 //		for(int a=0; a<walls.size(); a++) {
 //			Obstacle temp = walls.get(a);
 			if(wall.dim().intersects(asdf)) {
-				return true; 
+				return Optional.of(wall); 
 			}
 		}
 		if(playerASDF.dim().intersects(asdf)) {
-			return true; 
+			return Optional.of(playerASDF); 
 		}
-		return false;
+		return Optional.empty();
 	}
 	public Queue<Mob> mobs() {
 		return mobs;
@@ -972,7 +749,7 @@ public class World implements Serializable {
     g.setFont(preFont);
 		if(s == null) {
 			g.setColor(Color.black);
-			playerASDF.inshop = false;
+			playerASDF.setInShop(false);
 			selected = 0;
 			g.setColor(Color.black);
 			int yy = -5;
@@ -990,14 +767,14 @@ public class World implements Serializable {
 			drawStat(g, x2, yy, "Regen", playerASDF.getHealthRegen()*100);
 			drawStat(g, x1, yy+=35, "X", playerASDF.x);
 			drawStat(g, x2, yy, "Y", playerASDF.y);
-			drawStat(g, x2, yy+=35, "Armor", 100-playerASDF.damagetaken);
+			drawStat(g, x2, yy+=35, "Armor", playerASDF.getArmor());
 			drawStat(g, x1, yy+=35, "Level", playerASDF.level);
 			drawStat(g, x2, yy, "Experience", playerASDF.experience);
 			//drawStat(g, x1, yy+=35, "Exptolvlup", p.exptolvlup);
 			drawStat(g, x2, yy+=35, "Expleft", playerASDF.exptolvlup-playerASDF.experience);
 			g.drawString("Race: "+playerASDF.race.name, x1, yy+=35);
 		} else {
-			playerASDF.inshop = true;
+		  playerASDF.setInShop(true);
 			drawshop(g, s);
 		}
 		playerASDF.drawinv(g, mouse);
@@ -1073,7 +850,11 @@ public class World implements Serializable {
 		messages.add(new Message("saving", 50));
 		try {
 			// Create file
-			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("saves\\"+slot+".sav")));
+		  File saveDirectory = new File("saves/");
+		  if(!saveDirectory.isDirectory()) {
+		    saveDirectory.mkdir();
+		  }
+			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("saves/"+slot+".sav")));
 			ArrayList<String> towrite = new ArrayList<String>();
 			towrite.add(playerASDF.tosave());
 			ArrayList<Mob> inaspawn = new ArrayList<Mob>();
@@ -1137,14 +918,15 @@ public class World implements Serializable {
 				if(name.equals("Player")) {
 					int xx = 0, yy = 0, money = 0, /*agi = 0, str = 0, intel = 0, , accel = 0, */health = 0;
 					int exp = 0;
-					String race = "", weap = "";
+					String raceString = "", weap = "";
 					ArrayList<Item> its = new ArrayList<Item>();
 					String[] temp = line.split("[,]");
 					String stats = temp[0];
 					String inv = temp[1];
 					st = new StringTokenizer(stats);
 					st.nextToken();
-					race = st.nextToken();
+					raceString = st.nextToken();
+					Race race = Race.parse(raceString);
 					exp = Integer.parseInt(st.nextToken());
 					money = Integer.parseInt(st.nextToken());
 					xx = Integer.parseInt(st.nextToken());
@@ -1242,10 +1024,11 @@ public class World implements Serializable {
 	public Mob loadMob(StringTokenizer st) {
 		int xx = 0, yy = 0, /*agi = 0, str = 0, intel = 0, accel = 0, */money = 0, health = 0;
 		int exp = 0;
-		String race = "", weap = "", ai = "";
+		String raceString = "", weap = "", ai = "";
 //  Need to skip a token for some reason
 		st.nextToken();
-		race = st.nextToken();
+		raceString = st.nextToken();
+		Race race = Race.parse(raceString);
 		exp = Integer.parseInt(st.nextToken());
 		money = Integer.parseInt(st.nextToken());
 		xx = Integer.parseInt(st.nextToken());
@@ -1256,22 +1039,21 @@ public class World implements Serializable {
 		return initMob(race, exp, money, xx, yy, health, weap, ai);
 	}
 	public void initializeworld() {
-		loadraces(); // TODO continue debug output from here 
 
 		//THIS IS ONLY HERE TO PREVENT NULL POINTER EXCEPTIONS
-		initPlayer(-1150, -950, "dagger", 0, new ArrayList<Item>(), "Human", 0);
+		initPlayer(-1150, -950, "dagger", 0, new ArrayList<Item>(), Race.HUMAN, 0);
 //    initPlayer(0, 0, "dagger", 0, new ArrayList<Item>(), "Human", 0);
 		
-		Mob newmob = new Mob(300, 300, "bettermovetowardsyou hostile", this, getrace("Dwarf"));
+		Mob newmob = new Mob(300, 300, "bettermovetowardsyou hostile", this, Race.DWARF);
 		mobs.add(newmob);
-		initializemob(newmob, "wooden spear");
+		newmob.initializemob("wooden spear");
 		
-		newmob = new Mob(400, 300, "sway hostile", this, getrace("Elf"));
+		newmob = new Mob(400, 300, "sway hostile", this, Race.ELF);
 		mobs.add(newmob);
-		initializemob(newmob, "wooden dagger");
-		newmob = new Mob(300, 400, "zigzag hostile", this, getrace("Elf"));
+		newmob.initializemob("wooden dagger");
+		newmob = new Mob(300, 400, "zigzag hostile", this, Race.ELF);
 		mobs.add(newmob);
-		initializemob(newmob, "wooden sword");
+		newmob.initializemob("wooden sword");
 		
 		
 		//TODO GHOST AREA
@@ -1292,26 +1074,26 @@ public class World implements Serializable {
     // boss obstruction
     walls.add(new Obstacle(-825, -3200, 200, 200, this, Color.darkGray, true));
 
-    newmob = new Mob(440, -3750, "leftattack", this, getrace("Lich"));
+    newmob = new Mob(440, -3750, "leftattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
-    initializemob(newmob, "ghost beam");
-    newmob = new Mob(-1345, -3550, "rightattack", this, getrace("Lich"));
+    newmob.initializemob("ghost beam");
+    newmob = new Mob(-1345, -3550, "rightattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
-    initializemob(newmob, "ghost beam");
-    newmob = new Mob(-1345, -3750, "rightattack", this, getrace("Lich"));
+    newmob.initializemob("ghost beam");
+    newmob = new Mob(-1345, -3750, "rightattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
-    initializemob(newmob, "ghost beam");
-    newmob = new Mob(-1345, -3950, "rightattack", this, getrace("Lich"));
+    newmob.initializemob("ghost beam");
+    newmob = new Mob(-1345, -3950, "rightattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
-    initializemob(newmob, "ghost beam");
-    newmob = new Mob(-275, -4050, "downattack", this, getrace("Lich"));
+    newmob.initializemob("ghost beam");
+    newmob = new Mob(-275, -4050, "downattack", this, Race.LICH);
     newmob.lvlupto(30);
     mobs.add(newmob);
-    initializemob(newmob, "ghost beam");
+    newmob.initializemob("ghost beam");
     
     Shop shoptoadd = new Shop(240, -4000, 150, 150, this, "Greater Rings");
     shops.add(shoptoadd);
@@ -1322,9 +1104,9 @@ public class World implements Serializable {
     shoptoadd.onsale.add(new Item("greaterstatring", 99, this));
     shoptoadd.onsale.add(new Item("greatercritring", 99, this));
     
-		newmob = new Mob(-1200, -2850, "random hostile nomiss", this, getrace("bigboss"));
+		newmob = new Mob(-1200, -2850, "random hostile nomiss", this, Race.BIGBOSS);
 		mobs.add(newmob);
-		initializemob(newmob, "ghost bomb");
+		newmob.initializemob("ghost bomb");
 		newmob.lvlupto(60);
 		shoptoadd = new Shop(-1200, -2850, 120, 120, this, "Dragon");
 		shops.add(shoptoadd);
@@ -1377,8 +1159,8 @@ public class World implements Serializable {
 		}
 		Mob toadd;
 		for(int y = -1900; y <= -1300; y += 100) {
-			toadd = new Mob(2600, y, "horizontalpatrol hostile nomiss", this, getrace("Patrol"));
-			initializemob(toadd, "rune deathaura");
+			toadd = new Mob(2600, y, "horizontalpatrol hostile nomiss", this, Race.PATROL);
+			toadd.initializemob("rune deathaura");
 			toadd.lvlupto(20);
 			mobs.add(toadd);
 		}
@@ -1391,8 +1173,8 @@ public class World implements Serializable {
 				return super.remove(m);
 			}
 		});
-		toadd = new Mob(2800, -3000, "random nomiss hostile", this, getrace("Super_Ninja"));
-		initializemob(toadd, "rune sword");
+		toadd = new Mob(2800, -3000, "random nomiss hostile", this, Race.SUPER_NINJA);
+		toadd.initializemob("rune sword");
 		spawns.get(spawns.size()-1).addmob(toadd);
 		mobs.add(toadd);
 		
@@ -1414,9 +1196,9 @@ public class World implements Serializable {
 					w+="dagger";
 				}
 				w = "rune sword";
-				toadd = new Mob(xp, yp, "zigzag hostile", this, getrace("Warrior"));
+				toadd = new Mob(xp, yp, "zigzag hostile", this, Race.WARRIOR);
 				mobs.add(toadd);
-				initializemob(toadd, w);
+				toadd.initializemob(w);
 				toadd.lvlupto(15+rand.nextInt(10));
 			}
 		}
@@ -1427,10 +1209,10 @@ public class World implements Serializable {
 		walls.add(new Obstacle(2300, -700, 2000, 200, this, Color.red, true));
 		walls.add(new Obstacle(3300, -2000, 400, 3000, this, Color.red, true));
 		walls.add(new Obstacle(2300, -3300, 3600, 200, this, Color.red, true));
-		newmob = new Mob(400, -3100, "random hostile", this, getrace("bigboss"));
+		newmob = new Mob(400, -3100, "random hostile", this, Race.BIGBOSS);
 		mobs.add(newmob);
 		
-		initializemob(newmob, "dragon bomb");
+		newmob.initializemob("dragon bomb");
 		newmob.lvlupto(40);
 		
 //		walls.add(new Obstacle(850, -950, 110, 110, this, Color.orange, false));
@@ -1610,9 +1392,9 @@ public class World implements Serializable {
 		shoptoadd.onsale.add(new Item("statring", 9, this));
 		shoptoadd.onsale.add(new Item("wooden squareshield", 9, this));
 		
-		newmob = new Mob(900, -900, "random hostile", this, getrace("bigboss"));
+		newmob = new Mob(900, -900, "random hostile", this, Race.BIGBOSS);
 		mobs.add(newmob);
-		initializemob(newmob, "rune bomb");
+		newmob.initializemob("rune bomb");
 		newmob.lvlupto(15);
 		
 		
@@ -1652,19 +1434,19 @@ public class World implements Serializable {
 
 		walls.add(new Obstacle(1200, 940, 400, 150, this, Color.black, false));
 		spawns.add(new Spawn(1550, 500, 300, 800, this, 10));
-		toadd = new Mob(1500, 400, "random hostile", this, getrace("fatdummy"));
-		initializemob(toadd, "iron deathaura");
+		toadd = new Mob(1500, 400, "random hostile", this, Race.FATDUMMY);
+		toadd.initializemob("iron deathaura");
 		spawns.get(spawns.size()-1).addmob(toadd);
 		mobs.add(toadd);
 		
-		toadd = new Mob(1600, 400, "random hostile", this, getrace("smalldummy"));
-		initializemob(toadd, "iron dagger");
+		toadd = new Mob(1600, 400, "random hostile", this, Race.SMALLDUMMY);
+		toadd.initializemob("iron dagger");
 		spawns.get(spawns.size()-1).addmob(toadd);
 		mobs.add(toadd);
 
 		//TODO SNITCH
-		snitch = new Mob(-1100, -900, "random hostile", this, getrace("Snitch"));
-		initializemob(snitch, "wooden mace");
+		snitch = new Mob(-1100, -900, "random hostile", this, Race.SNITCH);
+		snitch.initializemob("wooden mace");
 		snitch.experience = 10000;
 		mobs.add(snitch);
 		
@@ -1677,9 +1459,15 @@ public class World implements Serializable {
 			for(int b=2; b<=9; b++) {
 				int yp = a*85+200;
 				int xp= -b*100+rand.nextInt(200)-100;
-				Race r = races.get(rand.nextInt(2));
+				Race r;
+				if( rand.nextBoolean() ) {
+				  r = Race.HUMAN;
+				}
+				else {
+				  r = Race.ELF;
+				}
 				Rectangle  di = new Rectangle(xp-r.startwidth/2, yp-r.startheight/2, r.startwidth, r.startheight);
-				if(!collides(di)) {
+				if(!collides(di).isPresent()) {
 					String w = "";
 					int bl = rand.nextInt(4);
 					int al = rand.nextInt(7);
@@ -1752,7 +1540,7 @@ public class World implements Serializable {
             }
           }
           mobs.add(newmob);
-          initializemob(newmob, w);
+          newmob.initializemob(w);
 				}
 			}
 		}
@@ -1790,12 +1578,15 @@ public class World implements Serializable {
     walls.add(new Obstacle(-1500, -2100, 200, 800, this, Color.yellow, false));
     walls.add(new Obstacle(-2600, -400, 200, 4200, this, Color.lightGray, true));
 
-    newmob = new Mob(-2050, 1500, "random hostile nomiss", this, getrace("bigboss"));
+    newmob = new Mob(-2050, 1500, "random hostile nomiss", this, Race.BIGBOSS);
     mobs.add(newmob);
-    initializemob(newmob, "frost bomb");
+    newmob.initializemob("frost bomb");
     newmob.lvlupto(80);
     
-    ProjectileRegion region = new ProjectileRegion(-2500, -2550, 900, 3850, this, 200) {
+    ArrayList<Debuff> debuffs = new ArrayList<>();
+    debuffs.add(new Debuff(DebuffType.STUN, 5, 0.75));
+    debuffs.add(new Debuff(DebuffType.SLOW, 5, 0.5));
+    ProjectileRegion region = new ProjectileRegion(-2500, -2550, 900, 3850, this, 200, 100, debuffs) {
       @Override
       public Point getNewSpawnLocation() {
         double tx = (int)(w*Math.random()*2/3);
@@ -1810,7 +1601,7 @@ public class World implements Serializable {
       }
       @Override
       public float getSpeed() {
-        return 30f;
+        return (float) (29F + Math.random());
       }
     };
     projectileRegions.add(region);
@@ -1857,108 +1648,28 @@ public class World implements Serializable {
 		for(int a=0; a<5; a++) {
 			int yp = -rand.nextInt(750)-150;
 			int xp = -rand.nextInt(750)-150;
-			Race r = getrace("Goat");
+			Race r = Race.GOAT;
 			Rectangle di = new Rectangle(xp-r.startwidth, yp-r.startheight, r.startwidth, r.startheight);
-			while(collides(di)) {
+			while(collides(di).isPresent()) {
 				yp = -rand.nextInt(750)-150;
 				xp = -rand.nextInt(750)-150;
 				di = new Rectangle(xp-r.startwidth, yp-r.startheight, r.startwidth, r.startheight);
 			}
 			toadd = new Mob(xp, yp, "random hostile", this, r);
-			initializemob(toadd, "steel sword");
+			toadd.initializemob("steel sword");
 			spawns.get(spawns.size()-1).addmob(toadd);
 			mobs.add(toadd);
 		}
 	}
-	public void loadraces() {
-		Frame.print("Loading Races: ");
-		races = new ArrayList<Race>();
-		// name, agility increase, strength increase, damage increase
-		// agility, strength, intelligence, damage
-		// health, speed, regen
-		// width, height, armor
-		races.add(new Race("Elf", 4, 7, .1, 
-				25, 30, 12, 6, 
-				20, 8, .01, 
-				36, 36, 3));
-		
-		races.add(new Race("Human", 3, 9, .2, 
-				20, 40, 11, 7, 
-				25, 6, .05, 
-				38, 38, 4));
-		
-		races.add(new Race("Dwarf", 2, 11, .3, 
-				15, 50, 10, 9, 
-				30, 5, .1, 
-				40, 40, 5));
-		
-		races.add(new Race("Warrior", 3, 9, .5, 
-				25, 50, 9, 10, 
-				30, 6, .09, 
-				39, 39, 10));
-		
-		races.add(new Race("Patrol", 3, 9, .5, 
-				25, 50, 9, 10, 
-				30, 15, .09, 
-				39, 39, 10));
-		
-		races.add(new Race("Scholar", 3, 8, .1,
-				18, 38, 30, 6, 
-				24, 6, .04, 
-				37, 37, 5));
-		
-		races.add(new Race("Assassin", 1, 5, 1.5, 
-				30, 30, 10, 10, 
-				20, 8, .09, 
-				35, 35, 2));
-			
-		races.add(new Race("Super_Ninja", 12, 18, 3,
-				10, 30, 25, 5,
-				20, 10, .05,
-				38, 38, 4));
-		
-		races.add(new Race("Goat", 2, 3, 1, 
-		    100, 10, 1, 15, 
-		    10, 10, 1, 
-		    25, 25, 3));
-		races.add(new Race("Snitch", 1, 1, 1, 
-		    1, 1, 1, 10, 
-		    1, 25, 0, 
-		    1, 10, 3));
-    races.add(new Race("Lich", 10, 10, 10, 
-        50, 50, 10, 10, 
-        100, 0, 0.3, 
-        60, 60, 40));
-		races.add(new Race("bigboss", 5, 13, 2, 
-		    50, 100, 16, 10, 
-		    100, 0, .5, 
-		    180, 180, 25));
-		races.add(new Race("fatdummy", 0, 11, 0, 
-		    1, 150, 1, 1, 
-		    150, 4, 1, 
-		    60, 60, 10));
-		races.add(new Race("smalldummy", 0, 21, 0, 
-		    100, 15, 1, 1, 
-		    1, 8, 0, 
-		    40, 40, 1));
-		races.add(new Race("Baal", 0, 0, 0, 
-		    999999, 999999, 0, 999999, 
-		    999999, 50, 999999, 
-		    50, 50, 99));
-		for(Race race : races) {
-			Frame.print(race.name + ", ");
-		}
-		Frame.println();
-	}
-	public Race getrace(String ra) {
-		for(Race r : races) {
-			if(r.name.equals(ra)) {
-				return r;
-			}
-		}
-		return null;
-	}
-//	public String converttosave(String s) {
-//		
-//	}
+	
+
+  @Override
+  public int getPlayerX() {
+    return playerASDF.x();
+  }
+
+  @Override
+  public int getPlayerY() {
+    return playerASDF.y();
+  }
 }

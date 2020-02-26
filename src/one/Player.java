@@ -14,15 +14,12 @@ public class Player extends Mob{
 	}
 	@Override
 	public boolean damage(int d) {
-		boolean alreadydead = dead;
-		health-=d;
-		dead = (health<=0);
-		if(dead && !alreadydead) {
-			myworld.changeSound(null);
-			myworld.death.play(0);
-      myworld.deathTransparency = 0;
+		boolean alreadydead = isDead();
+		super.damage(d);
+		if(isDead() && !alreadydead) {
+		  myworld.playerDied(this);
 		}
-		return dead;
+		return isDead();
 	}
 	public boolean buyItem(Item i) {
 		boolean buysuccessful = false;
@@ -76,39 +73,41 @@ public class Player extends Mob{
 		weapon.draw(g, Panel.DIMX - dx-90, Panel.DIMY - dy1, 80, 80, m, false);
 	}
 	
-	public void setspeed(int xs, int ys) {
-		if(xs==1) {
-			xspeed = getAccel();
-		} 
-		if(xs==-1) {
-			xspeed = -getAccel();
-		}
-		if(xs == -2) {
-			if(xspeed<0)
-				xspeed = 0;
-		}
-		if(xs == 2) {
-			if(xspeed>0)
-				xspeed = 0;
-		}
-		if(ys==1) {
-			yspeed = getAccel();
-		}
-		if(ys==-1) {
-			yspeed = -getAccel();
-		}
-		if(ys == -2) {
-			if(yspeed<0)
-				yspeed = 0;
-		}
-		if(ys == 2) {
-			if(yspeed>0)
-				yspeed = 0;
-		}
+	public void moveLeft() {
+	  setXSpeed(-getAccel());
+	}
+	public void moveRight() {
+	  setXSpeed(getAccel());
+	}
+	public void moveUp() {
+	  setYSpeed(-getAccel());
+	}
+	public void moveDown() {
+	  setYSpeed(getAccel());
+	}
+	public void stopMovingLeft() {
+	  if( getXSpeed() < 0 ) {
+	    setXSpeed(0);
+	  }
+	}
+	public void stopMovingRight() {
+	  if( getXSpeed() > 0 ) {
+      setXSpeed(0);
+	  }
+	}
+	public void stopMovingUp() {
+	  if( getYSpeed() < 0 ) {
+	    setYSpeed(0);
+	  }
+	}
+	public void stopMovingDown() {
+	  if( getYSpeed() > 0 ) {
+      setYSpeed(0);
+	  }
 	}
 	public String tosave() {
 		String s = "Player "+race.name+" "+experience+" "+money+" "+x+" "+y;
-		s+=" "+health+" "+weapon.name+" , "+itemsininv();
+		s+=" "+getCurrentHealth()+" "+weapon.name+" , "+itemsininv();
 		System.out.println("Saving player");
 		for(int a=0; a<inv.size(); a++) {
 			Item i = inv.get(a);

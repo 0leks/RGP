@@ -5,7 +5,7 @@ import java.util.Random;
 
 public class Popup extends Message{
   
-  public  static final int DURATION = 80;
+  public static final int DURATION = 80;
   
 	private static int dist = 40;
 	protected double dx;

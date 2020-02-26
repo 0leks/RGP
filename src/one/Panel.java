@@ -1,23 +1,15 @@
 package one;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Random;
 import java.awt.*;
 import java.awt.event.*;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.FloatControl;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import gui.Frame;
-
-import javax.swing.ImageIcon;
+import one.Mob.*;
+import sound.*;
 
 import java.util.ArrayList;
 
@@ -32,7 +24,6 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
   public static final int GUIWIDTH = 300;
   public static final int GUIHEIGHT = 30;
   
-	private Random rand;
 	private World world;
 	private ArrayList<Key> keys;
 	private Point mouse;
@@ -49,13 +40,15 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 	private Menu newgamemenu;
 	
 	private boolean gamestarted = false;
+	
+	private SoundManager soundManager;
 
-	public Panel(String classType) {
+	public Panel(Race classType, SoundManager soundManager) {
 		Frame.println("Initializing Panel");
+		this.soundManager = soundManager;
 		mouse = new Point(0, 0);
 		addMouseListener(this);
 		addMouseMotionListener(this);
-		rand = new Random();
 		addKeyListener(new TAdapter());
 		setFocusable(true);
 		setBackground(Color.white);
@@ -144,7 +137,8 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 		keys.add(new Key(KeyEvent.VK_SPACE, "space"));
 		keys.add(new Key(KeyEvent.VK_ENTER, "enter"));
 
-		world = new World();
+		world = new World(soundManager);
+		soundManager.addPlayerLocation(world);
 		updateSize();
 
 		Frame.println("Creating Menu Blink Timer with delay: " + BLINK_TIMER_DELAY);
@@ -167,9 +161,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
       gamestarted = true;
     }
     activemenu.setsel(0);
-    if( World.playmusic ) {
-      world.changeSound(world.grass);
-    }
+    soundManager.playMusic();
 	}
 	
 	public void updateSize() {
@@ -236,32 +228,32 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 					}
 				} else {
 					if(k.name().equals("w")) {
-						world.playerASDF.setspeed(0, -1);
+					  world.playerASDF.moveUp();
 					}
 					if(k.name().equals("a")) {
-						world.playerASDF.setspeed(-1, 0);
+					  world.playerASDF.moveLeft();
 					}
 					if(k.name().equals("s")) {
-						world.playerASDF.setspeed(0, 1);
+					  world.playerASDF.moveDown();
 					}
 					if(k.name().equals("d")) {
-						world.playerASDF.setspeed(1, 0);
+					  world.playerASDF.moveRight();
 					}
-					if(!world.playerASDF.inshop) {
+					if(!world.playerASDF.isInShop()) {
 						if(k.name().equals("up")) {
-							world.playerASDF.setAttack("up");
+							world.playerASDF.setAttack(AttackDirection.UP);
 						}
 						if(k.name().equals("left")) {
-							world.playerASDF.setAttack("left");
+							world.playerASDF.setAttack(AttackDirection.LEFT);
 						}
 						if(k.name().equals("down")) {
-							world.playerASDF.setAttack("down");
+							world.playerASDF.setAttack(AttackDirection.DOWN);
 						}
 						if(k.name().equals("right")) {
-							world.playerASDF.setAttack("right");
+							world.playerASDF.setAttack(AttackDirection.RIGHT);
 						}
 					}
-					if(world.playerASDF.inshop) {
+					if(world.playerASDF.isInShop()) {
 						if(k.name().equals("up") && k.justchecked == false) {
 							k.justchecked = true;
 							if(world.selected-5>=0)
@@ -282,7 +274,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 							if(world.selected+1<world.inshop().onsale.size())
 								world.selected++;
 						}
-						if(k.name().equals("space") && k.justchecked == false && world.playerASDF.inshop) {
+						if(k.name().equals("space") && k.justchecked == false && world.playerASDF.isInShop()) {
 							k.justchecked = true;
 							Shop s = world.inshop();
 							Item i = s.onsale.get(world.selected);
@@ -299,16 +291,16 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 					
 				} else {
 					if(k.name().equals("w")) {
-						world.playerASDF.setspeed(0, -2);
+					  world.playerASDF.stopMovingUp();
 					}
 					if(k.name().equals("a")) {
-						world.playerASDF.setspeed(-2, 0);
+					  world.playerASDF.stopMovingLeft();
 					}
 					if(k.name().equals("s")) {
-						world.playerASDF.setspeed(0, 2);
+					  world.playerASDF.stopMovingDown();
 					}
 					if(k.name().equals("d")) {
-						world.playerASDF.setspeed(2, 0);
+					  world.playerASDF.stopMovingRight();
 					}
 				}
 				
@@ -341,12 +333,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
         world.draw3d = true;
       }
       if( b.is("music")) {
-        if( world.playmusic ) {
-          world.stopMusic();
-        }
-        else {
-          world.startMusic();
-        }
+        world.toggleMusic();
       }
     } else if(activemenu == customoptions) {
       if(b.is("useattackimage")) {
@@ -368,30 +355,31 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
         world.save("slot5");
     } else if(activemenu == loadmenu) {
       if(b.is("slot1")) 
-        world.load("slot1");
+        loadSave("slot1");
       if(b.is("slot2")) 
-        world.load("slot2");
+        loadSave("slot2");
       if(b.is("slot3")) 
-        world.load("slot3");
+        loadSave("slot3");
       if(b.is("slot4")) 
-        world.load("slot4");
+        loadSave("slot4");
       if(b.is("slot5")) 
-        world.load("slot5");
+        loadSave("slot5");
     } else if(activemenu == newgamemenu) {
       if(b.is("newgame")) {
-        String race = "";
+        Race race = null;
         String weap = "";
         for(MenuButton m : activemenu.buts) {
           if(m instanceof MenuButtonGroup) {
             MenuButtonGroup mbg = (MenuButtonGroup)m;
             if(mbg.is("Race")) {
-              race = mbg.getSelected().name();
+              race = Race.parse(mbg.getSelected().name());
             }
             if(mbg.is("Weapon")) {
               weap = mbg.getSelected().name();
             }
           }
         }
+        soundManager.unlockSound();
         world.newgame(race);
         if(!gamestarted) {
           gamestarted = true;
@@ -400,41 +388,13 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
       }
       if(b.is("back")) {
         if(!gamestarted) {
-          world.newgame("human");
+          world.newgame(Race.HUMAN);
           gamestarted = true;
         } else {
           activemenu.setsel(0);
         }
       }
     }
-//    if(activemenu == initmenu) {
-//      if(b.is("newgame")) {
-//        String race = "";
-//        String weap = "";
-//        for(MenuButton m : activemenu.buts) {
-//          if(m instanceof MenuButtonGroup) {
-//            MenuButtonGroup mbg = (MenuButtonGroup)m;
-//            if(mbg.is("Race")) {
-//              race = mbg.getSelected().name();
-//            }
-//            if(mbg.is("Weapon")) {
-//              weap = mbg.getSelected().name();
-//            }
-//          }
-//        }
-//        world.newgame(race, weap);
-//        if(!gamestarted) {
-//          gamestarted = true;
-//        }
-//        activemenu.setsel(1);
-//        if(World.playmusic ) {
-//          if( menu!=null) {
-//            menu.fadeOut(.1);
-//          }
-//          world.changeSound(world.grass);
-//        }
-//      }
-//    }
     if(b.getmenu() != null) {
       activemenu = b.getmenu();
       activemenu.setactive(true);
@@ -444,14 +404,6 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 	public void log(String msg) {
 		System.out.print(msg);
 	}
-//	public void setactive(boolean a) {
-//		active = !active;
-//		if(active) {
-//			timer.start();
-//		} else {
-//			timer.stop();
-//		}
-//	}
 	public void paint(Graphics g) {
 	
 		super.paint(g);
@@ -461,10 +413,8 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 		g.setColor(Color.black);
 		g.setFont(small);
 		Graphics2D g2d = (Graphics2D) g;
-		RenderingHints rh = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
-		rh.put(RenderingHints.KEY_RENDERING,
-				RenderingHints.VALUE_RENDER_QUALITY);
+		RenderingHints rh = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		rh.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g2d.setRenderingHints(rh);
 
 		g2d.setColor(Color.blue);
@@ -472,7 +422,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 		if(gamestarted)
 			world.draw(g2d);
 
-    if( world.playerASDF.dead ) {
+    if( world.playerASDF.isDead() ) {
       g.setColor(new Color( 0, 0, 0, (world.deathTransparency++)/4) );
       if( world.deathTransparency > 1020) {
         world.deathTransparency = 1020;
@@ -576,7 +526,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 			}
 			if(key == KeyEvent.VK_C) {
 				world.playerASDF.money +=100;
-				world.playerASDF.lvlup("",  0);
+				world.playerASDF.rescale();
 			}
 			if(key == KeyEvent.VK_ESCAPE) {
 				openmenu();
@@ -590,7 +540,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 	}
 	
 	public void openmenu() {
-		world.changeSound(null);
+	  soundManager.fadeOutMusic();
 		activemenu.setactive(true);
 		active = false;
 	}

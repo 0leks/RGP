@@ -2,6 +2,7 @@ package one;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.util.*;
 
 public class Projectile extends Thing {
   
@@ -12,9 +13,12 @@ public class Projectile extends Thing {
   private float travelled;
   private float speed;
   
+  private int damage;
+  private ArrayList<Debuff> debuffs;
+  
   private Color color;
   
-  public Projectile(int sx, int sy, int sw, int sh, World smyworld, Thing source, Point target, float speed) {
+  public Projectile(int sx, int sy, int sw, int sh, World smyworld, Thing source, Point target, float speed, int damage, ArrayList<Debuff> debuffs) {
     super(sx, sy, sw, sh, smyworld);
     this.start = new Point(sx, sy);
     this.source = source;
@@ -23,6 +27,8 @@ public class Projectile extends Thing {
     int deltay = target.y - start.y;
     distance = (float) Math.sqrt(deltax*deltax + deltay*deltay);
     this.speed = speed;
+    this.damage = damage;
+    this.debuffs = debuffs;
 //    System.err.println(sx + ", " + sy + ", " + target.x + ", " + target.y);
   }
   
@@ -50,6 +56,24 @@ public class Projectile extends Thing {
       }
       myworld.removeProjectile(this);
       return true;
+    }
+    Optional<Thing> collidedWithOpt = myworld.collides(this.dim());
+    collidedWithOpt.ifPresent(collidedWith -> {
+      if( collidedWith instanceof Mob ) {
+        Mob mob = (Mob)collidedWith;
+        int damageToTake = (int) (damage*mob.getDamageReduction());
+        mob.popups.add(new Popup(damageToTake+"", Popup.DURATION));
+        mob.damage(damageToTake);
+        for( Debuff debuff : debuffs ) {
+          if( Math.random() >= debuff.chance ) {
+            mob.applyDebuff(debuff);
+          }
+        }
+        myworld.removeProjectile(this);
+      }
+    });
+    if( collidedWithOpt.isPresent() ) {
+      
     }
     return false;
   }
