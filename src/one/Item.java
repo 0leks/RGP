@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.io.Serializable;
+import java.net.*;
 import java.util.ArrayList;
 
 import javax.swing.ImageIcon;
@@ -166,8 +167,11 @@ public class Item {
       addbuff(Attribute.AGILITY, 5, true);
       cost = 10;
     }
-    ImageIcon ii = new ImageIcon("resources\\images\\items\\" + name + ".png");
-    image = ii.getImage();
+    URL imageResource = Weapon.class.getClassLoader().getResource("resources/images/items/" + name + ".png");
+    if(imageResource != null) {
+      ImageIcon ii = new ImageIcon(imageResource);
+      image = ii.getImage();
+    }
   }
 
   public void addbuff(Attribute stat, int val, boolean raw) {

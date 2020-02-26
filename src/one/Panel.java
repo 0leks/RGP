@@ -1,25 +1,15 @@
 package one;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Random;
 import java.awt.*;
 import java.awt.event.*;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.FloatControl;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import gui.Frame;
 import one.Mob.*;
 import sound.*;
-
-import javax.swing.ImageIcon;
 
 import java.util.ArrayList;
 
@@ -34,7 +24,6 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
   public static final int GUIWIDTH = 300;
   public static final int GUIHEIGHT = 30;
   
-	private Random rand;
 	private World world;
 	private ArrayList<Key> keys;
 	private Point mouse;
@@ -60,7 +49,6 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 		mouse = new Point(0, 0);
 		addMouseListener(this);
 		addMouseMotionListener(this);
-		rand = new Random();
 		addKeyListener(new TAdapter());
 		setFocusable(true);
 		setBackground(Color.white);
@@ -367,15 +355,15 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
         world.save("slot5");
     } else if(activemenu == loadmenu) {
       if(b.is("slot1")) 
-        world.load("slot1");
+        loadSave("slot1");
       if(b.is("slot2")) 
-        world.load("slot2");
+        loadSave("slot2");
       if(b.is("slot3")) 
-        world.load("slot3");
+        loadSave("slot3");
       if(b.is("slot4")) 
-        world.load("slot4");
+        loadSave("slot4");
       if(b.is("slot5")) 
-        world.load("slot5");
+        loadSave("slot5");
     } else if(activemenu == newgamemenu) {
       if(b.is("newgame")) {
         Race race = null;
@@ -425,10 +413,8 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 		g.setColor(Color.black);
 		g.setFont(small);
 		Graphics2D g2d = (Graphics2D) g;
-		RenderingHints rh = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
-		rh.put(RenderingHints.KEY_RENDERING,
-				RenderingHints.VALUE_RENDER_QUALITY);
+		RenderingHints rh = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		rh.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g2d.setRenderingHints(rh);
 
 		g2d.setColor(Color.blue);

@@ -1,13 +1,9 @@
 package one;
 
-import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.*;
+import java.util.*;
 
-import javax.swing.ImageIcon;
+import javax.swing.*;
 
 import one.Debuff.*;
 
@@ -18,6 +14,7 @@ public class Weapon extends Item {
 	public ArrayList<Debuff> debuffs;
 	public Weapon(String sname, int amount, World m) {
 		super(sname, amount, m);
+		System.out.println("Created weapon with name " + sname);
 	}
 //	@Override
 //	public void draw(Graphics2D g, int xp, int yp, int wp, int hp) {
@@ -270,7 +267,10 @@ public class Weapon extends Item {
       debuffs.add(d);
 			cost = 30;
 		}
-		ImageIcon ii = new ImageIcon("resources\\images\\weapons\\"+name+".png");
-		image = ii.getImage();
+		URL imageResource = Weapon.class.getClassLoader().getResource("resources/images/weapons/" + name + ".png");
+		if(imageResource != null) {
+		  ImageIcon ii = new ImageIcon(imageResource);
+	    image = ii.getImage();
+		}
 	}
 }
