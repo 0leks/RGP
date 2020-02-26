@@ -11,5 +11,6 @@ public interface GameControllerInterface {
   void saveGame(String slot);
   
   World getWorld();
+  Player getPlayer();
   
 }

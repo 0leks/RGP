@@ -35,18 +35,22 @@ public class GameController implements GameControllerInterface {
   }
   
   @Override
-  public void loadGame(String slot) {
-    world.load(slot);
-  }
-  
-  @Override
   public World getWorld() {
     return world;
+  }
+  @Override
+  public Player getPlayer() {
+    return world.getPlayer();
   }
   
   @Override
   public void startNewGame(Race race) {
     world.newgame(race);
+  }
+  
+  @Override
+  public void loadGame(String slot) {
+    world.load(slot);
   }
   @Override
   public void saveGame(String slot) {

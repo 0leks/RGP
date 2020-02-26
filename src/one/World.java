@@ -41,7 +41,7 @@ public class World implements Serializable, PlayerLocation {
 	private Queue<Sign> signs;
 	private ArrayList<SoundArea> sounds;
 	
-	public Player playerASDF;
+	private Player playerASDF;
 	private Mob snitch;
 	
 	protected int deathTransparency;
@@ -68,6 +68,10 @@ public class World implements Serializable, PlayerLocation {
 
 		initializeSoundAreas();
 		initializeworld();
+	}
+	
+	public Player getPlayer() {
+	  return playerASDF;
 	}
 	
 	public void playerDied(Player player) {
