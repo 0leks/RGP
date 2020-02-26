@@ -135,7 +135,7 @@ public class World implements Serializable, PlayerLocation {
 		m.initializemob(weap);
 		m.experience = exp;
 		m.money = money;
-		m.lvlup();
+		m.checkForLevelUp();
 		m.setCurrentHealth(health);
     m.updateDeadStatus();
 		mobs.add(m);
@@ -151,7 +151,7 @@ public class World implements Serializable, PlayerLocation {
 		}
 		playerASDF.experience = exp;
 //		p.lvlupto(40);
-		playerASDF.lvlup();
+		playerASDF.checkForLevelUp();
 		playerASDF.setCurrentHealth(health);
 		playerASDF.updateDeadStatus();
 	}
@@ -165,7 +165,7 @@ public class World implements Serializable, PlayerLocation {
 		}
 		playerASDF.experience = exp;
 //  p.lvlupto(40);
-		playerASDF.lvlup();
+		playerASDF.checkForLevelUp();
 		playerASDF.updateDeadStatus();
 	}
 	public void draw(Graphics2D g) {

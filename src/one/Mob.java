@@ -120,7 +120,7 @@ public class Mob extends Thing {
 		ai = sai;
 		addcrit(new Crit(100, 1));
 		rescale(); // something to do with stats
-    lvlup();
+    checkForLevelUp();
 	}
   
   
@@ -171,14 +171,14 @@ public class Mob extends Thing {
 	public void lvlupto(int lvl) {
 		while(level < lvl) {
 			experience = exptolvlup;
-			lvlup();
+			checkForLevelUp();
 			rescale();
 		}
 	}
   public void lvlupby(int lvl) {
     while(lvl>0) {
       experience = exptolvlup;
-      lvlup();
+      checkForLevelUp();
       lvl--;
       rescale();
     }
@@ -249,20 +249,19 @@ public class Mob extends Thing {
 	
 	public void addbuff(Buff b) {
 		if(b.isMultiplier()){ 
-			lvlup(b.stat, b.value);
+			levelUpAttribute(b.stat, b.value);
 		} else {
-			multiplierLvlup(b.stat, b.value*.01);
+			levelUpMultiplier(b.stat, b.value*.01);
 		}
 	}
 	public void subbuff(Buff b) {
 		if(b.isMultiplier()){ 
-			lvlup(b.stat, -b.value);
+			levelUpAttribute(b.stat, -b.value);
 		} else {
-			multiplierLvlup(b.stat, 1/(double)(b.value*.01));
+			levelUpMultiplier(b.stat, 1/(double)(b.value*.01));
 		}
 	}
 	public void rescale() {
-		
 		basedamage = (getStrength())/9;
 		regen = getStrength()*.001 + regenbuff;
 		if(accel<0)
@@ -271,19 +270,18 @@ public class Mob extends Thing {
 	/**
 	 *  Checks if you have enough experience to level up, and levels up in that case.
 	 */
-	public void lvlup() {
-		if(experience>=exptolvlup) {
+	public void checkForLevelUp() {
+		while(experience>=exptolvlup) {
 			expatstartlvl = exptolvlup;
 			exptolvlup += (int) (Math.pow(level, 2)*5)+30;
-			lvlup(Attribute.ACTUAL_STRENGTH, race.strinc);
-			lvlup(Attribute.ACTUAL_AGILITY, race.agiinc);
+			levelUpAttribute(Attribute.ACTUAL_STRENGTH, race.strinc);
+			levelUpAttribute(Attribute.ACTUAL_AGILITY, race.agiinc);
 			damagebuff+=race.dmginc;
 			level++;
-			lvlup();
 		}
 		rescale();
 	}
-	public void lvlup(Attribute attribute, int n) {
+	public void levelUpAttribute(Attribute attribute, int n) {
 	  if( attribute == Attribute.STRENGTH ) {
 			strengthbuff+=n;
 			setCurrentHealth(getCurrentHealth() + STR_HEALTH_MULTIPLIER*n);
@@ -321,7 +319,7 @@ public class Mob extends Thing {
 		}
 		rescale();
 	}
-	public void multiplierLvlup(Attribute attribute, double n) {
+	public void levelUpMultiplier(Attribute attribute, double n) {
     if( attribute == Attribute.STRENGTH ) {
 			strengthMultiplier*=n;
 		}
@@ -417,7 +415,7 @@ public class Mob extends Thing {
 	public void move() {
 		if(!isDead()) {
 			rescale(); // something to do with stats
-			lvlup(); // check if it got a level up
+			checkForLevelUp(); // check if it got a level up
 			decrementDebuffs();
       handlePoison();
       

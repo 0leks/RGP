@@ -46,7 +46,7 @@ public class Spawn extends Thing{
 		m.setPos(xp, yp);
 		m.clearPopups();
 		m.experience+=experience;
-		m.lvlup();
+		m.checkForLevelUp();
 		m.setHealthToMaximum();
 		m.updateDeadStatus();
 		return toret;

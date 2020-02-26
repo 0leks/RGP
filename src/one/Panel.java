@@ -485,29 +485,28 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 			  gameController.getPlayer().agilitybuff += 1000;
 			  gameController.getPlayer().strengthbuff += 1000;
 			  gameController.getPlayer().regenbuff += 1;
-			  gameController.getPlayer().lvlup();
+			  gameController.getPlayer().checkForLevelUp();
 			}
       if(key == KeyEvent.VK_P) {
         World.NO_COLLISION = !World.NO_COLLISION;
       }
       if(key == KeyEvent.VK_K) {
         gameController.getPlayer().experience += 4000;
-        gameController.getPlayer().lvlup();
+        gameController.getPlayer().checkForLevelUp();
       }
       if(key == KeyEvent.VK_L) {
         World.ZOOM = (World.ZOOM==8)?1:8;
       }
 			if(key == KeyEvent.VK_O) {
 			  gameController.getPlayer().agilitybuff += 100;
-			  gameController.getPlayer().lvlup();
+			  gameController.getPlayer().checkForLevelUp();
 			}
 			if(key == KeyEvent.VK_I) {
 			  gameController.getPlayer().accel++;
-			  gameController.getPlayer().lvlup();
+			  gameController.getPlayer().checkForLevelUp();
 			}
 			if(key == KeyEvent.VK_C) {
 			  gameController.getPlayer().money +=100;
-			  gameController.getPlayer().rescale();
 			}
 			if(key == KeyEvent.VK_ESCAPE) {
 				openmenu();
