@@ -15,7 +15,6 @@ public class GameController implements GameControllerInterface {
   public static final int TIMER_DELAY = 60;
   public static final int REPAINT_DELAY = 20;
 
-  private Timer timer;
   private World world;
   private Panel panel;
   private Frame frame;
@@ -29,6 +28,29 @@ public class GameController implements GameControllerInterface {
     soundManager = new SoundManager();
     soundManager.loadResources();
     frame = new Frame(this, soundManager);
+    
+
+    world = new World(soundManager);
+    soundManager.addPlayerLocation(world);
+  }
+  
+  @Override
+  public void loadGame(String slot) {
+    world.load(slot);
+  }
+  
+  @Override
+  public World getWorld() {
+    return world;
+  }
+  
+  @Override
+  public void startNewGame(Race race) {
+    world.newgame(race);
+  }
+  @Override
+  public void saveGame(String slot) {
+    world.save(slot);
   }
   
   @Override
@@ -38,9 +60,9 @@ public class GameController implements GameControllerInterface {
       clas = (String)obj;
     }
     Race race = Race.parse(clas);
-    panel = new Panel(race, soundManager);
+    panel = new Panel(this, race, soundManager);
     if( obj instanceof SaveInstance ) {
-      panel.loadSave(((SaveInstance)obj).getFileNameNoExtension());
+      loadGame(((SaveInstance)obj).getFileNameNoExtension());
     }
 
 

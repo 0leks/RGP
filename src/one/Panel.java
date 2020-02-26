@@ -7,6 +7,7 @@ import java.awt.event.*;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import controller.*;
 import gui.Frame;
 import one.Mob.*;
 import sound.*;
@@ -24,7 +25,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
   public static final int GUIWIDTH = 300;
   public static final int GUIHEIGHT = 30;
   
-	private World world;
+//	private World world;
 	private ArrayList<Key> keys;
 	private Point mouse;
 	
@@ -42,9 +43,11 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 	private boolean gamestarted = false;
 	
 	private SoundManager soundManager;
+  private GameControllerInterface gameController;
 
-	public Panel(Race classType, SoundManager soundManager) {
+	public Panel(GameControllerInterface gameController, Race classType, SoundManager soundManager) {
 		Frame.println("Initializing Panel");
+    this.gameController = gameController;
 		this.soundManager = soundManager;
 		mouse = new Point(0, 0);
 		addMouseListener(this);
@@ -137,8 +140,8 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 		keys.add(new Key(KeyEvent.VK_SPACE, "space"));
 		keys.add(new Key(KeyEvent.VK_ENTER, "enter"));
 
-		world = new World(soundManager);
-		soundManager.addPlayerLocation(world);
+//		world = new World(soundManager);
+//		soundManager.addPlayerLocation(world);
 		updateSize();
 
 		Frame.println("Creating Menu Blink Timer with delay: " + BLINK_TIMER_DELAY);
@@ -156,7 +159,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 		Frame.println("Starting Menu Blink Timer");
 		menublinktimer.start();
 		
-    world.newgame(classType);
+		gameController.startNewGame(classType);
     if(!gamestarted) {
       gamestarted = true;
     }
@@ -166,29 +169,26 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 	
 	public void updateSize() {
     // initialize draw boundaries
-    world.MINDRAWX = 0 - World.DRAWCHECK;
-    world.MINDRAWY = 0 - World.DRAWCHECK;
+    gameController.getWorld().MINDRAWX = 0 - World.DRAWCHECK;
+    gameController.getWorld().MINDRAWY = 0 - World.DRAWCHECK;
 
     DIMX = this.getWidth();
     DIMY = this.getHeight();
     MIDX = (DIMX - GUIWIDTH) / 2;
     MIDY = (DIMY - GUIHEIGHT) / 2;
     
-    world.MAXDRAWX = DIMX - GUIWIDTH + World.DRAWCHECK;
-    world.MAXDRAWY = DIMY - GUIHEIGHT + World.DRAWCHECK;
+    gameController.getWorld().MAXDRAWX = DIMX - GUIWIDTH + World.DRAWCHECK;
+    gameController.getWorld().MAXDRAWY = DIMY - GUIHEIGHT + World.DRAWCHECK;
 	}
 	
-	public void loadSave(String slot) {
-    world.load(slot);
-	}
 	@Override
 	public void paintComponent(Graphics g) {
-    world.updateMouseLocation(mouse);
+	  gameController.getWorld().updateMouseLocation(mouse);
     super.paintComponent(g);
 	}
 	public void gameTic() {
 		if(active && gamestarted) {
-      world.move();
+		  gameController.getWorld().move();
 		}
 		
 		for(Key k : keys) {
@@ -228,59 +228,59 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 					}
 				} else {
 					if(k.name().equals("w")) {
-					  world.playerASDF.moveUp();
+					  gameController.getWorld().playerASDF.moveUp();
 					}
 					if(k.name().equals("a")) {
-					  world.playerASDF.moveLeft();
+					  gameController.getWorld().playerASDF.moveLeft();
 					}
 					if(k.name().equals("s")) {
-					  world.playerASDF.moveDown();
+					  gameController.getWorld().playerASDF.moveDown();
 					}
 					if(k.name().equals("d")) {
-					  world.playerASDF.moveRight();
+					  gameController.getWorld().playerASDF.moveRight();
 					}
-					if(!world.playerASDF.isInShop()) {
+					if(!gameController.getWorld().playerASDF.isInShop()) {
 						if(k.name().equals("up")) {
-							world.playerASDF.setAttack(AttackDirection.UP);
+						  gameController.getWorld().playerASDF.setAttack(AttackDirection.UP);
 						}
 						if(k.name().equals("left")) {
-							world.playerASDF.setAttack(AttackDirection.LEFT);
+						  gameController.getWorld().playerASDF.setAttack(AttackDirection.LEFT);
 						}
 						if(k.name().equals("down")) {
-							world.playerASDF.setAttack(AttackDirection.DOWN);
+						  gameController.getWorld().playerASDF.setAttack(AttackDirection.DOWN);
 						}
 						if(k.name().equals("right")) {
-							world.playerASDF.setAttack(AttackDirection.RIGHT);
+						  gameController.getWorld().playerASDF.setAttack(AttackDirection.RIGHT);
 						}
 					}
-					if(world.playerASDF.isInShop()) {
+					if(gameController.getWorld().playerASDF.isInShop()) {
 						if(k.name().equals("up") && k.justchecked == false) {
 							k.justchecked = true;
-							if(world.selected-5>=0)
-								world.selected-=5;
+							if(gameController.getWorld().selected-5>=0)
+							  gameController.getWorld().selected-=5;
 						}
 						if(k.name().equals("left") && k.justchecked == false) {
 							k.justchecked = true;
-							if(world.selected-1>=0)
-								world.selected--;
+							if(gameController.getWorld().selected-1>=0)
+							  gameController.getWorld().selected--;
 						}
 						if(k.name().equals("down") && k.justchecked == false) {
 							k.justchecked = true;
-							if(world.selected+5<world.inshop().onsale.size())
-								world.selected+=5;
+							if(gameController.getWorld().selected+5<gameController.getWorld().inshop().onsale.size())
+							  gameController.getWorld().selected+=5;
 						}
 						if(k.name().equals("right") && k.justchecked == false) {
 							k.justchecked = true;
-							if(world.selected+1<world.inshop().onsale.size())
-								world.selected++;
+							if(gameController.getWorld().selected+1<gameController.getWorld().inshop().onsale.size())
+							  gameController.getWorld().selected++;
 						}
-						if(k.name().equals("space") && k.justchecked == false && world.playerASDF.isInShop()) {
+						if(k.name().equals("space") && k.justchecked == false && gameController.getWorld().playerASDF.isInShop()) {
 							k.justchecked = true;
-							Shop s = world.inshop();
-							Item i = s.onsale.get(world.selected);
+							Shop s = gameController.getWorld().inshop();
+							Item i = s.onsale.get(gameController.getWorld().selected);
 							if(i.amount>0) {
-								if(world.playerASDF.buyItem(i)) {
-									s.buy(world.selected);
+								if(gameController.getWorld().playerASDF.buyItem(i)) {
+									s.buy(gameController.getWorld().selected);
 								}
 							}
 						}
@@ -291,16 +291,16 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 					
 				} else {
 					if(k.name().equals("w")) {
-					  world.playerASDF.stopMovingUp();
+					  gameController.getWorld().playerASDF.stopMovingUp();
 					}
 					if(k.name().equals("a")) {
-					  world.playerASDF.stopMovingLeft();
+					  gameController.getWorld().playerASDF.stopMovingLeft();
 					}
 					if(k.name().equals("s")) {
-					  world.playerASDF.stopMovingDown();
+					  gameController.getWorld().playerASDF.stopMovingDown();
 					}
 					if(k.name().equals("d")) {
-					  world.playerASDF.stopMovingRight();
+					  gameController.getWorld().playerASDF.stopMovingRight();
 					}
 				}
 				
@@ -321,49 +321,49 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
       }
     } else if(activemenu == optionsmenu) {
       if(b.is("low")) {
-        world.drawimage = false;
-        world.draw3d = false;
+        gameController.getWorld().drawimage = false;
+        gameController.getWorld().draw3d = false;
       }
       if(b.is("med")) {
-        world.drawimage = true;
-        world.draw3d = false;
+        gameController.getWorld().drawimage = true;
+        gameController.getWorld().draw3d = false;
       }
       if(b.is("high")) {
-        world.drawimage = true;
-        world.draw3d = true;
+        gameController.getWorld().drawimage = true;
+        gameController.getWorld().draw3d = true;
       }
       if( b.is("music")) {
-        world.toggleMusic();
+        gameController.getWorld().toggleMusic();
       }
     } else if(activemenu == customoptions) {
       if(b.is("useattackimage")) {
-        world.drawimage = !world.drawimage;
+        gameController.getWorld().drawimage = !gameController.getWorld().drawimage;
       }
       if(b.is("3d")) {
-        world.draw3d = !world.draw3d;
+        gameController.getWorld().draw3d = !gameController.getWorld().draw3d;
       }
     } else if(activemenu == savemenu) {
       if(b.is("slot1")) 
-        world.save("slot1");
+        gameController.saveGame("slot1");
       if(b.is("slot2")) 
-        world.save("slot2");
+        gameController.saveGame("slot2");
       if(b.is("slot3")) 
-        world.save("slot3");
+        gameController.saveGame("slot3");
       if(b.is("slot4")) 
-        world.save("slot4");
+        gameController.saveGame("slot4");
       if(b.is("slot5")) 
-        world.save("slot5");
+        gameController.saveGame("slot5");
     } else if(activemenu == loadmenu) {
       if(b.is("slot1")) 
-        loadSave("slot1");
+        gameController.loadGame("slot1");
       if(b.is("slot2")) 
-        loadSave("slot2");
+        gameController.loadGame("slot2");
       if(b.is("slot3")) 
-        loadSave("slot3");
+        gameController.loadGame("slot3");
       if(b.is("slot4")) 
-        loadSave("slot4");
+        gameController.loadGame("slot4");
       if(b.is("slot5")) 
-        loadSave("slot5");
+        gameController.loadGame("slot5");
     } else if(activemenu == newgamemenu) {
       if(b.is("newgame")) {
         Race race = null;
@@ -380,7 +380,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
           }
         }
         soundManager.unlockSound();
-        world.newgame(race);
+        gameController.startNewGame(race);
         if(!gamestarted) {
           gamestarted = true;
         }
@@ -388,7 +388,7 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
       }
       if(b.is("back")) {
         if(!gamestarted) {
-          world.newgame(Race.HUMAN);
+          gameController.startNewGame(Race.HUMAN);
           gamestarted = true;
         } else {
           activemenu.setsel(0);
@@ -420,12 +420,12 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 		g2d.setColor(Color.blue);
 		
 		if(gamestarted)
-			world.draw(g2d);
+			gameController.getWorld().draw(g2d);
 
-    if( world.playerASDF.isDead() ) {
-      g.setColor(new Color( 0, 0, 0, (world.deathTransparency++)/4) );
-      if( world.deathTransparency > 1020) {
-        world.deathTransparency = 1020;
+    if( gameController.getWorld().playerASDF.isDead() ) {
+      g.setColor(new Color( 0, 0, 0, (gameController.getWorld().deathTransparency++)/4) );
+      if( gameController.getWorld().deathTransparency > 1020) {
+        gameController.getWorld().deathTransparency = 1020;
       }
       g2d.fillRect(0, 0, DIMX, DIMY);
     }
@@ -501,32 +501,32 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 				
 			}
 			if(key == KeyEvent.VK_U) {
-				world.playerASDF.agilitybuff += 1000;
-				world.playerASDF.strengthbuff += 1000;
-				world.playerASDF.regenbuff += 1;
-				world.playerASDF.lvlup();
+			  gameController.getWorld().playerASDF.agilitybuff += 1000;
+			  gameController.getWorld().playerASDF.strengthbuff += 1000;
+			  gameController.getWorld().playerASDF.regenbuff += 1;
+			  gameController.getWorld().playerASDF.lvlup();
 			}
       if(key == KeyEvent.VK_P) {
         World.NO_COLLISION = !World.NO_COLLISION;
       }
       if(key == KeyEvent.VK_K) {
-        world.playerASDF.experience += 4000;
-        world.playerASDF.lvlup();
+        gameController.getWorld().playerASDF.experience += 4000;
+        gameController.getWorld().playerASDF.lvlup();
       }
       if(key == KeyEvent.VK_L) {
         World.ZOOM = (World.ZOOM==8)?1:8;
       }
 			if(key == KeyEvent.VK_O) {
-				world.playerASDF.agilitybuff += 100;
-				world.playerASDF.lvlup();
+			  gameController.getWorld().playerASDF.agilitybuff += 100;
+			  gameController.getWorld().playerASDF.lvlup();
 			}
 			if(key == KeyEvent.VK_I) {
-				world.playerASDF.accel++;
-				world.playerASDF.lvlup();
+			  gameController.getWorld().playerASDF.accel++;
+			  gameController.getWorld().playerASDF.lvlup();
 			}
 			if(key == KeyEvent.VK_C) {
-				world.playerASDF.money +=100;
-				world.playerASDF.rescale();
+			  gameController.getWorld().playerASDF.money +=100;
+			  gameController.getWorld().playerASDF.rescale();
 			}
 			if(key == KeyEvent.VK_ESCAPE) {
 				openmenu();
