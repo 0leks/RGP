@@ -343,39 +343,21 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
         gameController.getWorld().draw3d = !gameController.getWorld().draw3d;
       }
     } else if(activemenu == savemenu) {
-      if(b.is("slot1")) 
-        gameController.saveGame("slot1");
-      if(b.is("slot2")) 
-        gameController.saveGame("slot2");
-      if(b.is("slot3")) 
-        gameController.saveGame("slot3");
-      if(b.is("slot4")) 
-        gameController.saveGame("slot4");
-      if(b.is("slot5")) 
-        gameController.saveGame("slot5");
+      if(b.name().contains("slot")) {
+        gameController.saveGame(b.name());
+      }
     } else if(activemenu == loadmenu) {
-      if(b.is("slot1")) 
-        gameController.loadGame("slot1");
-      if(b.is("slot2")) 
-        gameController.loadGame("slot2");
-      if(b.is("slot3")) 
-        gameController.loadGame("slot3");
-      if(b.is("slot4")) 
-        gameController.loadGame("slot4");
-      if(b.is("slot5")) 
-        gameController.loadGame("slot5");
+      if(b.name().contains("slot")) {
+        gameController.loadGame(b.name());
+      }
     } else if(activemenu == newgamemenu) {
       if(b.is("newgame")) {
         Race race = null;
-        String weap = "";
         for(MenuButton m : activemenu.buts) {
           if(m instanceof MenuButtonGroup) {
             MenuButtonGroup mbg = (MenuButtonGroup)m;
             if(mbg.is("Race")) {
               race = Race.parse(mbg.getSelected().name());
-            }
-            if(mbg.is("Weapon")) {
-              weap = mbg.getSelected().name();
             }
           }
         }
@@ -409,7 +391,6 @@ public class Panel extends JPanel implements MouseListener,	MouseMotionListener 
 		super.paint(g);
 		
 		Font small = new Font("Helvetica", Font.BOLD, 15);
-		FontMetrics metr = this.getFontMetrics(small);
 		g.setColor(Color.black);
 		g.setFont(small);
 		Graphics2D g2d = (Graphics2D) g;
