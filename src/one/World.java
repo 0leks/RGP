@@ -7,6 +7,7 @@ import java.util.concurrent.*;
 
 import gui.*;
 import gui.Frame;
+import one.Debuff.*;
 import one.Mob.*;
 import player.*;
 import resources.*;
@@ -16,7 +17,7 @@ public class World implements Serializable, PlayerLocation {
   
   // SETTINGS
 	public static final int THREE_D_RATIO = 8;
-	public static final boolean DRAWPLAYEROBSTACLES = true;
+	public static final boolean DRAWPLAYEROBSTACLES = false;
 	public static boolean NO_COLLISION = false;
   public static int ZOOM = 1;
 	
@@ -24,7 +25,7 @@ public class World implements Serializable, PlayerLocation {
 	// default settings
   public boolean drawimage = true;
   public boolean draw3d = true;
-  public static boolean playmusic = false;
+  public static boolean playmusic = true;
   
 
   public static final int CANTMOVE = -1;
@@ -315,6 +316,9 @@ public class World implements Serializable, PlayerLocation {
       g.setColor(Color.black);
     }
     Color[] col = { g.getColor(), Color.red, new Color(0, 200, 0), Color.magenta, Color.cyan};
+    if( mob.isSlowed() ) {
+      col[0] = Mob.SLOW_COLOR;
+    }
     if( mob.isStunned() ) {
       col[0] = Mob.BASH_COLOR;
     }
@@ -389,13 +393,14 @@ public class World implements Serializable, PlayerLocation {
         g2d.translate(-nx, -ny);
       });
     }
+    g.setColor(Color.blue);
+    if( player.isSlowed() ) {
+      g.setColor(Mob.SLOW_COLOR);
+    }
     if( player.isStunned() ) {
       g.setColor(Mob.BASH_COLOR);
     }
-    else if(!player.isDead()) {
-      g.setColor(Color.blue);
-    }
-    else {
+    if(player.isDead()) {
       g.setColor(Color.black);
     }
     g.fill(new Rectangle(drawx-w/2, drawy-h/2, w, h));
@@ -1575,7 +1580,8 @@ public class World implements Serializable, PlayerLocation {
     newmob.lvlupto(80);
     
     ArrayList<Debuff> debuffs = new ArrayList<>();
-    debuffs.add(new Debuff(Debuff.STUN, 5, 0.6));
+    debuffs.add(new Debuff(DebuffType.STUN, 5, 0.75));
+    debuffs.add(new Debuff(DebuffType.SLOW, 5, 0.5));
     ProjectileRegion region = new ProjectileRegion(-2500, -2550, 900, 3850, this, 200, 100, debuffs) {
       @Override
       public Point getNewSpawnLocation() {

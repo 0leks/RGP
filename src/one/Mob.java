@@ -5,6 +5,8 @@ import java.awt.Rectangle;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import one.Debuff.*;
+
 
 public class Mob extends Thing {
   
@@ -23,6 +25,7 @@ public class Mob extends Thing {
   }
   
   public static final Color BASH_COLOR = Color.GRAY;
+  public static final Color SLOW_COLOR = new Color(20, 20, 150);
   
   private static final int STR_HEALTH_MULTIPLIER = 2;
 
@@ -93,7 +96,8 @@ public class Mob extends Thing {
 	private ArrayList<Crit> crits;
 	
 	public ArrayList<Buff> buffs;
-	public Debuff[] debuffs;
+//	public Debuff[] debuffs;
+	public HashMap<DebuffType, Debuff> debuffs;
 	
 	protected Queue<Popup> popups;
 	private Popup poisonpopup;
@@ -108,9 +112,10 @@ public class Mob extends Thing {
 		buffs = new ArrayList<Buff>();
 		crits = new ArrayList<Crit>();
 		popups = new ConcurrentLinkedQueue<Popup>();
-		debuffs = new Debuff[Debuff.TOTAL];
-		debuffs[Debuff.STUN] = new Debuff( Debuff.STUN, 0 );
-    debuffs[Debuff.POISON] = new Debuff( Debuff.POISON, 0 );
+		debuffs = new HashMap<>();
+		for( DebuffType type : DebuffType.values() ) {
+	    debuffs.put(type, new Debuff( type, 0 ));
+		}
 		race = r;
 		ai = sai;
 		addcrit(new Crit(100, 1));
@@ -217,27 +222,30 @@ public class Mob extends Thing {
 		crits.remove(c);
 	}
 	public void clearDebuffs() {
-	  for( int a = 0; a < debuffs.length; a++ ) {
-	    debuffs[a].duration = 0;
+	  for( Debuff debuff : debuffs.values() ) {
+	    debuff.duration = 0;
 	  }
 	}
 	public void applyDebuff( Debuff d ) {
-	  
-	  Debuff existing = debuffs[d.type];
+	  Debuff existing = debuffs.get(d.type);
 	  if( d.duration > existing.duration ) {
-//	    System.out.println("Updated " + debuffs[d.type]);
-	    debuffs[d.type] = new Debuff(d);
-//	    System.out.println(" to " + debuffs[d.type]);
+	    debuffs.put(d.type, new Debuff(d));
 	  }
-	  
 	}
 	
 	public boolean isStunned( ) {
-	  if( debuffs[Debuff.STUN].duration > 0 ) {
+	  if( debuffs.get(DebuffType.STUN).duration > 0 ) {
 	    return true;
 	  }
 	  return false;
 	}
+
+  public boolean isSlowed( ) {
+    if( debuffs.get(DebuffType.SLOW).duration > 0 ) {
+      return true;
+    }
+    return false;
+  }
 	
 	public void addbuff(Buff b) {
 		if(b.isMultiplier()){ 
@@ -355,26 +363,33 @@ public class Mob extends Thing {
 		return new Rectangle(x-w/2+getXSpeed(), y-h/2+getYSpeed(), w, h);
 	}
 	
+	private void decrementDebuffs() {
+	  for( Debuff debuff : debuffs.values() ) {
+	    if( debuff.duration > 0 ) {
+	      debuff.duration--;
+	    }
+	  }
+	}
+	
 	public void handlePoison() {
-	  if( debuffs[Debuff.POISON].duration > 0 ) { // If its poisoned
-      debuffs[Debuff.POISON].duration--; // reduce the duration of the poison
-      
+	  Debuff poisonDebuff = debuffs.get(DebuffType.POISON);
+	  if( poisonDebuff.duration > 0 ) { // If its poisoned
       // If die from the poison
-      if( this.damage(debuffs[Debuff.POISON].damage) ) {
+      if( this.damage(poisonDebuff.damage) ) {
         clearDebuffs(); // clear debuffs so that it isn't still poisoned on respawn.
         poisonpopup = null; // delete the green poison damage popup
       } else {
         if( poisonpopup == null || poisonpopup.done()) { // if it does not currently have a poison popup
-          damagefrompoison = debuffs[Debuff.POISON].damage;
+          damagefrompoison = poisonDebuff.damage;
           
-          int durationOfPopup = (debuffs[Debuff.POISON].duration<100)?300:debuffs[Debuff.POISON].duration; // duration of popup is 100 or more
+          int durationOfPopup = (poisonDebuff.duration<100)?300:poisonDebuff.duration; // duration of popup is 100 or more
           
-          poisonpopup = new Popup(debuffs[Debuff.POISON].damage+"", durationOfPopup, Color.green);
+          poisonpopup = new Popup(poisonDebuff.damage+"", durationOfPopup, Color.green);
           
           this.popups.add(poisonpopup);
         }
         else {
-          damagefrompoison += debuffs[Debuff.POISON].damage;
+          damagefrompoison += poisonDebuff.damage;
           poisonpopup.string = damagefrompoison + "";
         }
       }
@@ -403,6 +418,7 @@ public class Mob extends Thing {
 		if(!isDead()) {
 			rescale(); // something to do with stats
 			lvlup(); // check if it got a level up
+			decrementDebuffs();
       handlePoison();
       
       fillHealingBuffer();
@@ -532,10 +548,7 @@ public class Mob extends Thing {
 			}
 
       // can only move and attack if not stunned
-			if( debuffs[Debuff.STUN].duration > 0 ) {
-			  debuffs[Debuff.STUN].duration --;
-			}
-			else {
+			if( !isStunned() ) {
 			  // Attempt to move 5 times, each time a smaller distance 
 			  for( int a = 0; a < 5; a++ ) {
     			int col = myworld.collides(this);
@@ -851,7 +864,11 @@ public class Mob extends Thing {
 	 * @return
 	 */
 	public int getAccel() {
-		return (int) (accel*accelerationMultiplier);
+	  double slowMultiplier = 1.0;
+	  if( isSlowed() ) {
+	    slowMultiplier = 0.5;
+	  }
+		return (int) (accel*accelerationMultiplier*slowMultiplier);
 	}
 	
 	

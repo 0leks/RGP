@@ -9,6 +9,8 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 
+import one.Debuff.*;
+
 public class Weapon extends Item {
 	public int width, length;
 	public int range;
@@ -82,6 +84,7 @@ public class Weapon extends Item {
       rank = 8;
     } else if(name.contains("frost")) {
       rank = 9;
+      debuffs.add(new Debuff(DebuffType.SLOW, 5, 0.8));
     }
 		int multiplier = (int) Math.pow(rank, 2);
 		if (name.contains("bomb")) {
@@ -89,7 +92,7 @@ public class Weapon extends Item {
 			length = 200+40*rank;
 			range = 2*rank;
 			addbuff(Attribute.DAMAGE, 5+6*multiplier, true);
-      Debuff d = new Debuff( Debuff.STUN, 10 + rank*2, .5);
+      Debuff d = new Debuff( DebuffType.STUN, 10 + rank*2, .5);
       debuffs.add(d);
 			cost = 100+12*multiplier;
 		}
@@ -100,7 +103,7 @@ public class Weapon extends Item {
 			addbuff(Attribute.DAMAGE, 4+3*multiplier, true);
 			addbuff(Attribute.STRENGTH, 5+5*multiplier, true);
 			addcrit(5+rank, 1+.35*rank);
-      Debuff d = new Debuff( Debuff.STUN, 20 + rank*6, .8);
+      Debuff d = new Debuff( DebuffType.STUN, 20 + rank*6, .8);
       debuffs.add(d);
 			cost = 8*multiplier;
 		}
@@ -119,7 +122,7 @@ public class Weapon extends Item {
 			range = 2*rank;
 			addbuff(Attribute.DAMAGE, 3+multiplier*3, true);
 			addbuff(Attribute.INTELLIGENCE, 1+3*multiplier, true);
-      Debuff d = new Debuff( Debuff.STUN, 12, .8 - rank/20.0);
+      Debuff d = new Debuff( DebuffType.STUN, 12, .8 - rank/20.0);
       debuffs.add(d);
 			cost = 5*multiplier;
 		}
@@ -130,7 +133,7 @@ public class Weapon extends Item {
 			addbuff(Attribute.DAMAGE, 3+2*multiplier, true);
 			addbuff(Attribute.AGILITY, 1+1*multiplier/2, true);
 			addbuff(Attribute.ATTACK_DELAY, 100-6*rank, false);
-      Debuff d = new Debuff( Debuff.POISON, 10 + multiplier/2);
+      Debuff d = new Debuff( DebuffType.POISON, 10 + multiplier/2);
       d.damage = 2;
       debuffs.add(d);
 			cost = 6*multiplier;
@@ -141,7 +144,7 @@ public class Weapon extends Item {
 			range = 30+0*rank;
 			addbuff(Attribute.DAMAGE, 4+multiplier*4, true);
 			addbuff(Attribute.INTELLIGENCE, 2+4*multiplier, true);
-      Debuff d = new Debuff( Debuff.STUN, 12, .75 - rank/20.0);
+      Debuff d = new Debuff( DebuffType.STUN, 12, .75 - rank/20.0);
       debuffs.add(d);
       //TODO add new debuff weakness next attack deals less damage
 			cost = 10*multiplier;
@@ -162,7 +165,7 @@ public class Weapon extends Item {
 //			addbuff("dmg", 10+rank*10, false);
 			addbuff(Attribute.DAMAGE, 0, false);
 			addbuff(Attribute.HEALTH, 100-rank*10, false);
-      Debuff d = new Debuff( Debuff.POISON, 1);
+      Debuff d = new Debuff( DebuffType.POISON, 1);
       d.damage = rank;
       debuffs.add(d);
 			continuous = true;
@@ -173,10 +176,10 @@ public class Weapon extends Item {
       length = 750;
       range = 5;
       addbuff(Attribute.DAMAGE, 0, false);
-      Debuff d = new Debuff( Debuff.POISON, 1);
+      Debuff d = new Debuff( DebuffType.POISON, 1);
       d.damage = 5;
       debuffs.add(d);
-      d = new Debuff( Debuff.STUN, 1, .95);
+      d = new Debuff( DebuffType.STUN, 1, .95);
       debuffs.add(d);
       continuous = true;
       cost = 500;
@@ -210,7 +213,7 @@ public class Weapon extends Item {
 			addbuff(Attribute.REGEN, 500, false);
 			addbuff(Attribute.ATTACK_DELAY, 40, false);
 			addbuff(Attribute.HEALTH, 500, false);
-      Debuff d = new Debuff( Debuff.STUN, 50, .1);
+      Debuff d = new Debuff( DebuffType.STUN, 50, .1);
       debuffs.add(d);
 			cost = 9999;
 		}
@@ -262,7 +265,7 @@ public class Weapon extends Item {
 			addbuff(Attribute.DAMAGE, 10, true);
 			addbuff(Attribute.AGILITY, 100, true);
 			addcrit(40, 0.3);
-      Debuff d = new Debuff( Debuff.POISON, 50, .0);
+      Debuff d = new Debuff( DebuffType.POISON, 50, .0);
       d.damage = 5;
       debuffs.add(d);
 			cost = 30;
